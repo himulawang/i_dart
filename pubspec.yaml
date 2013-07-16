@@ -1,0 +1,8 @@
+name: test
+description: A sample command-line application
+dependencies:
+  dartredisclient: any
+  lawndart: any
+
+#dependencies:
+#  unittest: any
