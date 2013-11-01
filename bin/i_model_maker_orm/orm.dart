@@ -1,6 +1,6 @@
 library orm;
 
-List orm = 
+List orm =
 [
   {
     "name": 'Connection',

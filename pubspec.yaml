@@ -1,8 +1,9 @@
-name: test
-description: A sample command-line application
+name: i_dart
+description: ParaNoidz I Framework for Dart
 dependencies:
-  dartredisclient: any
+  #dartredisclient: any
   lawndart: any
+  protobuf: any
 
 #dependencies:
 #  unittest: any
