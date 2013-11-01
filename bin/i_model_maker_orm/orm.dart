@@ -4,6 +4,9 @@ List orm =
 [
   {
     "name": 'Connection',
+    "list": 'ConnectionList',
+    "pk": 0,
+    "pkAutoIncrement": true,
     "abb": 'c',
     "column": [
       'id',
@@ -17,9 +20,6 @@ List orm =
     "toArrayFilter": [],
     "toAbbFilter": [2],
     "toListFilter": [],
-    "pk": 0,
-    "pkAutoIncrement": true,
-    "list": 'ConnectionList',
     "storeType": null,
   }
 ];

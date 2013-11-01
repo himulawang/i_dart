@@ -5,19 +5,50 @@ packages:
     description: crypto
     source: hosted
     version: "0.8.7"
-  fixnum:
-    description: fixnum
+  dartmixins:
+    description: dartmixins
     source: hosted
-    version: "0.8.7"
+    version: "0.0.1"
   lawndart:
     description: lawndart
     source: hosted
     version: "0.6.4"
+  logging:
+    description: logging
+    source: hosted
+    version: "0.8.7"
   meta:
     description: meta
     source: hosted
     version: "0.8.7"
-  protobuf:
-    description: protobuf
+  options_file:
+    description: options_file
     source: hosted
-    version: "0.2.0+3"
+    version: "0.9.14"
+  path:
+    description: path
+    source: hosted
+    version: "0.8.7"
+  redis_client:
+    description:
+      ref: null
+      resolved-ref: "72e5f36c0f3379071b15bc681d5fc04d0ff159be"
+      url: "https://github.com/dartist/redis_client.git"
+    source: git
+    version: "0.1.4-dev"
+  sqljocky:
+    description: sqljocky
+    source: hosted
+    version: "0.6.1"
+  stack_trace:
+    description: stack_trace
+    source: hosted
+    version: "0.8.7"
+  unittest:
+    description: unittest
+    source: hosted
+    version: "0.8.7"
+  unmodifiable_collection:
+    description: unmodifiable_collection
+    source: hosted
+    version: "0.8.7"

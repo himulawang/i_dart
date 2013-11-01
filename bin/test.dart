@@ -1,6 +1,7 @@
-import 'model/lib_i_model.dart';
+//import 'model/lib_i_model.dart';
 import 'dart:convert';
-//import 'package:dartredisclient/redis_client.dart';
+import 'package:redis_client/redis_client.dart';
+
 void main() {
   
   RedisClient client = new RedisClient("localhost:6379/0");
@@ -11,6 +12,7 @@ void main() {
   
   });
 
+/*
   var connectionList = new ConnectionList(1);
   
   var connection1 = new Connection();
@@ -29,7 +31,6 @@ void main() {
   connectionList.add(connection2);
   
   print(connectionList.toArray());
-  /*
   var model = new Model();
   
   model._pk = 1;
