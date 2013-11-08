@@ -1,0 +1,4 @@
+class IStoreRDBModel {
+  IStoreRDBModel() {
+  }
+}

@@ -7,4 +7,5 @@ dependencies:
   sqljocky: any
   redis_client:
     git:
+      ref: latestdart
       url: https://github.com/dartist/redis_client.git

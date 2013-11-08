@@ -8,3 +8,4 @@ part of lib_i_model;
 class Connection extends ConnectionBase {
   Connection([args = null]) : super(args){}
 }
+

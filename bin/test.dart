@@ -3,7 +3,23 @@ import 'dart:convert';
 import 'package:redis_client/redis_client.dart';
 
 void main() {
-  
+
+  RedisClient rdb;
+  String connectionString = 'localhost:6379';
+  RedisClient.connect(connectionString)
+    .then((RedisClient client) {
+      rdb = client;
+      client.set('test', 'ila')
+        .then((_) => client.get('test'))
+        .then((value) => print(value))
+        .then((_) => client.close())
+        .then((_) => print('rdb closed;'))
+      ;
+    });
+
+
+
+/*
   RedisClient client = new RedisClient("localhost:6379/0");
   
   client.info.then((info) {
@@ -12,7 +28,6 @@ void main() {
   
   });
 
-/*
   var connectionList = new ConnectionList(1);
   
   var connection1 = new Connection();

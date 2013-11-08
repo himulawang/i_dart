@@ -1,4 +1,4 @@
-import 'i_model_maker/i_model_maker.dart';
+import 'i_model_maker/lib_i_maker.dart';
 import 'i_model_maker_orm/orm.dart';
 
 void main() {
