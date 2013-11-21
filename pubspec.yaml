@@ -1,11 +1,6 @@
 name: i_dart
 description: ParaNoidz I Framework for Dart
 dependencies:
-  #dartredisclient: any
   lawndart: any
-  #protobuf: any
   sqljocky: any
-  redis_client:
-    git:
-      ref: latestdart
-      url: https://github.com/dartist/redis_client.git
+  redis_client: any

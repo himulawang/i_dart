@@ -75,7 +75,10 @@ class IMaker {
 
     return lowerName;
   }
-
+  String makeUpperFirstLetter(String word) {
+    if (word.length <= 1) return word.toUpperCase();
+    return word[0].toUpperCase() + word.substring(1);
+  }
   // file system
   void copyFile(String srcPath, String srcFileName, String targetPath, String targetFileName) {
     File file = new File('${srcPath}/${srcFileName}');
