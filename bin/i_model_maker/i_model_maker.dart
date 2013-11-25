@@ -139,11 +139,19 @@ class ${orm['name']} extends IModel {
     }
   }
 
-  List toAddList([bool filterOn = false]) {
+  List toAddFixedList([bool filterOn = false]) {
     List result = new List.filled(_length, null);
     for (int i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toAdd']) continue;
       result[i] = _args[i];
+    }
+    return result;
+  }
+  List toAddList([bool filterOn = false]) {
+    List result = [];
+    for (int i = 0; i < _length; ++i) {
+      if (filterOn && _columns[i]['toAdd']) continue;
+      result.add(_args[i]);
     }
     return result;
   }
@@ -164,11 +172,19 @@ class ${orm['name']} extends IModel {
     return result;
   }
 
-  List toSetList([bool filterOn = false]) {
+  List toSetFixedList([bool filterOn = false]) {
     List result = new List.filled(_length, null);
     for (int i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toSet']) continue;
       if (_updatedList[i]) result[i] = _args[i].toString();
+    }
+    return result;
+  }
+  List toSetList([bool filterOn = false]) {
+    List result = [];
+    for (int i = 0; i < _length; ++i) {
+      if (filterOn && _columns[i]['toSet']) continue;
+      if (_updatedList[i]) result.add(_args[i].toString());
     }
     return result;
   }
@@ -189,11 +205,19 @@ class ${orm['name']} extends IModel {
     return result;
   }
 
-  List toList([bool filterOn = false]) {
+  List toFixedList([bool filterOn = false]) {
     List result = new List.filled(_length, null);
     for (int i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toList']) continue;
       if (_updatedList[i]) result[i] = _args[i].toString();
+    }
+    return result;
+  }
+  List toList([bool filterOn = false]) {
+    List result = [];
+    for (int i = 0; i < _length; ++i) {
+      if (filterOn && _columns[i]['toList']) continue;
+      if (_updatedList[i]) result.add(_args[i].toString());
     }
     return result;
   }
@@ -275,6 +299,7 @@ library lib_i_model;
 import 'dart:async';
 
 import 'package:redis_client/redis_client.dart';
+import 'package:sqljocky/sqljocky.dart';
 
 part './i_core/i_model_exception.dart';
 part './i_core/i_model.dart';
@@ -285,10 +310,19 @@ part './i_model/${lowerName}.dart';
 part './i_model/${lowerName}_pk.dart';
 part './i_model/${lowerName}_list.dart';
 
-// TODO Delete
-part '../bin/i_store_rdb/connection_store.dart';
-part '../bin/i_model_maker/i_store_exception.dart';
+// handler pool
 part '../bin/i_store_rdb/i_rdb_handler_pool.dart';
+part '../bin/i_store_mdb/i_mdb_handler_pool.dart';
+// parent store
+part '../bin/i_store_rdb/i_rdb_store.dart';
+part '../bin/i_store_mdb/i_mdb_store.dart';
+
+part '../bin/i_store_rdb/connection_rdb_store.dart';
+part '../bin/i_store_mdb/connection_mdb_store.dart';
+
+part '../bin/i_store_rdb/connection_store.dart';
+
+part '../bin/i_model_maker/i_store_exception.dart';
 part '../bin/i_model_config/store.dart';
 part '../bin/i_model_maker/i_util_hash.dart';
 ''';

@@ -9,15 +9,18 @@ abstract class IModel {
   getPK();
 
   bool isUpdated();
-  
+
+  List toAddFixedList([bool filterOn = false]);
   List toAddList([bool filterOn = false]);
   Map toAddFull([bool filterOn = false]);
   Map toAddAbb([bool filterOn = false]);
-  
-  List toUpdateList([bool filterOn = false]);
-  Map toUpdateFull([bool filterOn = false]);
-  Map toUpdateAbb([bool filterOn = false]);
-  
+
+  List toSetFixedList([bool filterOn = false]);
+  List toSetList([bool filterOn = false]);
+  Map toSetFull([bool filterOn = false]);
+  Map toSetAbb([bool filterOn = false]);
+
+  List toFixedList([bool filterOn = false]);
   List toList([bool filterOn = false]);
   Map toArray([bool filterOn = false]);
   Map toAbb([bool filterOn = false]);

@@ -14,9 +14,7 @@ class IRedisHandlerPool {
     _instance = new IRedisHandlerPool._internal(config);
 
     // for configs
-    config.keys.forEach((String groupName) {
-      List group = config[groupName];
-
+    config.forEach((String groupName, List group) {
       // get groupName
       dbs[groupName] = new List<int, RedisClient>(group.length);
       nodesLength[groupName] = group.length;
@@ -52,8 +50,8 @@ class IRedisHandlerPool {
     connectionSB.write(node['host']);
 
     connectionSB.write(':');
-    if (node['port'] is String) {
-      connectionSB.write(node['port']);
+    if (node['port'] is int) {
+      connectionSB.write(node['port'].toString());
     } else {
       connectionSB.write('6379');
     }

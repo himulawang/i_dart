@@ -14,9 +14,9 @@ abstract class IModel {
   Map toAddFull([bool filterOn = false]);
   Map toAddAbb([bool filterOn = false]);
   
-  List toUpdateList([bool filterOn = false]);
-  Map toUpdateFull([bool filterOn = false]);
-  Map toUpdateAbb([bool filterOn = false]);
+  List toSetList([bool filterOn = false]);
+  Map toSetFull([bool filterOn = false]);
+  Map toSetAbb([bool filterOn = false]);
   
   List toList([bool filterOn = false]);
   Map toArray([bool filterOn = false]);

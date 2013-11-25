@@ -14,5 +14,6 @@ class IModelException {
   IModelException(int code, [List parameters]) {
     _code = code;
     _parameters = parameters;
+    print('${code}:${_CODES[code.toString()]}');
   }
 }
