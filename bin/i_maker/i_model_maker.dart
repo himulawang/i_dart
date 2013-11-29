@@ -1,20 +1,27 @@
-part of maker;
+part of i_maker;
 
 class IModelMaker extends IMaker {
+  String _outModelCoreDir;
+  String _srcModelCoreDir;
+  String _outModelDir;
 
   IModelMaker(List orm) : super() {
     _orm = orm;
   }
 
   void make(String targetPath) {
-    // create i_model i_store directory
+    _srcModelCoreDir = '${_rootDir}/../bin/i_model_core';
+    _outModelCoreDir = '${targetPath}/i_model_core';
+    _outModelDir = '${targetPath}/model';
+
+    // create i_model directory
     makeSubDir(targetPath);
 
     // copy base model
-    copyFile(_srcPath, 'i_pk.dart', _outCoreDir, 'i_pk.dart');
-    copyFile(_srcPath, 'i_model.dart', _outCoreDir, 'i_model.dart');
-    copyFile(_srcPath, 'i_list.dart', _outCoreDir, 'i_list.dart');
-    copyFile(_srcPath, 'i_model_exception.dart', _outCoreDir, 'i_model_exception.dart');
+    copyFile(_srcModelCoreDir, 'i_pk.dart', _outModelCoreDir, 'i_pk.dart');
+    copyFile(_srcModelCoreDir, 'i_model.dart', _outModelCoreDir, 'i_model.dart');
+    copyFile(_srcModelCoreDir, 'i_list.dart', _outModelCoreDir, 'i_list.dart');
+    copyFile(_srcModelCoreDir, 'i_model_exception.dart', _outModelCoreDir, 'i_model_exception.dart');
 
     // make model files
     _orm.forEach((orm) {
@@ -48,7 +55,7 @@ class IModelMaker extends IMaker {
         'toAdd': orm['toAddFilter'].contains(i),
         'toSet': orm['toSetFilter'].contains(i),
         'toAbb': orm['toAbbFilter'].contains(i),
-        'toArray': orm['toArrayFilter'].contains(i),
+        'toFull': orm['toFullFilter'].contains(i),
         'toList': orm['toListFilter'].contains(i),
       });
       
@@ -64,6 +71,7 @@ class ${orm['name']} extends IModel {
   static const String _abb = '${orm['abb']}';
   static const String _name = '${orm['name']}';
   static const String _listName = '${orm['listName']}';
+  static const String _pkName = '${orm['column'][orm['pk']]}';
 
   static const int _pk = ${orm['pk']};
   static const int _length = ${length};
@@ -99,6 +107,7 @@ class ${orm['name']} extends IModel {
   String getAbb() => _abb;
   String getName() => _name;
   String getListName() => _listName;
+  String getPKName() => _pkName;
   String getColumnCount() => _length;
 
   Map getColumns() => _columns;
@@ -192,7 +201,7 @@ class ${orm['name']} extends IModel {
     Map result = {};
     _mapFull.forEach((full, i) {
       if (filterOn && _columns[i]['toSet']) return;
-      result[full] = _args[i];
+      if (_updatedList[i]) result[full] = _args[i];
     });
     return result;
   }
@@ -200,7 +209,7 @@ class ${orm['name']} extends IModel {
     Map result = {};
     _mapAbb.forEach((abb, i) {
       if (filterOn && _columns[i]['toSet']) return;
-      result[abb] = _args[i];
+      if (_updatedList[i]) result[abb] = _args[i];
     });
     return result;
   }
@@ -221,10 +230,10 @@ class ${orm['name']} extends IModel {
     }
     return result;
   }
-  Map toArray([bool filterOn = false]) {
+  Map toFull([bool filterOn = false]) {
     Map result = {};
     _mapFull.forEach((full, i) {
-      if (filterOn && _columns[i]['toArray']) return;
+      if (filterOn && _columns[i]['toFull']) return;
       result[full] = _args[i];
     });
     return result;
@@ -240,9 +249,26 @@ class ${orm['name']} extends IModel {
 
   void fromList(List data, [bool changeUpdatedList = false]) {
     if (data is! List || data.length != _length) throw new IModelException(10006);
-
     _args = data;
     if (changeUpdatedList) setUpdatedList(true);
+  }
+  void fromFull(Map data, [bool changeUpdatedList = false]) {
+    if (data is! Map) throw new IModelException(10008);
+
+    _mapFull.forEach((String full, num i) {
+      if (!data.containsKey(full)) return;
+      _args[i] = data[full];
+      if (changeUpdatedList) _updatedList[i] = true;
+    });
+  }
+  void fromAbb(Map data, [bool changeUpdatedList = false]) {
+    if (data is! Map) throw new IModelException(10007);
+
+    _mapAbb.forEach((String abb, num i) {
+      if (!data.containsKey(abb)) return;
+      _args[i] = data[abb];
+      if (changeUpdatedList) _updatedList[i] = true;
+    });
   }
 
   void markForAdd([bool flag = true]) {
@@ -292,39 +318,39 @@ class ${name}List extends IList {
 ${_DECLARATION}
 library lib_i_model;
 
-''';
-    _orm.forEach((Map orm) {
-      String lowerName = makeLowerUnderline(orm['name']);
-      code += '''
 import 'dart:async';
 
 import 'package:redis_client/redis_client.dart';
 import 'package:sqljocky/sqljocky.dart';
+import 'package:logging/logging.dart';
 
-part './i_core/i_model_exception.dart';
-part './i_core/i_model.dart';
-part './i_core/i_pk.dart';
-part './i_core/i_list.dart';
+// util
+part '../bin/i_util/i_log.dart';
 
-part './i_model/${lowerName}.dart';
-part './i_model/${lowerName}_pk.dart';
-part './i_model/${lowerName}_list.dart';
+// model
+part './i_model_core/i_model_exception.dart';
+part './i_model_core/i_model.dart';
+part './i_model_core/i_pk.dart';
+part './i_model_core/i_list.dart';
 
-// handler pool
-part '../bin/i_store_rdb/i_rdb_handler_pool.dart';
-part '../bin/i_store_mdb/i_mdb_handler_pool.dart';
-// parent store
-part '../bin/i_store_rdb/i_rdb_store.dart';
-part '../bin/i_store_mdb/i_mdb_store.dart';
+// store
+part './i_store_core/i_store_exception.dart';
+part './i_store_core/i_rdb_store.dart';
+part './i_store_core/i_mdb_store.dart';
+part './i_store_core/i_rdb_handler_pool.dart';
+part './i_store_core/i_mdb_handler_pool.dart';
+part './i_store_core/i_mdb_sql_prepare.dart';
 
-part '../bin/i_store_rdb/connection_rdb_store.dart';
-part '../bin/i_store_mdb/connection_mdb_store.dart';
+part '../bin/i_maker/i_hash.dart';
+''';
+    _orm.forEach((Map orm) {
+      String lowerName = makeLowerUnderline(orm['name']);
+      code += '''
 
-part '../bin/i_store_rdb/connection_store.dart';
+part './model/${lowerName}.dart';
+part './model/${lowerName}_pk.dart';
+part './model/${lowerName}_list.dart';
 
-part '../bin/i_model_maker/i_store_exception.dart';
-part '../bin/i_model_config/store.dart';
-part '../bin/i_model_maker/i_util_hash.dart';
 ''';
     });
     
@@ -334,13 +360,17 @@ part '../bin/i_model_maker/i_util_hash.dart';
   String makeConstJSON(List columns) {
     StringBuffer codeSB = new StringBuffer();
     codeSB.write('[');
-    columns.forEach((detail) {
-      codeSB.write('const ');
-      codeSB.write(JSON.encode(detail));
-      codeSB.write(',');
-    });
+    columns.forEach((detail) => codeSB.writeAll(['const ', JSON.encode(detail), ',']));
     codeSB.write(']');
 
     return codeSB.toString();
+  }
+
+  void makeSubDir(String targetPath) {
+    Directory coreDir = new Directory(_outModelCoreDir);
+    if (!coreDir.existsSync()) coreDir.createSync();
+
+    Directory modelDir = new Directory(_outModelDir);
+    if (!modelDir.existsSync()) modelDir.createSync();
   }
 }

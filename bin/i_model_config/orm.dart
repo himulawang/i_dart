@@ -16,7 +16,7 @@ List orm =
     ],
     'toAddFilter': [],
     'toSetFilter': [0, 3, 4],
-    'toArrayFilter': [],
+    'toFullFilter': [],
     'toAbbFilter': [2],
     'toListFilter': [],
     // store

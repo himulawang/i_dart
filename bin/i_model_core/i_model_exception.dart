@@ -1,4 +1,4 @@
-part of i;
+part of lib_i_model;
 
 class IModelException {
   int _code;
@@ -10,6 +10,8 @@ class IModelException {
     '10004': 'Model not exist when del model from list.',
     '10005': 'Model not exist when update model to list.',
     '10006': 'Invalid input data when fromList.',
+    '10007': 'Invalid input data when fromAbb.',
+    '10008': 'Invalid input data when fromFull.',
   };
   IModelException(int code, [List parameters]) {
     _code = code;

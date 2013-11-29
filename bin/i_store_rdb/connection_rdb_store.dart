@@ -11,17 +11,21 @@ class ConnectionRedisStore extends IRedisStore {
 
     String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
     return handler.exists(abbModelKey)
-      .then((exist) {
-        if (exist) throw new IStoreException(20024);
+    .then((bool exist) {
+      // model exist
+      if (exist) throw new IStoreException(20024);
 
-        return handler.hmset(abbModelKey, model.toAddAbb(true))
-          .then((result) {
-            if (result != 'OK') throw IStoreException(20025);
-
-            model.setUpdatedList(false);
-            return model;
-          });
-      }).catchError(_handleErr);
+      Map toAddAbb = model.toAddAbb(true);
+      // no attribute to add
+      if (toAddAbb.length == 0) throw new IStoreException(20032);
+      return toAddAbb;
+    })
+    .then((Map toAddAbb) => handler.hmset(abbModelKey, toAddAbb))
+    .then((String result) {
+      if (result != 'OK') throw IStoreException(20025);
+      return model;
+    })
+    .catchError(_handleErr);
   }
 
   static Future set(Connection model) {
@@ -31,44 +35,66 @@ class ConnectionRedisStore extends IRedisStore {
     if (pk is! num) throw new IStoreException(20027);
 
     RedisClient handler = new IRedisHandlerPool().getWriteHandler(model);
-
     String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
 
-    return handler.hmset(abbModelKey, model.toSetAbb(true))
-      .then((result) {
-        if (result != 'OK') throw IStoreException(20029);
+    Map toSetAbb = model.toSetAbb(true);
+    if (toSetAbb.length == 0) throw new IStoreException(25001);
 
-        model.setUpdatedList(false);
-        return model;
-      }).catchError(_handleErr);
+    return handler.hmset(abbModelKey, toSetAbb)
+    .then((String result) {
+      if (result != 'OK') throw IStoreException(20029);
+      return model;
+    })
+    .catchError((e) {
+      if (e is IStoreException && e._code == 25001) return model;
+      throw e;
+    });
   }
 
   static Future get(num pk) {
     if (pk is! num) throw new IStoreException(20021);
 
-    Connection model = new Connection();
-    model.setPK(pk);
-
+    Connection model = new Connection()..setPK(pk);
     RedisClient handler = new IRedisHandlerPool().getReaderHandler(model);
-
     String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
 
     return handler.exists(abbModelKey)
-      .then((exist) {
-        if (!exist) return model;
+    .then((bool exist) {
+      // TODO change this to warning
+      if (!exist) throw new IStoreException(20031);
+    })
+    .then((_) => handler.hmget(abbModelKey, model.getMapAbb().keys))
+    .then((List data) => model..fromList(data)..setExist())
+    .catchError((e) {
+      if (e is IStoreException && e._code == 20031) return model;
+      throw e;
+    });
+  }
 
-        return handler.hmget(abbModelKey, model.getMapAbb().keys)
-          .then((result) {
-            model.fromList(result);
-            model.setExist();
-            return model;
-          });
-      }).catchError(_handleErr);
+  static Future del(input) {
+    num pk;
+    Connection model;
+    if (input is Connection) {
+      model = input;
+      pk = model.getPK();
+    } else {
+      model = new Connection()..setPK(input);
+      pk = input;
+    }
+    if (pk is! num) throw new IStoreException(20030);
+
+    RedisClient handler = new IRedisHandlerPool().getReaderHandler(model);
+    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+
+    return handler.del(abbModelKey)
+    .then((bool result) {
+      if (!result) new IStoreException(25002);
+      return result;
+    })
+    .catchError(_handleErr);
   }
 
   static String _makeAbbModelKey(String abb, num pk) => '${abb}:${pk.toString()}';
 
-  static void _handleErr(err) {
-    throw err;
-  }
+  static void _handleErr(err) => throw err;
 }

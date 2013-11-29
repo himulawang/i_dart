@@ -1,7 +1,10 @@
-import 'i_model_maker/lib_i_maker.dart';
+import 'i_maker/lib_i_maker.dart';
 import 'i_model_config/orm.dart';
 
 void main() {
-  IModelMaker maker = new IModelMaker(orm);
-  maker.make('/home/ila/project/i_dart/out');
+  IModelMaker modelMaker = new IModelMaker(orm);
+  modelMaker.make('/home/ila/project/i_dart/out');
+
+  IStoreMaker storeMaker = new IStoreMaker(orm);
+  storeMaker.make('/home/ila/project/i_dart/out');
 }

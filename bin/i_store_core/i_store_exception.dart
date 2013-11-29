@@ -4,7 +4,7 @@ class IStoreException {
   int _code;
   List _parameters;
   static final Map _CODES = {
-    // redis
+    // redis exception
     '20001': 'Cannot find config key [no] in redis store.',
     '20002': 'Cannot find config key [host] in redis store.',
     '20003': 'Cannot find config key [port] in redis store.',
@@ -22,7 +22,10 @@ class IStoreException {
     '20026': 'Invalid model when set model to redis.',
     '20027': 'Invalid pk when set model to redis.',
     '20028': 'Model not exists when set it.',
-    '20029': 'Set model to redis failed.',
+    '20029': 'Set model from redis failed.',
+    '20030': 'Invalid pk when del model from redis.',
+    '20031': 'Model not exists when get from redis.',
+    '20032': 'Model has no attribute to add to redis.',
     // mariaDB
     '21001': 'Cannot find config key [no] in mariaDB store.',
     '21002': 'Cannot find config key [host] in mariaDB store.',
@@ -36,14 +39,33 @@ class IStoreException {
     '2l023': 'Invalid model when add model to mariaDB.',
     '21024': 'Invalid pk when add model to mariaDB.',
     '21025': 'Add model to mariaDB failed.',
-    '21026': 'Invalid model when update model to mariaDB.',
-    '21027': 'Invalid pk when update model to mariaDB.',
-    '21028': 'Model not exists when update to mariaDB.',
-    '21029': 'Update multiple model to mariaDB.',
+    '21026': 'Invalid model when set model to mariaDB.',
+    '21027': 'Invalid pk when set model to mariaDB.',
+    //'21028': 'Model not exists when set to mariaDB.',
+    //'21029': 'Update multiple model to mariaDB.',
+    '21030': 'No column to use when making add SQL for mariaDB.',
+    '21031': 'No column to use when making set SQL for mariaDB.',
+    '21032': 'No column to use when making get SQL for mariaDB.',
+    '21033': 'No column to use when making del SQL for mariaDB.',
+    '21034': 'Invalid pk when del model from mariaDB.',
+    '21035': 'Model has no attribute to add to mariaDB.',
+    // redis warning for interrupting future chain
+    '25001': 'Model has no attribute to set to redis.',
+    '25002': 'No record affected when del model from redis.',
+    // mariaDB warning for interrupting future chain
+    '26001': 'Model has no attribute to set to mariaDB.',
+    '26002': 'No record affected when set model to mariaDB.',
+    '26003': 'Multiple records affected when set model to mariaDB.',
+    '26004': 'No record affected when del model from mariaDB.',
+    '26005': 'Multiple records affected when del model from mariaDB.',
   };
   IStoreException(int code, [List parameters]) {
     _code = code;
     _parameters = parameters;
-    print('${code}:${_CODES[code.toString()]}');
+    if (code > 25000) {
+      ILog.warning('IStoreWarning:${code}:${_CODES[code.toString()]}');
+    } else {
+      ILog.severe('IStoreException:${code}:${_CODES[code.toString()]}');
+    }
   }
 }
