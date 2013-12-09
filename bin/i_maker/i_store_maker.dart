@@ -1,28 +1,30 @@
 part of i_maker;
 
 class IStoreMaker extends IMaker {
+  List _orm;
   String _outStoreCoreDir;
   String _srcStoreCoreDir;
   String _outStoreDir;
 
-  IStoreMaker(List orm) : super() {
+  IStoreMaker(Map deploy, List orm) : super(deploy) {
     _orm = orm;
   }
 
-  void make(String targetPath) {
-    _srcStoreCoreDir = '${_rootDir}/../bin/i_store_core';
-    _outStoreCoreDir = '${targetPath}/i_store_core';
-    _outStoreDir = '${targetPath}/store';
+  void make() {
+    _srcStoreCoreDir = '${_iPath}/i_store_core';
 
-    makeSubDir(targetPath);
+    _outStoreCoreDir = '${_appPath}/i_store_core';
+    _outStoreDir = '${_appPath}/store';
+
+    makeSubDir();
 
     // copy core store
-    copyFile(_srcStoreCoreDir, 'i_rdb_store.dart', _outStoreCoreDir, 'i_rdb_store.dart');
-    copyFile(_srcStoreCoreDir, 'i_mdb_store.dart', _outStoreCoreDir, 'i_mdb_store.dart');
-    copyFile(_srcStoreCoreDir, 'i_rdb_handler_pool.dart', _outStoreCoreDir, 'i_rdb_handler_pool.dart');
-    copyFile(_srcStoreCoreDir, 'i_mdb_handler_pool.dart', _outStoreCoreDir, 'i_mdb_handler_pool.dart');
-    copyFile(_srcStoreCoreDir, 'i_mdb_sql_prepare.dart', _outStoreCoreDir, 'i_mdb_sql_prepare.dart');
-    copyFile(_srcStoreCoreDir, 'i_store_exception.dart', _outStoreCoreDir, 'i_store_exception.dart');
+    copyFileWithHeader(_srcStoreCoreDir, 'i_rdb_store.dart', _outStoreCoreDir, 'i_rdb_store.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcStoreCoreDir, 'i_mdb_store.dart', _outStoreCoreDir, 'i_mdb_store.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcStoreCoreDir, 'i_rdb_handler_pool.dart', _outStoreCoreDir, 'i_rdb_handler_pool.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcStoreCoreDir, 'i_mdb_handler_pool.dart', _outStoreCoreDir, 'i_mdb_handler_pool.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcStoreCoreDir, 'i_mdb_sql_prepare.dart', _outStoreCoreDir, 'i_mdb_sql_prepare.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcStoreCoreDir, 'i_store_exception.dart', _outStoreCoreDir, 'i_store_exception.dart', 'part of lib_${_app};');
 
     /*
     // make store files
@@ -39,7 +41,7 @@ class IStoreMaker extends IMaker {
     StringBuffer codeSB = new StringBuffer();
   }
 
-  void makeSubDir(String targetPath) {
+  void makeSubDir() {
     Directory coreDir = new Directory(_outStoreCoreDir);
     if (!coreDir.existsSync()) coreDir.createSync();
 

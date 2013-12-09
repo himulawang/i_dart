@@ -1,27 +1,28 @@
 part of i_maker;
 
 class IModelMaker extends IMaker {
+  List _orm;
   String _outModelCoreDir;
   String _srcModelCoreDir;
   String _outModelDir;
 
-  IModelMaker(List orm) : super() {
+  IModelMaker(Map deploy, List orm) : super(deploy) {
     _orm = orm;
   }
 
-  void make(String targetPath) {
-    _srcModelCoreDir = '${_rootDir}/../bin/i_model_core';
-    _outModelCoreDir = '${targetPath}/i_model_core';
-    _outModelDir = '${targetPath}/model';
+  void make() {
+    _srcModelCoreDir = '${_iPath}/i_model_core';
+    _outModelCoreDir = '${_appPath}/i_model_core';
+    _outModelDir = '${_appPath}/model';
 
     // create i_model directory
-    makeSubDir(targetPath);
+    makeSubDir();
 
     // copy base model
-    copyFile(_srcModelCoreDir, 'i_pk.dart', _outModelCoreDir, 'i_pk.dart');
-    copyFile(_srcModelCoreDir, 'i_model.dart', _outModelCoreDir, 'i_model.dart');
-    copyFile(_srcModelCoreDir, 'i_list.dart', _outModelCoreDir, 'i_list.dart');
-    copyFile(_srcModelCoreDir, 'i_model_exception.dart', _outModelCoreDir, 'i_model_exception.dart');
+    copyFileWithHeader(_srcModelCoreDir, 'i_pk.dart', _outModelCoreDir, 'i_pk.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcModelCoreDir, 'i_model.dart', _outModelCoreDir, 'i_model.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcModelCoreDir, 'i_list.dart', _outModelCoreDir, 'i_list.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcModelCoreDir, 'i_model_exception.dart', _outModelCoreDir, 'i_model_exception.dart', 'part of lib_${_app};');
 
     // make model files
     _orm.forEach((orm) {
@@ -30,8 +31,6 @@ class IModelMaker extends IMaker {
       writeFile('${lowerName}_pk.dart', _outModelDir, makePK(orm), true);
       writeFile('${lowerName}_list.dart', _outModelDir, makeList(orm), true);
     });
-    // make import package
-    writeFile('lib_i_model.dart', targetPath, makeModelPackage(), true);
   }
   
   String makeModel(Map orm) {
@@ -65,7 +64,7 @@ class IModelMaker extends IMaker {
 
     codeSB.write('''
 ${_DECLARATION}
-part of lib_i_model;
+part of lib_${_app};
 
 class ${orm['name']} extends IModel {
   static const String _abb = '${orm['abb']}';
@@ -73,8 +72,8 @@ class ${orm['name']} extends IModel {
   static const String _listName = '${orm['listName']}';
   static const String _pkName = '${orm['column'][orm['pk']]}';
 
-  static const int _pk = ${orm['pk']};
-  static const int _length = ${length};
+  static const num _pk = ${orm['pk']};
+  static const num _length = ${length};
   static const List _columns = const ${makeConstJSON(columns)};
   static const Map _mapAbb = const ${JSON.encode(mapAbb)};
   static const Map _mapFull = const ${JSON.encode(mapFull)};
@@ -93,14 +92,20 @@ class ${orm['name']} extends IModel {
 
     codeSB.write('''
 
-  List<Dynamic> _args;
+  List _args;
   List<bool> _updatedList;
   bool _addFlag = false;
   bool _delFlag = false;
   bool _exist = false;
 
   ${orm['name']}([List args = null]) : super() {
-    _args = args == null ? new List.filled(_length, null) : args;
+    if (args == null) {
+      _args = new List.filled(_length, null);
+    } else {
+      if (args is! List) throw new IModelException(10010);
+      if (args.length != _length) throw new IModelException(10009);
+      _args = args;
+    }
     _updatedList = new List.filled(_length, false);
   }
 
@@ -133,25 +138,18 @@ class ${orm['name']} extends IModel {
   void setExist([bool exist = true]) { _exist = exist; }
   bool isExist() => _exist;
 
-  void setPK(pk) { _args[_pk] = pk; }
+  void setPK(pk) => _args[_pk] = pk;
   getPK() => _args[_pk];
 
-  bool isUpdated() {
-    for (var updated in _updatedList) {
-      if (updated) return true;
-    }
-    return false;
-  }
-  void setUpdatedList(bool flag) {
-    for (int i = 0; i < _length; ++i) {
-      _updatedList[i] = flag;
-    }
-  }
+  bool isUpdated() => _updatedList.any((bool e) => e);
+  void setUpdatedList(bool flag) => _updatedList.fillRange(0, _length, flag);
 
   List toAddFixedList([bool filterOn = false]) {
+    if (!filterOn) return _args.toList();
+
     List result = new List.filled(_length, null);
     for (int i = 0; i < _length; ++i) {
-      if (filterOn && _columns[i]['toAdd']) continue;
+      if (_columns[i]['toAdd']) continue;
       result[i] = _args[i];
     }
     return result;
@@ -218,7 +216,7 @@ class ${orm['name']} extends IModel {
     List result = new List.filled(_length, null);
     for (int i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toList']) continue;
-      if (_updatedList[i]) result[i] = _args[i].toString();
+      if (_updatedList[i]) result[i] = _args[i];
     }
     return result;
   }
@@ -226,7 +224,7 @@ class ${orm['name']} extends IModel {
     List result = [];
     for (int i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toList']) continue;
-      if (_updatedList[i]) result.add(_args[i].toString());
+      if (_updatedList[i]) result.add(_args[i]);
     }
     return result;
   }
@@ -287,7 +285,7 @@ class ${orm['name']} extends IModel {
     String name = orm['name'];
     String code = '''
 ${_DECLARATION}
-part of lib_i_model;
+part of lib_${_app};
 
 class ${name}PK extends IPK {
   ${name}PK([int pk = 0]) : super(){
@@ -301,7 +299,7 @@ class ${name}PK extends IPK {
     String name = orm['name'];
     String code = '''
 ${_DECLARATION}
-part of lib_i_model;
+part of lib_${_app};
 
 class ${name}List extends IList {
   ${name}List(int pk, [list = null]) : super(){
@@ -310,50 +308,6 @@ class ${name}List extends IList {
   }
 }
 ''';
-    return code;
-  }
-
-  String makeModelPackage() {
-    String code ='''
-${_DECLARATION}
-library lib_i_model;
-
-import 'dart:async';
-
-import 'package:redis_client/redis_client.dart';
-import 'package:sqljocky/sqljocky.dart';
-import 'package:logging/logging.dart';
-
-// util
-part '../bin/i_util/i_log.dart';
-
-// model
-part './i_model_core/i_model_exception.dart';
-part './i_model_core/i_model.dart';
-part './i_model_core/i_pk.dart';
-part './i_model_core/i_list.dart';
-
-// store
-part './i_store_core/i_store_exception.dart';
-part './i_store_core/i_rdb_store.dart';
-part './i_store_core/i_mdb_store.dart';
-part './i_store_core/i_rdb_handler_pool.dart';
-part './i_store_core/i_mdb_handler_pool.dart';
-part './i_store_core/i_mdb_sql_prepare.dart';
-
-part '../bin/i_maker/i_hash.dart';
-''';
-    _orm.forEach((Map orm) {
-      String lowerName = makeLowerUnderline(orm['name']);
-      code += '''
-
-part './model/${lowerName}.dart';
-part './model/${lowerName}_pk.dart';
-part './model/${lowerName}_list.dart';
-
-''';
-    });
-    
     return code;
   }
 
@@ -366,7 +320,7 @@ part './model/${lowerName}_list.dart';
     return codeSB.toString();
   }
 
-  void makeSubDir(String targetPath) {
+  void makeSubDir() {
     Directory coreDir = new Directory(_outModelCoreDir);
     if (!coreDir.existsSync()) coreDir.createSync();
 

@@ -3,18 +3,22 @@ part of i_maker;
 class IUtilMaker extends IMaker {
   String _outUtilCoreDir;
   String _srcUtilCoreDir;
-  void make(String targetPath) {
-    _srcUtilCoreDir = '${_rootDir}/../bin/i_util_core';
-    _outUtilCoreDir = '${targetPath}/i_util_core';
+
+  IUtilMaker(Map deploy) : super(deploy);
+
+  void make() {
+    _srcUtilCoreDir = '${_iPath}/i_util';
+    _outUtilCoreDir = '${_appPath}/i_util';
 
     // create i_util_core directory
-    makeSubDir(targetPath);
+    makeSubDir();
 
     // copy core util
     copyFile(_srcUtilCoreDir, 'i_hash.dart', _outUtilCoreDir, 'i_hash.dart');
     copyFile(_srcUtilCoreDir, 'i_log.dart', _outUtilCoreDir, 'i_log.dart');
   }
-  void makeSubDir(String targetPath) {
+
+  void makeSubDir() {
     Directory coreDir = new Directory(_outUtilCoreDir);
     if (!coreDir.existsSync()) coreDir.createSync();
   }

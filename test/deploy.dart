@@ -1,15 +1,17 @@
+import 'i_config/deploy.dart';
 import '../bin/i_maker/lib_i_maker.dart';
 import 'i_config/orm.dart';
 
 void main() {
-  IModelMaker modelMaker = new IModelMaker(orm);
-  modelMaker.make('/home/ila/project/i_dart/test');
+  IModelMaker modelMaker = new IModelMaker(deploy, orm);
+  modelMaker.make();
 
-  IStoreMaker storeMaker = new IStoreMaker(orm);
-  storeMaker.make('/home/ila/project/i_dart/test');
+  IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
+  storeMaker.make();
 
-  IUtilMaker utilMaker = new IUtilMaker();
+  IUtilMaker utilMaker = new IUtilMaker(deploy);
   utilMaker.make();
 
-  ILibraryMaker libMaker = new ILibraryMaker();
+  ILibraryMaker libMaker = new ILibraryMaker(deploy);
+  libMaker.make();
 }
