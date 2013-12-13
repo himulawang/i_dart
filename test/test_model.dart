@@ -8,15 +8,20 @@ import 'i_config/store.dart';
 import 'i_config/orm.dart';
 
 void main() {
-  group('Test Model', () {
-    IRedisHandlerPool redisHandlerPool;
-    IMariaDBHandlerPool mariaDBHandlerPool;
-    setUp(() {
-      // init
-      //redisHandlerPool = new IRedisHandlerPool(store['redis']);
-      //mariaDBHandlerPool = new IMariaDBHandlerPool(store['mariaDB']);
-    });
+  num startTimestamp;
+  num endTimestamp;
+  startTimestamp = new DateTime.now().millisecondsSinceEpoch;
+  setUp(() {
+    // init
+    //IRedisHandlerPool redisHandlerPool;
+    //IMariaDBHandlerPool mariaDBHandlerPool;
+    //redisHandlerPool = new IRedisHandlerPool(store['redis']);
+    //mariaDBHandlerPool = new IMariaDBHandlerPool(store['mariaDB']);
+  });
+  tearDown(() {
+  });
 
+  group('Test Model', () {
     group('constructor', () {
       test('no argument input', () {
         User u = new User();
@@ -447,9 +452,527 @@ void main() {
         List r = u.toAddFixedList();
         expect(
           () => r.add(1),
-          throwsA(predicate((e) => e is IModelException))
+          throwsA(new isInstanceOf<UnsupportedError>())
         );
       });
     });
+
+    group('toAddList', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toAddList();
+        expect(r, equals(new List.filled(orm[0]['column'].length, 1)));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toAddList(true);
+        List expectR = new List.filled(orm[0]['column'].length - 2, 1);
+        expect(r, equals(expectR));
+      });
+
+      test('length of return list can be changed', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toAddList();
+        expect(() => r.add(1), returnsNormally);
+      });
+    });
+
+    group('toAddFull', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        Map r = u.toAddFull();
+        Map e = {
+            'id': 1,
+            'name': 1,
+            'userName': 1,
+            'uniqueName': 1,
+            'underworldName': 1,
+            'underworldName1': 1,
+            'underworldName2': 1,
+            'thisIsABitLongerAttribute': 1,
+            'testAddFilterColumn1': 1,
+            'testAddFilterColumn2': 1,
+            'testSetFilterColumn1': 1,
+            'testSetFilterColumn2': 1,
+            'testFullFilterColumn1': 1,
+            'testFullFilterColumn2': 1,
+            'testAbbFilterColumn1': 1,
+            'testAbbFilterColumn2': 1,
+            'testListFilterColumn1': 1,
+            'testListFilterColumn2': 1,
+        };
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        Map r = u.toAddFull(true);
+        Map e = {
+            'id': 1,
+            'name': 1,
+            'userName': 1,
+            'uniqueName': 1,
+            'underworldName': 1,
+            'underworldName1': 1,
+            'underworldName2': 1,
+            'thisIsABitLongerAttribute': 1,
+            'testSetFilterColumn1': 1,
+            'testSetFilterColumn2': 1,
+            'testFullFilterColumn1': 1,
+            'testFullFilterColumn2': 1,
+            'testAbbFilterColumn1': 1,
+            'testAbbFilterColumn2': 1,
+            'testListFilterColumn1': 1,
+            'testListFilterColumn2': 1
+        };
+        expect(r, equals(e));
+      });
+    });
+
+    group('toAddAbb', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        Map r = u.toAddAbb();
+        Map e = {
+            'i': 1,
+            'n': 1,
+            'un': 1,
+            'un1': 1,
+            'un2': 1,
+            'un3': 1,
+            'un4': 1,
+            'tiabla': 1,
+            'tafc1': 1,
+            'tafc2': 1,
+            'tsfc1': 1,
+            'tsfc2': 1,
+            'tffc1': 1,
+            'tffc2': 1,
+            'tafc3': 1,
+            'tafc4': 1,
+            'tlfc1': 1,
+            'tlfc2': 1
+        };
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        Map r = u.toAddAbb(true);
+        Map e = {
+            'i': 1,
+            'n': 1,
+            'un': 1,
+            'un1': 1,
+            'un2': 1,
+            'un3': 1,
+            'un4': 1,
+            'tiabla': 1,
+            'tsfc1': 1,
+            'tsfc2': 1,
+            'tffc1': 1,
+            'tffc2': 1,
+            'tafc3': 1,
+            'tafc4': 1,
+            'tlfc1': 1,
+            'tlfc2': 1
+        };
+        expect(r, equals(e));
+      });
+    });
+
+    group('toSetFixedList', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        u.testSetFilterColumn2 = 'd';
+        List r = u.toSetFixedList();
+
+        List e =  new List.filled(orm[0]['column'].length, null);
+        e[1] = 'a';
+        e[2] = 'b';
+        e[10] = 'c';
+        e[11] = 'd';
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        u.testSetFilterColumn2 = 'd';
+        List r = u.toSetFixedList(true);
+
+        List e = new List.filled(orm[0]['column'].length, null);
+        e[1] = 'a';
+        e[2] = 'b';
+        expect(r, equals(e));
+      });
+
+      test('length of return list should not be changed', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        List r = u.toSetFixedList();
+        expect(() => r.add(1), throwsA(new isInstanceOf<UnsupportedError>()));
+      });
+    });
+
+    group('toSetList', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        u.testSetFilterColumn2 = 'd';
+        List r = u.toSetList();
+
+        List e = ['a', 'b', 'c', 'd'];
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        u.testSetFilterColumn2 = 'd';
+        List r = u.toSetList(true);
+
+        List e = ['a', 'b'];
+        expect(r, equals(e));
+      });
+
+      test('length of return list can be changed', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        List r = u.toSetList();
+        expect(() => r.add(1), returnsNormally);
+      });
+    });
+
+    group('toSetFull', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        u.testSetFilterColumn2 = 'd';
+        Map r = u.toSetFull();
+        Map e = {
+            'name': 'a',
+            'userName': 'b',
+            'testSetFilterColumn1': 'c',
+            'testSetFilterColumn2': 'd',
+        };
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        u.testSetFilterColumn2 = 'd';
+        Map r = u.toSetFull(true);
+        Map e = {
+            'name': 'a',
+            'userName': 'b',
+        };
+        expect(r, equals(e));
+      });
+    });
+
+    group('toSetAbb', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        u.testSetFilterColumn2 = 'd';
+        Map r = u.toSetAbb();
+        Map e = {
+            'n': 'a',
+            'un': 'b',
+            'tsfc1': 'c',
+            'tsfc2': 'd',
+        };
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        u.name = 'a';
+        u.userName = 'b';
+        u.testSetFilterColumn1 = 'c';
+        u.testSetFilterColumn2 = 'd';
+        Map r = u.toSetAbb(true);
+        Map e = {
+            'n': 'a',
+            'un': 'b',
+        };
+        expect(r, equals(e));
+      });
+    });
+
+    group('toFixedList', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toFixedList();
+        List e = new List.filled(orm[0]['column'].length, 1);
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toFixedList(true);
+        List e = new List.filled(orm[0]['column'].length, 1);
+        e[16] = null;
+        e[17] = null;
+        expect(r, equals(e));
+      });
+
+      test('length of return list should not be changed', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toFixedList();
+        expect(() => r.add(1), throwsA(new isInstanceOf<UnsupportedError>()));
+      });
+    });
+
+    group('toList', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toList();
+        List e = new List.filled(orm[0]['column'].length, 1);
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toList(true);
+        List e = new List.filled(orm[0]['column'].length - 2, 1);
+        expect(r, equals(e));
+      });
+
+      test('length of return list can be changed', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        List r = u.toList();
+        expect(() => r.add(1), returnsNormally);
+      });
+    });
+
+    group('toFull', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        Map r = u.toFull();
+        Map e = {
+            'id': 1,
+            'name': 1,
+            'userName': 1,
+            'uniqueName': 1,
+            'underworldName': 1,
+            'underworldName1': 1,
+            'underworldName2': 1,
+            'thisIsABitLongerAttribute': 1,
+            'testAddFilterColumn1': 1,
+            'testAddFilterColumn2': 1,
+            'testSetFilterColumn1': 1,
+            'testSetFilterColumn2': 1,
+            'testFullFilterColumn1': 1,
+            'testFullFilterColumn2': 1,
+            'testAbbFilterColumn1': 1,
+            'testAbbFilterColumn2': 1,
+            'testListFilterColumn1': 1,
+            'testListFilterColumn2': 1
+        };
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        Map r = u.toFull(true);
+        Map e = {
+            'id': 1,
+            'name': 1,
+            'userName': 1,
+            'uniqueName': 1,
+            'underworldName': 1,
+            'underworldName1': 1,
+            'underworldName2': 1,
+            'thisIsABitLongerAttribute': 1,
+            'testAddFilterColumn1': 1,
+            'testAddFilterColumn2': 1,
+            'testSetFilterColumn1': 1,
+            'testSetFilterColumn2': 1,
+            'testAbbFilterColumn1': 1,
+            'testAbbFilterColumn2': 1,
+            'testListFilterColumn1': 1,
+            'testListFilterColumn2': 1
+        };
+        expect(r, equals(e));
+      });
+    });
+
+    group('toAbb', () {
+      test('filter off', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        Map r = u.toAbb();
+        Map e = {
+            'i': 1,
+            'n': 1,
+            'un': 1,
+            'un1': 1,
+            'un2': 1,
+            'un3': 1,
+            'un4': 1,
+            'tiabla': 1,
+            'tafc1': 1,
+            'tafc2': 1,
+            'tsfc1': 1,
+            'tsfc2': 1,
+            'tffc1': 1,
+            'tffc2': 1,
+            'tafc3': 1,
+            'tafc4': 1,
+            'tlfc1': 1,
+            'tlfc2': 1
+        };
+        expect(r, equals(e));
+      });
+
+      test('filter on', () {
+        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        Map r = u.toAbb(true);
+        Map e = {
+            'i': 1,
+            'n': 1,
+            'un': 1,
+            'un1': 1,
+            'un2': 1,
+            'un3': 1,
+            'un4': 1,
+            'tiabla': 1,
+            'tafc1': 1,
+            'tafc2': 1,
+            'tsfc1': 1,
+            'tsfc2': 1,
+            'tffc1': 1,
+            'tffc2': 1,
+            'tlfc1': 1,
+            'tlfc2': 1
+        };
+        expect(r, equals(e));
+      });
+    });
+
+    group('fromList', () {
+      test('wrong type', () {
+        User u = new User();
+        Map data = {};
+        expect(() => u.fromList(data), throwsA(predicate((e) => e is IModelException && e.code == 10006)));
+      });
+
+      test('wrong input data length', () {
+        User u = new User();
+        List data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
+        expect(() => u.fromList(data), throwsA(predicate((e) => e is IModelException && e.code == 10006)));
+      });
+
+      test('not change update list', () {
+        User u = new User();
+        List data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+        u.fromList(data);
+
+        List toList = u.toFixedList();
+
+        expect(toList, equals(data));
+        expect(u.isUpdated(), equals(false));
+      });
+
+      test('change update list', () {
+        User u = new User();
+        List data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+        u.fromList(data, true);
+
+        List toList = u.toFixedList();
+
+        expect(toList, equals(data));
+        expect(u.isUpdated(), equals(true));
+      });
+    });
+
+    group('fromFull', () {
+      test('wrong type', () {
+        User u = new User();
+        List data = [];
+        expect(() => u.fromFull(data), throwsA(predicate((e) => e is IModelException && e.code == 10008)));
+      });
+
+      test('not change update list', () {
+        User u = new User([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
+        Map data = {'name': 'name'};
+        u.fromFull(data);
+
+        List toList = u.toFixedList();
+        List e = [0, 'name', 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+        expect(toList, equals(e));
+        expect(u.isUpdated(), equals(false));
+      });
+
+      test('change update list', () {
+        User u = new User([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
+        Map data = {'name': 'name'};
+        u.fromFull(data, true);
+
+        List toList = u.toFixedList();
+        List e = [0, 'name', 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+        expect(toList, equals(e));
+        expect(u.isUpdated(), equals(true));
+      });
+    });
+
+    group('fromAbb', () {
+      test('wrong type', () {
+        User u = new User();
+        List data = [];
+        expect(() => u.fromAbb(data), throwsA(predicate((e) => e is IModelException && e.code == 10007)));
+      });
+
+      test('not change update list', () {
+        User u = new User([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
+        Map data = {'n': 'n'};
+        u.fromAbb(data);
+
+        List toList = u.toFixedList();
+        List e = [0, 'n', 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+        expect(toList, equals(e));
+        expect(u.isUpdated(), equals(false));
+      });
+
+      test('change update list', () {
+        User u = new User([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
+        Map data = {'n': 'n'};
+        u.fromAbb(data, true);
+
+        List toList = u.toFixedList();
+        List e = [0, 'n', 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17];
+
+        expect(toList, equals(e));
+        expect(u.isUpdated(), equals(true));
+      });
+    });
   });
+
+  endTimestamp = new DateTime.now().millisecondsSinceEpoch;
+  print('cost ${endTimestamp - startTimestamp} ms');
 }

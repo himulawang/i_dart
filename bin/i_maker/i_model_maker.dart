@@ -94,8 +94,6 @@ class ${orm['name']} extends IModel {
 
   List _args;
   List<bool> _updatedList;
-  bool _addFlag = false;
-  bool _delFlag = false;
   bool _exist = false;
 
   ${orm['name']}([List args = null]) : super() {
@@ -145,7 +143,7 @@ class ${orm['name']} extends IModel {
   void setUpdatedList(bool flag) => _updatedList.fillRange(0, _length, flag);
 
   List toAddFixedList([bool filterOn = false]) {
-    if (!filterOn) return _args.toList();
+    if (!filterOn) return _args.toList(growable: false);
 
     List result = new List.filled(_length, null);
     for (int i = 0; i < _length; ++i) {
@@ -216,7 +214,7 @@ class ${orm['name']} extends IModel {
     List result = new List.filled(_length, null);
     for (int i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toList']) continue;
-      if (_updatedList[i]) result[i] = _args[i];
+      result[i] = _args[i];
     }
     return result;
   }
@@ -224,7 +222,7 @@ class ${orm['name']} extends IModel {
     List result = [];
     for (int i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toList']) continue;
-      if (_updatedList[i]) result.add(_args[i]);
+      result.add(_args[i]);
     }
     return result;
   }
@@ -247,7 +245,9 @@ class ${orm['name']} extends IModel {
 
   void fromList(List data, [bool changeUpdatedList = false]) {
     if (data is! List || data.length != _length) throw new IModelException(10006);
-    _args = data;
+    for (num i = 0; i < _args.length; ++i) {
+      _args[i] = data[i];
+    }
     if (changeUpdatedList) setUpdatedList(true);
   }
   void fromFull(Map data, [bool changeUpdatedList = false]) {
@@ -267,13 +267,6 @@ class ${orm['name']} extends IModel {
       _args[i] = data[abb];
       if (changeUpdatedList) _updatedList[i] = true;
     });
-  }
-
-  void markForAdd([bool flag = true]) {
-    _addFlag = flag;
-  }
-  void markForDel([bool flag = true]) {
-    _delFlag = flag;
   }
 ''');
 
