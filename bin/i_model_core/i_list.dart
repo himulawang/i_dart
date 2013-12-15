@@ -4,16 +4,26 @@
  */
 
 class IList {
-  int _pk;
+  num _pk;
   Map _list = {};
   Map _toAddList = {};
   Map _toDelList = {};
-  Map _toUpdateList = {};
-  bool _delFlag = false;
-  
-  String _checkInputIndex(input) {
+  Map _toSetList = {};
+
+  void _unset(input) => _list.remove(_getInputIndex(input));
+  bool _set(IModel model) => _list[_getInputIndex(model.getPK())] = model;
+
+  bool setPK(num pk) => _pk = pk;
+  num getPK() => _pk;
+
+  Map getList() => _list;
+  Map getToAddList() => _toAddList;
+  Map getToDelList() => _toDelList;
+  Map getToSetList() => _toSetList;
+
+  String _getInputIndex(input) {
     String index;
-    if (input is int) {
+    if (input is num) {
       index = input.toString();
     } else if (input is String) {
       index = input;
@@ -22,93 +32,73 @@ class IList {
     }
     return index;
   }
-  
-  void setPK(pk) {
-    _pk = pk;
-  }
-  int getPK() {
-    return _pk;
-  }
-  
-  void set(model) {
-    _list[_checkInputIndex(model.getPK())] = model;
-  }
-  get(input) {
-    return _list[_checkInputIndex(input)];
-  }
-  void unset(input) {
-    _list.remove(_checkInputIndex(input));    
-  }
 
+  get(input) => _list[_getInputIndex(input)];
   void add(model) {
-    String index = _checkInputIndex(model.getPK());
+    String index = _getInputIndex(model.getPK());
     if (_list.containsKey(index)) throw new IModelException(10003);
     
     _list[index] = model;
     _toAddList[index] = model;
   }
+  void set(IModel model) {
+    if (get(model) == null) throw new IModelException(10005);
+
+    String index = _getInputIndex(model.getPK());
+
+    _list[index] = model;
+    if (_toAddList.containsKey(index)) _toAddList[index] = model;
+
+    if (_toSetList.containsKey(index)) _toSetList[index] = model;
+
+    if (_toDelList.containsKey(index)) _toDelList.remove(index);
+  }
   void del(input) {
     String index;
-    var model;
-    if (input is int || input is String) {
-      index = _checkInputIndex(input);
+    IModel model;
+    if (input is num || input is String) {
+      index = _getInputIndex(input);
       model = get(index);
     } else {
-      index = _checkInputIndex(input.getPK());
+      index = _getInputIndex(input.getPK());
       model = get(index);
     }
     if (model == null) throw new IModelException(10004);
     
     if (_list.containsKey(index)) {
       _list.remove(index);
-      _toDelList[index] = model;      
+      _toDelList[index] = model;
     }
     
-    if (_toAddList.containsKey(index)) {
-      _toAddList.remove(index);
-    }
-    
-    if (_toUpdateList.containsKey(index)) {
-      _toUpdateList.remove(index);
-    }
+    if (_toAddList.containsKey(index)) _toAddList.remove(index);
+
+    if (_toSetList.containsKey(index)) _toSetList.remove(index);
   }
-  void update(input) {
-    String index = _checkInputIndex(input.getPK());
-    var preModel = get(index);
-    
-    if (preModel == null) throw new IModelException(10005);
-    
-    _list[index] = input;
-    if (_toAddList.containsKey(index)) {
-      _toAddList[index] = input;
-    }
-    
-    if (_toUpdateList.containsKey(index)) {
-      _toUpdateList[index] = input;
-    }
+
+  Map toFixedList([bool filterOn = false]) {
+    Map result = {};
+    _list.forEach((String i, IModel child) {
+      result[i] = child.toFixedList(filterOn);
+    });
+    return result;
   }
-  
-  void markForDel([bool flag = true]) {
-    _delFlag = flag;
-  }
-  
   Map toList([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((i, child) {
+    _list.forEach((String i, IModel child) {
       result[i] = child.toList(filterOn);
     });
     return result;
   }
-  Map toArray([bool filterOn = false]) {
+  Map toFull([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((i, child) {
-      result[i] = child.toArray(filterOn);
+    _list.forEach((String i, IModel child) {
+      result[i] = child.toFull(filterOn);
     });
     return result;
   }
   Map toAbb([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((i, child) {
+    _list.forEach((String i, IModel child) {
       result[i] = child.toAbb(filterOn);
     });
     return result;

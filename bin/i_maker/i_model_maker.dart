@@ -281,7 +281,7 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${name}PK extends IPK {
-  ${name}PK([int pk = 0]) : super(){
+  ${name}PK([int pk = 0]) {
     _pk = pk;
   }
 }
@@ -295,7 +295,7 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${name}List extends IList {
-  ${name}List(int pk, [list = null]) : super(){
+  ${name}List(int pk, [list = null]) {
     _pk = pk;
     if (list is Map) _list = list;
   }

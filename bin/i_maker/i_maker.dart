@@ -153,4 +153,9 @@ class IMaker {
       print('${file.path} exists, skip.');
     }
   }
+
+/**
+ * Replace '\' in path to be compatible with windows
+ */
+  String makeCompatiblePath(String src) => src.replaceAll(new RegExp(r'\\'), '/');
 }

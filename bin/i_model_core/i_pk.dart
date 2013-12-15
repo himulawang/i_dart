@@ -4,30 +4,24 @@
  */
 
 class IPK {
-  int _pk;
+  num _pk;
   bool _updated = false;
-  bool _delSync = false;
-  
-  void set(int pk) {
+
+  void set(num pk) {
     _pk = pk;
-    _updated = true;        
+    _updated = true;
   }
   
-  int get() {
-    return _pk;
-  }
-  
-  int incr([int val = 1]) {
-    _pk += val;
+  num get() => _pk;
+
+  num incr([num step = 1]) {
+    _pk += step;
     _updated = true;
     return _pk;
   }
   
-  void reset() {
-    set(0);
-  }
-  
-  void markDelSync({bool tag: true}) {
-    _delSync = tag;
-  }
+  void reset() => set(0);
+
+  bool setUpdated(bool flag) => _updated = flag;
+  bool isUpdated() => _updated;
 }

@@ -26,14 +26,15 @@ import 'package:logging/logging.dart';
     List ls = outDir.listSync();
     ls.forEach((entity) {
       // skip File & i_config directory
-      if (entity is File || entity.path == '${_appPath}/i_config') return;
+      String path = makeCompatiblePath(entity.path);
+      if (entity is File || path == '${_appPath}/i_config') return;
 
-      Directory childDir = new Directory(entity.path);
+      Directory childDir = new Directory(path);
       List childLs = childDir.listSync(recursive: true);
-      contentSB.writeln('// ${entity.path.replaceFirst('${_appPath}/', '')}');
+      contentSB.writeln('// ${path.replaceFirst('${_appPath}/', '')}');
       childLs.forEach((childEntity) {
         if (childEntity is Directory || !childEntity.path.endsWith('.dart')) return;
-        contentSB.writeln("part '${childEntity.path.replaceFirst(_appPath, '.')}';");
+        contentSB.writeln("part '${makeCompatiblePath(childEntity.path).replaceFirst(_appPath, '.')}';");
       });
     });
 

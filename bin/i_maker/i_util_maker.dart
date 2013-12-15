@@ -14,8 +14,8 @@ class IUtilMaker extends IMaker {
     makeSubDir();
 
     // copy core util
-    copyFile(_srcUtilCoreDir, 'i_hash.dart', _outUtilCoreDir, 'i_hash.dart');
-    copyFile(_srcUtilCoreDir, 'i_log.dart', _outUtilCoreDir, 'i_log.dart');
+    copyFileWithHeader(_srcUtilCoreDir, 'i_hash.dart', _outUtilCoreDir, 'i_hash.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcUtilCoreDir, 'i_log.dart', _outUtilCoreDir, 'i_log.dart', 'part of lib_${_app};');
   }
 
   void makeSubDir() {
