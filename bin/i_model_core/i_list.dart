@@ -13,7 +13,8 @@ class IList {
   void _unset(input) => _list.remove(_getInputIndex(input));
   bool _set(IModel model) => _list[_getInputIndex(model.getPK())] = model;
 
-  bool setPK(num pk) => _pk = pk;
+  get length => _list.length;
+  num setPK(num pk) => _pk = pk;
   num getPK() => _pk;
 
   Map getList() => _list;
@@ -77,29 +78,29 @@ class IList {
 
   Map toFixedList([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((String i, IModel child) {
-      result[i] = child.toFixedList(filterOn);
+    _list.forEach((i, IModel child) {
+      result[i.toString()] = child.toFixedList(filterOn);
     });
     return result;
   }
   Map toList([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((String i, IModel child) {
-      result[i] = child.toList(filterOn);
+    _list.forEach((i, IModel child) {
+      result[i.toString()] = child.toList(filterOn);
     });
     return result;
   }
   Map toFull([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((String i, IModel child) {
-      result[i] = child.toFull(filterOn);
+    _list.forEach((i, IModel child) {
+      result[i.toString()] = child.toFull(filterOn);
     });
     return result;
   }
   Map toAbb([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((String i, IModel child) {
-      result[i] = child.toAbb(filterOn);
+    _list.forEach((i, IModel child) {
+      result[i.toString()] = child.toAbb(filterOn);
     });
     return result;
   }

@@ -1,5 +1,5 @@
 //import 'i_config/deploy.dart';
-import 'i_config/deploy_home.dart';
+import 'i_config/deploy.dart';
 import '../bin/i_maker/lib_i_maker.dart';
 import 'i_config/orm.dart';
 

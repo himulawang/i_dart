@@ -55,10 +55,10 @@ List orm =
     ],
   },
   {
-    'name': 'AnotherUser',
-    'listName': 'AnotherUserList',
+    'name': 'Room',
+    'listName': 'RoomList',
     'pk': 0,
-    'abb': 'au',
+    'abb': 'r',
     'column': [
         'id',
         'name',

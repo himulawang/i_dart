@@ -17,6 +17,10 @@ class IModelException {
     '10008': 'Invalid input data when fromFull.',
     '10009': 'Invalid input args length when construct model.',
     '10010': 'Invalid input args type when construct model.',
+    '10011': 'Invalid pk when initialize list.',
+    '10012': 'Invalid datas when fromList.',
+    '10013': 'Invalid datas when fromFull.',
+    '10014': 'Invalid datas when fromAbb.',
   };
   IModelException(int inputCode, [List inputParameters]) {
     code = inputCode;

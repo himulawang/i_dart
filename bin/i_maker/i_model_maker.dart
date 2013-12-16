@@ -290,14 +290,95 @@ class ${name}PK extends IPK {
   }
   String makeList(Map orm) {
     String name = orm['name'];
+    String listName = orm['listName'];
     String code = '''
 ${_DECLARATION}
 part of lib_${_app};
 
-class ${name}List extends IList {
-  ${name}List(int pk, [list = null]) {
+class ${listName} extends IList {
+  ${listName}(num pk) { _initPK(pk); }
+
+  ${listName}.initFromMap(num pk, Map dataList) {
+    _initPK(pk);
+
+    dataList.forEach((String i, ${name} model) {
+      if (model is! ${name}) return;
+
+      var childPK = model.getPK();
+      if (childPK == null) return;
+
+      _set(model);
+    });
+  }
+
+  ${listName}.initFromList(num pk, List dataList) {
+    _initPK(pk);
+
+    dataList.forEach((${name} model) {
+      if (model is! ${name}) return;
+
+      var childPK = model.getPK();
+      if (childPK == null) return;
+
+      _set(model);
+    });
+  }
+
+  void _initPK(num pk) {
+    if (pk is! num) throw new IModelException(10011);
     _pk = pk;
-    if (list is Map) _list = list;
+  }
+
+  void fromList(List dataList, [bool changeUpdatedList = false]) {
+    if (dataList is! List) throw new IModelException(10012);
+
+    dataList.forEach((Map data) {
+      ${name} model = new ${name}();
+      model.fromList(data, changeUpdatedList);
+      if (changeUpdatedList) {
+        if (_list.containsKey(model.getPK())) {
+          set(data);
+        } else {
+          add(data);
+        }
+      } else {
+        _set(model);
+      }
+    });
+  }
+  void fromFull(Map dataList, [bool changeUpdatedList = false]) {
+    if (dataList is! Map) throw new IModelException(10013);
+
+    dataList.forEach((String i, Map data) {
+      ${name} model = new ${name}();
+      model.fromFull(data, changeUpdatedList);
+      if (changeUpdatedList) {
+        if (_list.containsKey(model.getPK())) {
+          set(data);
+        } else {
+          add(data);
+        }
+      } else {
+        _set(model);
+      }
+    });
+  }
+  void fromAbb(Map dataList, [bool changeUpdatedList = false]) {
+    if (dataList is! Map) throw new IModelException(10014);
+
+    dataList.forEach((String i, Map data) {
+      ${name} model = new ${name}();
+      model.fromAbb(data, changeUpdatedList);
+      if (changeUpdatedList) {
+        if (_list.containsKey(model.getPK())) {
+          set(data);
+        } else {
+          add(data);
+        }
+      } else {
+        _set(model);
+      }
+    });
   }
 }
 ''';
