@@ -34,7 +34,7 @@ class IList {
     return index;
   }
 
-  get(input) => _list[_getInputIndex(input)];
+  get(index) => _list[_getInputIndex(index)];
   void add(model) {
     String index = _getInputIndex(model.getPK());
     if (_list.containsKey(index)) throw new IModelException(10003);
@@ -43,16 +43,14 @@ class IList {
     _toAddList[index] = model;
   }
   void set(IModel model) {
-    if (get(model) == null) throw new IModelException(10005);
+    if (get(model.getPK()) == null) throw new IModelException(10005);
 
     String index = _getInputIndex(model.getPK());
 
     _list[index] = model;
+    _toSetList[index] = model;
+
     if (_toAddList.containsKey(index)) _toAddList[index] = model;
-
-    if (_toSetList.containsKey(index)) _toSetList[index] = model;
-
-    if (_toDelList.containsKey(index)) _toDelList.remove(index);
   }
   void del(input) {
     String index;

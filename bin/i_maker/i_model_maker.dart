@@ -298,7 +298,7 @@ part of lib_${_app};
 class ${listName} extends IList {
   ${listName}(num pk) { _initPK(pk); }
 
-  ${listName}.initFromMap(num pk, Map dataList) {
+  ${listName}.filledMap(num pk, Map dataList) {
     _initPK(pk);
 
     dataList.forEach((String i, ${name} model) {
@@ -311,7 +311,7 @@ class ${listName} extends IList {
     });
   }
 
-  ${listName}.initFromList(num pk, List dataList) {
+  ${listName}.filledList(num pk, List dataList) {
     _initPK(pk);
 
     dataList.forEach((${name} model) {
