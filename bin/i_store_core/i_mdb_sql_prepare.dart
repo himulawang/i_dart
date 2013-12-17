@@ -4,7 +4,7 @@
  */
 
 class IMariaDBSQLPrepare {
-  static String makeAdd(M model) {
+  static String makeAdd(IModel model) {
     Map toAddMap = model.toAddFull(true);
     if (toAddMap.length == 0) throw new IStoreException(21030);
     List values = new List.filled(toAddMap.length, '?');
@@ -12,7 +12,7 @@ class IMariaDBSQLPrepare {
     return 'INSERT INTO `${model.getName()}` (`${toAddMap.keys.join("`, `")}`) VALUES (${values.join(", ")});';
   }
 
-  static String makeSet(M model) {
+  static String makeSet(IModel model) {
     Map toSetMap = model.toSetFull(true);
     if (toSetMap.length == 0) throw new IStoreException(21031);
     List columns = [];
@@ -21,14 +21,14 @@ class IMariaDBSQLPrepare {
     return 'UPDATE `${model.getName()}` SET ${columns.join(", ")} WHERE `${model.getPKName()}` = ?;';
   }
 
-  static String makeGet(M model) {
+  static String makeGet(IModel model) {
     Map toGetMap = model.getMapFull();
     if (toGetMap.length == 0) throw new IStoreException(21032);
 
     return 'SELECT `${toGetMap.keys.join("`, `")}` FROM `${model.getName()}` WHERE `${model.getPKName()}` = ?;';
   }
 
-  static String makeDel(M model) {
+  static String makeDel(IModel model) {
     return 'DELETE FROM `${model.getName()}` WHERE `${model.getPKName()}` = ?;';
   }
 }

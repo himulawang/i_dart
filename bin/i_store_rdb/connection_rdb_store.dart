@@ -63,7 +63,7 @@ class ConnectionRedisStore extends IRedisStore {
       // TODO change this to warning
       if (!exist) throw new IStoreException(20031);
     })
-    .then((_) => handler.hmget(abbModelKey, model.getMapAbb().keys))
+    .then(() => handler.hmget(abbModelKey, model.getMapAbb().keys))
     .then((List data) => model..fromList(data)..setExist())
     .catchError((e) {
       if (e is IStoreException && e._code == 20031) return model;
@@ -88,6 +88,7 @@ class ConnectionRedisStore extends IRedisStore {
 
     return handler.del(abbModelKey)
     .then((bool result) {
+      // TODO change this to warning
       if (!result) new IStoreException(25002);
       return result;
     })

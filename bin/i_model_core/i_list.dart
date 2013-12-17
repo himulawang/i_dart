@@ -35,7 +35,7 @@ class IList {
   }
 
   get(index) => _list[_getInputIndex(index)];
-  void add(model) {
+  void add(IModel model) {
     String index = _getInputIndex(model.getPK());
     if (_list.containsKey(index)) throw new IModelException(10003);
     
