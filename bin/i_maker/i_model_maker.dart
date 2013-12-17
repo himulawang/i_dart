@@ -336,10 +336,10 @@ class ${listName} extends IList {
       ${name} model = new ${name}();
       model.fromList(data, changeUpdatedList);
       if (changeUpdatedList) {
-        if (_list.containsKey(model.getPK())) {
-          set(data);
+        if (get(model.getPK()) == null) {
+          add(model);
         } else {
-          add(data);
+          set(model);
         }
       } else {
         _set(model);
@@ -353,10 +353,10 @@ class ${listName} extends IList {
       ${name} model = new ${name}();
       model.fromFull(data, changeUpdatedList);
       if (changeUpdatedList) {
-        if (_list.containsKey(model.getPK())) {
-          set(data);
+        if (get(model.getPK()) == null) {
+          add(model);
         } else {
-          add(data);
+          set(model);
         }
       } else {
         _set(model);
@@ -370,10 +370,10 @@ class ${listName} extends IList {
       ${name} model = new ${name}();
       model.fromAbb(data, changeUpdatedList);
       if (changeUpdatedList) {
-        if (_list.containsKey(model.getPK())) {
-          set(data);
+        if (get(model.getPK()) == null) {
+          add(model);
         } else {
-          add(data);
+          set(model);
         }
       } else {
         _set(model);

@@ -4,3 +4,4 @@ dependencies:
   lawndart: any
   sqljocky: any
   redis_client: any
+  unittest: any
