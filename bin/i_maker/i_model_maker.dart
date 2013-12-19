@@ -41,11 +41,11 @@ class IModelMaker extends IMaker {
     Map mapAbb = {};
     Map mapFull = {};
     
-    int length = orm['column'].length;
+    num length = orm['column'].length;
 
     // make model attributes
     String full;
-    for (int i = 0; i < length; ++i) {
+    for (num i = 0; i < length; ++i) {
       full = orm['column'][i];
       columns.add({
         'i': i,
@@ -82,7 +82,7 @@ class ${orm['name']} extends IModel {
 
     // store information
     Map store;
-    for (int j = 0; j < orm['storeOrder'].length; ++j) {
+    for (num j = 0; j < orm['storeOrder'].length; ++j) {
       store = orm['storeOrder'][j];
       codeSB.write('''
   static const Map _${store['type']}Store = const ${JSON.encode(store)};
@@ -118,7 +118,7 @@ class ${orm['name']} extends IModel {
   Map getMapFull() => _mapFull;
 ''');
 
-    for (int i = 0; i < length; ++i) {
+    for (num i = 0; i < length; ++i) {
       String full = orm['column'][i];
       codeSB.write('''
 
@@ -146,7 +146,7 @@ class ${orm['name']} extends IModel {
     if (!filterOn) return _args.toList(growable: false);
 
     List result = new List.filled(_length, null);
-    for (int i = 0; i < _length; ++i) {
+    for (num i = 0; i < _length; ++i) {
       if (_columns[i]['toAdd']) continue;
       result[i] = _args[i];
     }
@@ -154,7 +154,7 @@ class ${orm['name']} extends IModel {
   }
   List toAddList([bool filterOn = false]) {
     List result = [];
-    for (int i = 0; i < _length; ++i) {
+    for (num i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toAdd']) continue;
       result.add(_args[i]);
     }
@@ -179,7 +179,7 @@ class ${orm['name']} extends IModel {
 
   List toSetFixedList([bool filterOn = false]) {
     List result = new List.filled(_length, null);
-    for (int i = 0; i < _length; ++i) {
+    for (num i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toSet']) continue;
       if (_updatedList[i]) result[i] = _args[i].toString();
     }
@@ -187,7 +187,7 @@ class ${orm['name']} extends IModel {
   }
   List toSetList([bool filterOn = false]) {
     List result = [];
-    for (int i = 0; i < _length; ++i) {
+    for (num i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toSet']) continue;
       if (_updatedList[i]) result.add(_args[i].toString());
     }
@@ -212,7 +212,7 @@ class ${orm['name']} extends IModel {
 
   List toFixedList([bool filterOn = false]) {
     List result = new List.filled(_length, null);
-    for (int i = 0; i < _length; ++i) {
+    for (num i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toList']) continue;
       result[i] = _args[i];
     }
@@ -220,7 +220,7 @@ class ${orm['name']} extends IModel {
   }
   List toList([bool filterOn = false]) {
     List result = [];
-    for (int i = 0; i < _length; ++i) {
+    for (num i = 0; i < _length; ++i) {
       if (filterOn && _columns[i]['toList']) continue;
       result.add(_args[i]);
     }
@@ -281,7 +281,7 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${name}PK extends IPK {
-  ${name}PK([int pk = 0]) {
+  ${name}PK([num pk = 0]) {
     _pk = pk;
   }
 }

@@ -12,28 +12,22 @@ void main() {
   num endTimestamp;
   startTimestamp = new DateTime.now().millisecondsSinceEpoch;
   setUp(() {
-// init
-//IRedisHandlerPool redisHandlerPool;
-//IMariaDBHandlerPool mariaDBHandlerPool;
-//redisHandlerPool = new IRedisHandlerPool(store['redis']);
-//mariaDBHandlerPool = new IMariaDBHandlerPool(store['mariaDB']);
+    // init
+    IRedisHandlerPool redisHandlerPool;
+    redisHandlerPool = new IRedisHandlerPool(store['redis']);
+    //IMariaDBHandlerPool mariaDBHandlerPool;
+    //mariaDBHandlerPool = new IMariaDBHandlerPool(store['mariaDB']);
   });
   tearDown(() {
   });
 
-  group('Test PK', () {
-    group('constructor', () {
-      test('no input value pk should be 0 & isUpdated is false', () {
-        UserPK userPK = new UserPK();
-        expect(userPK.get(), equals(0));
-        expect(userPK.isUpdated(), equals(false));
+  group('Test rdb store', () {
+    group('add', () {
+      test('model is invalid', () {
+        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        expect(() => RoomRedisStore.add(user), throwsA(predicate((e) => e is IStoreException && e.code == 20022)));
       });
 
-      test('has input value pk is right & isUpdated is false', () {
-        UserPK userPK = new UserPK(777);
-        expect(userPK.get(), equals(777));
-        expect(userPK.isUpdated(), equals(false));
-      });
     });
   });
 

@@ -26,19 +26,118 @@ class IStoreMaker extends IMaker {
     copyFileWithHeader(_srcStoreCoreDir, 'i_mdb_sql_prepare.dart', _outStoreCoreDir, 'i_mdb_sql_prepare.dart', 'part of lib_${_app};');
     copyFileWithHeader(_srcStoreCoreDir, 'i_store_exception.dart', _outStoreCoreDir, 'i_store_exception.dart', 'part of lib_${_app};');
 
-    /*
-    // make store files
     _orm.forEach((orm) {
       String lowerName = makeLowerUnderline(orm['name']);
-      writeFile('${lowerName}.dart', _outStoreDir, makeStore(orm), true);
+      writeFile('${lowerName}_rdb_store.dart', _outStoreDir, makeRedisStore(orm), true);
     });
-    // make import package
-    // writeFile('lib_i_model.dart', targetPath, makeModelPackage(), true);
-    */
   }
 
-  String makeStore(Map orm) {
-    StringBuffer codeSB = new StringBuffer();
+  String makeRedisStore(Map orm) {
+    String code = '''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${orm['name']}RedisStore extends IRedisStore {
+  static Future add(${orm['name']} model) {
+    if (model is! ${orm['name']}) throw new IStoreException(20022);
+
+    num pk = model.getPK();
+    if (pk is! num) throw new IStoreException(20023);
+
+    RedisClient handler = new IRedisHandlerPool().getWriteHandler(model);
+
+    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+    return handler.exists(abbModelKey)
+    .then((bool exist) {
+      // model exist
+      if (exist) throw new IStoreException(20024);
+
+      Map toAddAbb = model.toAddAbb(true);
+      // no attribute to add
+      if (toAddAbb.length == 0) throw new IStoreException(20032);
+      return toAddAbb;
+    })
+    .then((Map toAddAbb) => handler.hmset(abbModelKey, toAddAbb))
+    .then((String result) {
+      if (result != 'OK') throw IStoreException(20025);
+      return model;
+    })
+    .catchError(_handleErr);
+  }
+
+  static Future set(${orm['name']} model) {
+    if (model is! ${orm['name']}) throw new IStoreException(20026);
+
+    num pk = model.getPK();
+    if (pk is! num) throw new IStoreException(20027);
+
+    RedisClient handler = new IRedisHandlerPool().getWriteHandler(model);
+    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+
+    Map toSetAbb = model.toSetAbb(true);
+    if (toSetAbb.length == 0) throw new IStoreException(25001);
+
+    return handler.hmset(abbModelKey, toSetAbb)
+    .then((String result) {
+      if (result != 'OK') throw IStoreException(20029);
+      return model;
+    })
+    .catchError((e) {
+      if (e is IStoreException && e._code == 25001) return model;
+      throw e;
+    });
+  }
+
+  static Future get(num pk) {
+    if (pk is! num) throw new IStoreException(20021);
+
+    ${orm['name']} model = new ${orm['name']}()..setPK(pk);
+    RedisClient handler = new IRedisHandlerPool().getReaderHandler(model);
+    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+
+    return handler.exists(abbModelKey)
+    .then((bool exist) {
+      // TODO change this to warning
+      if (!exist) throw new IStoreException(20031);
+    })
+    .then(() => handler.hmget(abbModelKey, model.getMapAbb().keys))
+    .then((List data) => model..fromList(data)..setExist())
+    .catchError((e) {
+      if (e is IStoreException && e._code == 20031) return model;
+      throw e;
+    });
+  }
+
+  static Future del(input) {
+    num pk;
+    ${orm['name']} model;
+    if (input is ${orm['name']}) {
+      model = input;
+      pk = model.getPK();
+    } else {
+      model = new ${orm['name']}()..setPK(input);
+      pk = input;
+    }
+    if (pk is! num) throw new IStoreException(20030);
+
+    RedisClient handler = new IRedisHandlerPool().getReaderHandler(model);
+    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+
+    return handler.del(abbModelKey)
+    .then((bool result) {
+      // TODO change this to warning
+      if (!result) new IStoreException(25002);
+      return result;
+    })
+    .catchError(_handleErr);
+  }
+
+  static String _makeAbbModelKey(String abb, num pk) => '\$\{abb}:\$\{pk.toString()}';
+
+  static void _handleErr(err) => throw err;
+}
+    ''';
+    return code;
   }
 
   void makeSubDir() {
