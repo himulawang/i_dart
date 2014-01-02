@@ -7,33 +7,40 @@ class IRedisHandlerPool {
   static bool _initialized = false;
   static IRedisHandlerPool _instance;
 
-  static final Map dbs = <String, List<int, RedisClient>>{};
+  static final Map dbs = <String, List<RedisClient>>{};
   static final Map nodesLength = <String, int>{};
 
-  factory IRedisHandlerPool([Map config = null]) {
-    if (_initialized) return _instance;
-
-    _initialized = true;
-    _instance = new IRedisHandlerPool._internal(config);
-
+  Future init(Map config) {
     // for configs
+    List waitList = [];
     config.forEach((String groupName, List group) {
       // get groupName
-      dbs[groupName] = new List<int, RedisClient>(group.length);
+      dbs[groupName] = new List(group.length);
       nodesLength[groupName] = group.length;
 
       // for nodes
       group.forEach((Map node) {
         String connectionString = _makeConnectionString(node);
-        RedisClient.connect(connectionString).then((RedisClient client) {
-          dbs[groupName][node['no']] = client;
-        }).catchError(_handleErr);
+        waitList.add(
+            RedisClient.connect(connectionString).then((RedisClient client) {
+              dbs[groupName][node['no']] = client;
+            }).catchError(_handleErr)
+        );
       });
     });
+    return Future.wait(waitList).then((_) => print('Redis connected.'));
+  }
+
+  factory IRedisHandlerPool([Map config = null]) {
+    if (_initialized) return _instance;
+
+    _initialized = true;
+    _instance = new IRedisHandlerPool._internal();
+
     return _instance;
   }
 
-  IRedisHandlerPool._internal(Map config);
+  IRedisHandlerPool._internal();
 
   static String _makeConnectionString(Map node) {
     // check node config
@@ -70,7 +77,7 @@ class IRedisHandlerPool {
     throw err;
   }
 
-  RedisClient getWriteHandler(M model) {
+  RedisClient getWriteHandler(model) {
     num pk = model.getPK();
 
     Map redisStore = model.getRedisStore();
@@ -92,7 +99,7 @@ class IRedisHandlerPool {
     return dbs[groupName][shardIndex];
   }
 
-  RedisClient getReaderHandler(M model) {
+  RedisClient getReaderHandler(model) {
     num pk = model.getPK();
 
     Map redisStore = model.getRedisStore();
@@ -114,3 +121,4 @@ class IRedisHandlerPool {
     return dbs[groupName][shardIndex];
   }
 }
+

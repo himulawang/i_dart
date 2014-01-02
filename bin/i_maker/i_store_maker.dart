@@ -47,14 +47,16 @@ class ${orm['name']}RedisStore extends IRedisStore {
     RedisClient handler = new IRedisHandlerPool().getWriteHandler(model);
 
     String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+
+    Map toAddAbb = model.toAddAbb(true);
+    // no attribute to add
+    if (toAddAbb.length == 0) throw new IStoreException(20032);
+
     return handler.exists(abbModelKey)
     .then((bool exist) {
       // model exist
       if (exist) throw new IStoreException(20024);
 
-      Map toAddAbb = model.toAddAbb(true);
-      // no attribute to add
-      if (toAddAbb.length == 0) throw new IStoreException(20032);
       return toAddAbb;
     })
     .then((Map toAddAbb) => handler.hmset(abbModelKey, toAddAbb))
@@ -77,15 +79,19 @@ class ${orm['name']}RedisStore extends IRedisStore {
     Map toSetAbb = model.toSetAbb(true);
     if (toSetAbb.length == 0) throw new IStoreException(25001);
 
-    return handler.hmset(abbModelKey, toSetAbb)
+    return handler.exists(abbModelKey)
+    .then((bool exist) {
+      // model exist
+      if (!exist) throw new IStoreException(20033);
+
+      return handler.hmset(abbModelKey, toSetAbb);
+    })
     .then((String result) {
       if (result != 'OK') throw IStoreException(20029);
+      model.setUpdatedList(false);
       return model;
     })
-    .catchError((e) {
-      if (e is IStoreException && e._code == 25001) return model;
-      throw e;
-    });
+    .catchError(_handleErr);
   }
 
   static Future get(num pk) {
