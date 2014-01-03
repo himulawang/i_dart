@@ -7,18 +7,13 @@ class IMariaDBHandlerPool {
   static bool _initialized = false;
   static IMariaDBHandlerPool _instance;
 
-  static final Map dbs = <String, List<int, RedisClient>>{};
+  static final Map dbs = <String, List<ConnectionPool>>{};
   static final Map nodesLength = <String, int>{};
 
-  factory IMariaDBHandlerPool([Map config = null]) {
-    if (_initialized) return _instance;
-
-    _initialized = true;
-    _instance = new IMariaDBHandlerPool._internal(config);
-
+  void init(Map config) {
     config.forEach((String groupName, List group) {
       // get groupName
-      dbs[groupName] = new List<int, ConnectionPool>(group.length);
+      dbs[groupName] = new List(group.length);
       nodesLength[groupName] = group.length;
 
       // for nodes
@@ -26,19 +21,25 @@ class IMariaDBHandlerPool {
         _checkNodeConfig(node);
 
         dbs[groupName][node['no']] = new ConnectionPool(
-          host: node['host'],
-          port: node['port'],
-          user: node['usr'],
-          password: node['pwd'],
-          db: node['db'],
-          max: node['maxHandler']
+            host: node['host'],
+            port: node['port'],
+            user: node['usr'],
+            password: node['pwd'],
+            db: node['db'],
+            max: node['maxHandler']
         );
       });
     });
+    _initialized = true;
+  }
+
+  factory IMariaDBHandlerPool() {
+    if (_instance is IMariaDBHandlerPool) return _instance;
+    _instance = new IMariaDBHandlerPool._internal();
     return _instance;
   }
 
-  IMariaDBHandlerPool._internal(Map config);
+  IMariaDBHandlerPool._internal();
 
   static void _checkNodeConfig(node) {
     // check node config
@@ -52,6 +53,7 @@ class IMariaDBHandlerPool {
   }
 
   ConnectionPool getWriteHandler(M model) {
+    _checkInitialized();
     num pk = model.getPK();
 
     Map mariaDBStore = model.getMariaDBStore();
@@ -74,6 +76,7 @@ class IMariaDBHandlerPool {
   }
 
   ConnectionPool getReaderHandler(M model) {
+    _checkInitialized();
     num pk = model.getPK();
 
     Map mariaDBStore = model.getMariaDBStore();
@@ -93,5 +96,9 @@ class IMariaDBHandlerPool {
     }
 
     return dbs[groupName][shardIndex];
+  }
+
+  void _checkInitialized() {
+    if (!_initialized) throw new IStoreException(21029);
   }
 }

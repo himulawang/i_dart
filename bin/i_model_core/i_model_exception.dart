@@ -25,6 +25,6 @@ class IModelException {
   IModelException(int inputCode, [List inputParameters]) {
     code = inputCode;
     parameters = inputParameters;
-    ILog.severe('IStoreException:${code}:${_CODES[code.toString()]}');
+    ILog.severe('IStoreException ${code}: ${_CODES[code.toString()]}');
   }
 }

@@ -22,21 +22,22 @@ class IRedisHandlerPool {
       group.forEach((Map node) {
         String connectionString = _makeConnectionString(node);
         waitList.add(
-            RedisClient.connect(connectionString).then((RedisClient client) {
-              dbs[groupName][node['no']] = client;
-            }).catchError(_handleErr)
+            RedisClient
+            .connect(connectionString)
+            .then((RedisClient client) => dbs[groupName][node['no']] = client)
+            .catchError(_handleErr)
         );
       });
     });
-    return Future.wait(waitList).then((_) => print('Redis connected.'));
+    return Future.wait(waitList).then((_) {
+      _initialized = true;
+      print('Redis connected.');
+    });
   }
 
-  factory IRedisHandlerPool([Map config = null]) {
-    if (_initialized) return _instance;
-
-    _initialized = true;
+  factory IRedisHandlerPool() {
+    if (_instance is IRedisHandlerPool) return _instance;
     _instance = new IRedisHandlerPool._internal();
-
     return _instance;
   }
 
@@ -78,6 +79,7 @@ class IRedisHandlerPool {
   }
 
   RedisClient getWriteHandler(model) {
+    _checkInitialized();
     num pk = model.getPK();
 
     Map redisStore = model.getRedisStore();
@@ -100,6 +102,7 @@ class IRedisHandlerPool {
   }
 
   RedisClient getReaderHandler(model) {
+    _checkInitialized();
     num pk = model.getPK();
 
     Map redisStore = model.getRedisStore();
@@ -119,6 +122,10 @@ class IRedisHandlerPool {
     }
 
     return dbs[groupName][shardIndex];
+  }
+
+  void _checkInitialized() {
+    if (!_initialized) throw new IStoreException(20033);
   }
 }
 

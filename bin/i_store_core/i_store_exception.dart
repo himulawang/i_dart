@@ -27,9 +27,9 @@ class IStoreException {
     '20028': 'Model not exists when set it.',
     '20029': 'Set model from redis failed.',
     '20030': 'Invalid pk when del model from redis.',
-    '20031': 'Model not exists when get from redis.',
+    '20031': 'Model does not exist when get from redis.',
     '20032': 'Model has no attribute to add to redis.',
-    //'20033': 'Model does not exist when set it.',
+    '20033': 'Redis handler pool is not initialized.',
     // mariaDB
     '21001': 'Cannot find config key [no] in mariaDB store.',
     '21002': 'Cannot find config key [host] in mariaDB store.',
@@ -40,19 +40,20 @@ class IStoreException {
     '21007': 'Cannot find config key [maxHandler] in mariaDB store.',
     '21021': 'Invalid pk when get model from mariaDB.',
     '21022': 'Mutiple rows got from mariaDB.',
-    '2l023': 'Invalid model when add model to mariaDB.',
+    '21023': 'Invalid model when add model to mariaDB.',
     '21024': 'Invalid pk when add model to mariaDB.',
     '21025': 'Add model to mariaDB failed.',
     '21026': 'Invalid model when set model to mariaDB.',
     '21027': 'Invalid pk when set model to mariaDB.',
-    //'21028': 'Model not exists when set to mariaDB.',
-    //'21029': 'Update multiple model to mariaDB.',
+    '21028': 'PK conflict when add model to mariaDB.',
+    '21029': 'MariaDB handler pool is not initialized.',
     '21030': 'No column to use when making add SQL for mariaDB.',
     '21031': 'No column to use when making set SQL for mariaDB.',
     '21032': 'No column to use when making get SQL for mariaDB.',
     '21033': 'No column to use when making del SQL for mariaDB.',
     '21034': 'Invalid pk when del model from mariaDB.',
     '21035': 'Model has no attribute to add to mariaDB.',
+
     // redis warning for interrupting future chain
     '25001': 'Model has no attribute to set to redis.',
     '25002': 'No record affected when del model from redis.',
@@ -68,9 +69,9 @@ class IStoreException {
     code = inputCode;
     parameters = inputParameters;
     if (code > 25000) {
-      ILog.warning('IStoreWarning:${code}:${_CODES[code.toString()]}');
+      ILog.warning('IStoreWarning ${code}: ${_CODES[code.toString()]}');
     } else {
-      ILog.severe('IStoreException:${code}:${_CODES[code.toString()]}');
+      ILog.severe('IStoreException ${code}: ${_CODES[code.toString()]}');
     }
   }
 }

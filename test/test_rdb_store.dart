@@ -12,6 +12,12 @@ num endTimestamp;
 
 void main() {
   startTimestamp = new DateTime.now().millisecondsSinceEpoch;
+
+  Logger.root.level = Level.WARNING;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+  });
+
   IRedisHandlerPool pool = new IRedisHandlerPool();
   pool.init(store['redis'])
   .then((_) => startTest());
@@ -58,6 +64,7 @@ startTest() {
 
       test('add success should reset updateList', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
+        user.underworldName = '2';
         UserRedisStore.add(user).then(expectAsync1((User user) {
           expect(user.isUpdated(), equals(false));
         }));
@@ -90,12 +97,16 @@ startTest() {
         );
       });
 
-      test('toSetAbb return list length is 0 should return model', () {
+      test('toSetAbb return list length is 0 should get warning', () {
         UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm[2]['column'].length, 1));
-        expect(
-            () => UserToSetLengthZeroRedisStore.set(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 25001))
-        );
+        UserToSetLengthZeroRedisStore.add(user)
+        .then((UserToSetLengthZero user) {
+          user.name = '2';
+          return UserToSetLengthZeroRedisStore.set(user);
+        })
+        .then(expectAsync1((UserToSetLengthZero user) {
+          expect(user.isUpdated(), equals(false));
+        }));
       });
 
       test('set success should reset updateList', () {
@@ -112,7 +123,7 @@ startTest() {
         user.name = '2';
         UserRedisStore.set(user).catchError(expectAsync1((e) {
           expect(e is IStoreException, equals(true));
-          expect(e.code, equals(20033));
+          expect(e.code, equals(20028));
         }));
       });
 
@@ -169,6 +180,10 @@ startTest() {
         }));
       });
 
+      tearDown(() {
+        endTimestamp = new DateTime.now().millisecondsSinceEpoch;
+        print('cost ${endTimestamp - startTimestamp} ms');
+      });
       test('del model not exist return normally', () {
         UserRedisStore.del(1).then(expectAsync1((result) {
           expect(result, equals(false));
@@ -178,6 +193,4 @@ startTest() {
     });
   });
 
-  endTimestamp = new DateTime.now().millisecondsSinceEpoch;
-  print('cost ${endTimestamp - startTimestamp} ms');
 }
