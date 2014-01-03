@@ -49,7 +49,6 @@ class ${orm['name']}RedisStore extends IRedisStore {
     String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
 
     Map toAddAbb = model.toAddAbb(true);
-    // no attribute to add
     if (toAddAbb.length == 0) throw new IStoreException(20032);
 
     return handler.exists(abbModelKey)
@@ -103,13 +102,12 @@ class ${orm['name']}RedisStore extends IRedisStore {
 
     return handler.exists(abbModelKey)
     .then((bool exist) {
-      // TODO change this to warning
-      if (!exist) throw new IStoreException(20031);
+      if (!exist) throw new IStoreException(25003);
     })
-    .then(() => handler.hmget(abbModelKey, model.getMapAbb().keys))
+    .then((_) => handler.hmget(abbModelKey, model.getMapAbb().keys))
     .then((List data) => model..fromList(data)..setExist())
     .catchError((e) {
-      if (e is IStoreException && e._code == 20031) return model;
+      if (e is IStoreException && e.code == 25003) return model;
       throw e;
     });
   }

@@ -29,7 +29,7 @@ class IStoreException {
     '20030': 'Invalid pk when del model from redis.',
     '20031': 'Model not exists when get from redis.',
     '20032': 'Model has no attribute to add to redis.',
-    '20033': 'Model does not exist when set it.',
+    //'20033': 'Model does not exist when set it.',
     // mariaDB
     '21001': 'Cannot find config key [no] in mariaDB store.',
     '21002': 'Cannot find config key [host] in mariaDB store.',
@@ -56,6 +56,7 @@ class IStoreException {
     // redis warning for interrupting future chain
     '25001': 'Model has no attribute to set to redis.',
     '25002': 'No record affected when del model from redis.',
+    '25003': 'Model does not exist when set it.',
     // mariaDB warning for interrupting future chain
     '26001': 'Model has no attribute to set to mariaDB.',
     '26002': 'No record affected when set model to mariaDB.',
