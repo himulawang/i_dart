@@ -28,17 +28,54 @@ class IStoreMaker extends IMaker {
 
     _orm.forEach((orm) {
       String lowerName = makeLowerUnderline(orm['name']);
-      writeFile('${lowerName}_rdb_store.dart', _outStoreDir, makeRedisStore(orm), true);
-      writeFile('${lowerName}_mdb_store.dart', _outStoreDir, makeMariaDBStore(orm), true);
+      // redis
+      String redisCode = makeRedisStore(orm);
+      if (!redisCode.isEmpty) writeFile('${lowerName}_rdb_store.dart', _outStoreDir, redisCode, true);
+
+      // mariaDB
+      String mariaDBCode = makeMariaDBStore(orm);
+      if (!mariaDBCode.isEmpty) writeFile('${lowerName}_mdb_store.dart', _outStoreDir, mariaDBCode, true);
+
+      // combined
+      String combinedCode = makeCombinedStore(orm);
+      if (!combinedCode.isEmpty) writeFile('${lowerName}_store.dart', _outStoreDir, combinedCode, true);
     });
+
   }
 
   String makeRedisStore(Map orm) {
-    String code = '''
+    Map storeConfig = _getStoreConfig('redis', orm);
+    if (storeConfig == null) return '';
+
+    String codeHeader = '''
 ${_DECLARATION}
 part of lib_${_app};
 
 class ${orm['name']}RedisStore extends IRedisStore {
+''';
+
+    String codeFooter = '''
+  static String _makeAbbModelKey(String abb, num pk) => '\$\{abb}:\$\{pk.toString()}';
+
+  static void _handleErr(e) => throw e;
+}
+''';
+
+    StringBuffer codeSB = new StringBuffer();
+    codeSB.writeAll([
+        codeHeader,
+        _makeRedisAdd(orm, storeConfig),
+        _makeRedisSet(orm, storeConfig),
+        _makeRedisGet(orm, storeConfig),
+        _makeRedisDel(orm, storeConfig),
+        codeFooter
+    ]);
+
+    return codeSB.toString();
+  }
+
+  String _makeRedisAdd(Map orm, Map storeConfig) {
+    String codeHeader = '''
   static Future add(${orm['name']} model) {
     if (model is! ${orm['name']}) throw new IStoreException(20022);
 
@@ -54,20 +91,50 @@ class ${orm['name']}RedisStore extends IRedisStore {
 
     return handler.exists(abbModelKey)
     .then((bool exist) {
-      // model exist
       if (exist) throw new IStoreException(20024);
-
-      return toAddAbb;
     })
-    .then((Map toAddAbb) => handler.hmset(abbModelKey, toAddAbb))
+    .then((_) => handler.hmset(abbModelKey, toAddAbb))
+''';
+
+    String codeAddWithExpire = '''
     .then((String result) {
       if (result != 'OK') throw IStoreException(20025);
-      model.setUpdatedList(false);
+    })
+    .then((_) => handler.expire(abbModelKey, ${storeConfig['expire']}))
+    .then((bool result) {
+      if (result) return model;
+      new IStoreException(25004);
       return model;
     })
+''';
+
+    String codeAddWithoutExpire = '''
+    .then((String result) {
+      if (result != 'OK') throw IStoreException(20025);
+      return model;
+    })
+''';
+
+    String codeFooter = '''
     .catchError(_handleErr);
   }
 
+''';
+
+    StringBuffer codeSB = new StringBuffer();
+    codeSB.write(codeHeader);
+    if (storeConfig['expire'] == 0) {
+      codeSB.write(codeAddWithoutExpire);
+    } else {
+      codeSB.write(codeAddWithExpire);
+    }
+    codeSB.write(codeFooter);
+
+    return codeSB.toString();
+  }
+
+  String _makeRedisSet(Map orm, Map storeConfig) {
+    String codeHeader = '''
   static Future set(${orm['name']} model) {
     if (model is! ${orm['name']}) throw new IStoreException(20026);
 
@@ -78,26 +145,59 @@ class ${orm['name']}RedisStore extends IRedisStore {
     String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
 
     Map toSetAbb = model.toSetAbb(true);
-    model.setUpdatedList(false);
 
     return handler.exists(abbModelKey)
     .then((bool exist) {
-      // model exist
       if (!exist) throw new IStoreException(20028);
-      if (toSetAbb.length == 0) throw new IStoreException(25001);
+      if (toSetAbb.length == 0) {
+        throw new IStoreException(25001);
+      }
 
       return handler.hmset(abbModelKey, toSetAbb);
     })
+''';
+
+    String codeSetWithExpire = '''
+    .then((String result) {
+      if (result != 'OK') throw IStoreException(20029);
+    })
+    .then((_) => handler.expire(abbModelKey, ${storeConfig['expire']}))
+    .then((bool result) {
+      if (result) return model;
+      new IStoreException(25005);
+      return model;
+    })
+''';
+
+    String codeSetWithoutExpire = '''
     .then((String result) {
       if (result != 'OK') throw IStoreException(20029);
       return model;
     })
+''';
+
+    String codeFooter = '''
     .catchError((e) {
       if (e is IStoreException && e.code == 25001) return model;
       throw e;
     });
   }
+''';
 
+    StringBuffer codeSB = new StringBuffer();
+    codeSB.write(codeHeader);
+    if (storeConfig['expire'] == 0) {
+      codeSB.write(codeSetWithoutExpire);
+    } else {
+      codeSB.write(codeSetWithExpire);
+    }
+    codeSB.write(codeFooter);
+
+    return codeSB.toString();
+  }
+
+  String _makeRedisGet(Map orm, Map storeConfig) {
+    String code = '''
   static Future get(num pk) {
     if (pk is! num) throw new IStoreException(20021);
 
@@ -117,6 +217,12 @@ class ${orm['name']}RedisStore extends IRedisStore {
     });
   }
 
+''';
+    return code;
+  }
+
+  String _makeRedisDel(Map orm, Map storeConfig) {
+    String code = '''
   static Future del(input) {
     num pk;
     ${orm['name']} model;
@@ -140,11 +246,7 @@ class ${orm['name']}RedisStore extends IRedisStore {
     .catchError(_handleErr);
   }
 
-  static String _makeAbbModelKey(String abb, num pk) => '\$\{abb}:\$\{pk.toString()}';
-
-  static void _handleErr(e) => throw e;
-}
-    ''';
+''';
     return code;
   }
 
@@ -168,7 +270,6 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
     return handler.prepareExecute(IMariaDBSQLPrepare.makeAdd(model), toAddList)
     .then((Results results) {
       if (results.affectedRows != 1) throw new IStoreException(21025);
-      model.setUpdatedList(false);
       return model;
     }).catchError((e) {
       if (e is MySqlException) {
@@ -187,7 +288,6 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
 
     Map toSetList = model.toSetList(true);
     if (toSetList.length == 0) {
-      model.setUpdatedList(false);
       new IStoreException(26001);
       Completer completer = new Completer();
       completer.complete(model);
@@ -200,7 +300,6 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
     .then((Results results) {
       if (results.affectedRows == 0) new IStoreException(26002);
       if (results.affectedRows > 1) new IStoreException(26003);
-      model.setUpdatedList(false);
       return model;
     }).catchError(_handleErr);
   }
@@ -249,11 +348,101 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
 
   }
 
+  String makeCombinedStore(Map orm) {
+    List storeOrder = orm['storeOrder'];
+
+    String codeHeader = '''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${orm['name']}Store {
+''';
+
+    String codeFooter = '''
+}
+''';
+
+    StringBuffer codeSB = new StringBuffer();
+    codeSB.write(codeHeader);
+
+    // add
+    codeSB.writeln('  static Future add(${orm['name']} model) {');
+    for (int i = storeOrder.length - 1; i >= 0; --i) {
+      String upperType = makeUpperFirstLetter(orm['storeOrder'][i]['type']);
+      if (i == storeOrder.length - 1) {
+        codeSB.writeln('    return ${orm['name']}${upperType}Store.add(model)');
+      } else {
+        codeSB.writeln('    .then((_) => ${orm['name']}${upperType}Store.add(model))');
+      }
+    }
+    codeSB..writeln('    .then((${orm['name']} model) => model..setUpdatedList(false))')
+          ..writeln('    ;')
+          ..writeln('  }')
+          ..writeln('');
+
+    // set
+    codeSB.writeln('  static Future set(${orm['name']} model) {');
+    for (int i = storeOrder.length - 1; i >= 0; --i) {
+      String upperType = makeUpperFirstLetter(orm['storeOrder'][i]['type']);
+      if (i == storeOrder.length - 1) {
+        codeSB.writeln('    return ${orm['name']}${upperType}Store.set(model)');
+      } else {
+        codeSB.writeln('    .then((_) => ${orm['name']}${upperType}Store.set(model))');
+      }
+    }
+    codeSB..writeln('    .then((${orm['name']} model) => model..setUpdatedList(false))')
+          ..writeln('    ;')
+          ..writeln('  }')
+          ..writeln('');
+
+    // get
+    codeSB.writeln('  static Future get(num pk) {');
+    for (int i = 0; i < storeOrder.length; ++i) {
+      String upperType = makeUpperFirstLetter(orm['storeOrder'][i]['type']);
+      if (i == 0) {
+        codeSB..writeln('    return ${orm['name']}${upperType}Store.get(pk)');
+      } else {
+        codeSB..writeln('    .then((${orm['name']} model) {')
+              ..writeln('      if (model.isExist()) return model;')
+              ..writeln('      return ${orm['name']}${upperType}Store.get(pk);')
+              ..writeln('    })');
+      }
+    }
+
+    codeSB..writeln('    ;')
+      ..writeln('  }')
+      ..writeln('');
+
+    // del
+    codeSB.writeln('  static Future del(input) {');
+    for (int i = storeOrder.length - 1; i >= 0; --i) {
+      String upperType = makeUpperFirstLetter(orm['storeOrder'][i]['type']);
+      if (i == storeOrder.length - 1) {
+        codeSB.writeln('    return ${orm['name']}${upperType}Store.del(input)');
+      } else {
+        codeSB.writeln('    .then((_) => ${orm['name']}${upperType}Store.del(input))');
+      }
+    }
+    codeSB..writeln('    ;')
+      ..writeln('  }');
+
+    codeSB.write(codeFooter);
+    return codeSB.toString();
+  }
+
   void makeSubDir() {
     Directory coreDir = new Directory(_outStoreCoreDir);
     if (!coreDir.existsSync()) coreDir.createSync();
 
     Directory storeDir = new Directory(_outStoreDir);
     if (!storeDir.existsSync()) storeDir.createSync();
+  }
+
+  Map _getStoreConfig(String storeType, Map orm) {
+    Map config = null;
+    orm['storeOrder'].forEach((Map storeConfig) {
+      if (storeConfig['type'] == storeType) config = storeConfig;
+    });
+    return config;
   }
 }

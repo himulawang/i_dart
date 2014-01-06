@@ -1,7 +1,16 @@
 import 'dart:io';
 main() {
   //print('\aaabb'.replaceAll(new RegExp(r'\\'), '/'));
-  var b = new B.fromText(1);
+  //var b = new B.fromText(1);
+  var collection = [0, 2, 2];
+  for (var x in collection) {
+    print(x);
+  }
+  collection.forEach((int a, int b) {
+    print(a);
+    print(b);
+  });
+
 }
 
 class A {

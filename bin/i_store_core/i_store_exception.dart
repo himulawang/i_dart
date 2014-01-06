@@ -58,6 +58,7 @@ class IStoreException {
     '25001': 'Model has no attribute to set to redis.',
     '25002': 'No record affected when del model from redis.',
     '25003': 'Model does not exist when set it.',
+    '25004': 'Set expire failed when add model to redis.',
     // mariaDB warning for interrupting future chain
     '26001': 'Model has no attribute to set to mariaDB.',
     '26002': 'No record affected when set model to mariaDB.',

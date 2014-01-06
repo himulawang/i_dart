@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
+import 'package:redis_client/redis_client.dart';
 
 import 'lib_test.dart';
 import 'i_config/store.dart';
@@ -62,11 +63,19 @@ startTest() {
         );
       });
 
-      test('add success should reset updateList', () {
+      test('add expire model successfully', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         user.underworldName = '2';
         UserRedisStore.add(user).then(expectAsync1((User user) {
-          expect(user.isUpdated(), equals(false));
+          expect(user is User, isTrue);
+        }));
+      });
+
+      test('add no expire model successfully', () {
+        UserForever user = new UserForever(new List.filled(orm[4]['column'].length, 1));
+        user.name = '2';
+        UserForeverRedisStore.add(user).then(expectAsync1((UserForever user) {
+          expect(user is UserForever, isTrue);
         }));
       });
 
@@ -105,15 +114,23 @@ startTest() {
           return UserToSetLengthZeroRedisStore.set(user);
         })
         .then(expectAsync1((UserToSetLengthZero user) {
-          expect(user.isUpdated(), equals(false));
+          expect(user is UserToSetLengthZero, isTrue);
         }));
       });
 
-      test('set success should reset updateList', () {
+      test('set expire model successfully', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         user.name = '2';
         UserRedisStore.set(user).then(expectAsync1((User user) {
-          expect(user.isUpdated(), equals(false));
+          expect(user is User, isTrue);
+        }));
+      });
+
+      test('set expire model successfully', () {
+        UserForever user = new UserForever(new List.filled(orm[4]['column'].length, 1));
+        user.name = '2';
+        UserForeverRedisStore.set(user).then(expectAsync1((UserForever user) {
+          expect(user is UserForever, isTrue);
         }));
       });
 

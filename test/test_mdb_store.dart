@@ -25,6 +25,13 @@ CREATE TABLE IF NOT EXISTS `User` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
+DROP TABLE IF EXISTS `UserToSetLengthZero`;
+CREATE TABLE IF NOT EXISTS `UserToSetLengthZero` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(16) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB;
+
  */
 import 'dart:async';
 
@@ -92,20 +99,20 @@ startTest() {
         );
       });
 
-      test('insert successfully should reset updatedList', () {
+      test('add successfully', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1))
         ..name = '2';
         UserMariaDBStore.add(user)
         .then(expectAsync1((User user) {
-          expect(user.isUpdated(), equals(false));
+          expect(user is User, isTrue);
         }));
       });
 
-      test('insert duplicated pk model should throw exception', () {
+      test('add duplicated pk model should throw exception', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         UserMariaDBStore.add(user)
         .catchError(expectAsync1((e) {
-          expect(e is IStoreException, equals(true));
+          expect(e is IStoreException, isTrue);
           expect(e.code, equals(21028));
         }));
       });
@@ -134,7 +141,7 @@ startTest() {
         user.name = '3';
         UserToSetLengthZeroMariaDBStore.set(user)
         .then(expectAsync1((UserToSetLengthZero user) {
-          expect(user.isUpdated(), equals(false));
+          expect(user is UserToSetLengthZero, isTrue);
         }));
       });
 
@@ -144,17 +151,17 @@ startTest() {
             ..underworldName = 'c';
         UserMariaDBStore.set(user)
         .then(expectAsync1((User user) {
-          expect(user.isUpdated(), equals(false));
+          expect(user is User, isTrue);
         }));
       });
 
-      test('set successfully should reset updateList', () {
+      test('set successfully', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         user..name = 'b'
-          ..underworldName = 'c';
+            ..underworldName = 'c';
         UserMariaDBStore.set(user)
         .then(expectAsync1((User user) {
-          expect(user.isUpdated(), equals(false));
+          expect(user is User, isTrue);
         }));
       });
     });
@@ -205,6 +212,10 @@ startTest() {
         }));
       });
 
+      tearDown(() {
+        endTimestamp = new DateTime.now().millisecondsSinceEpoch;
+        print('cost ${endTimestamp - startTimestamp} ms');
+      });
       test('input is model del successfully', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         UserMariaDBStore.add(user)
@@ -216,7 +227,4 @@ startTest() {
 
     });
   });
-
-  endTimestamp = new DateTime.now().millisecondsSinceEpoch;
-  print('cost ${endTimestamp - startTimestamp} ms');
 }
