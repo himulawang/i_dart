@@ -5,6 +5,7 @@ List orm =
     {
         'name': 'User',
         'listName': 'UserList',
+        'type': 'Model',
         'pk': 0,
         'abb': 'u',
         'column': [
@@ -57,6 +58,7 @@ List orm =
     {
         'name': 'Room',
         'listName': 'RoomList',
+        'type': 'Model',
         'pk': 0,
         'abb': 'r',
         'column': [
@@ -93,6 +95,7 @@ List orm =
     {
         'name': 'UserToAddLengthZero',
         'listName': 'UserToAddLengthZeroList',
+        'type': 'Model',
         'pk': 0,
         'abb': 'utalz',
         'column': [
@@ -129,6 +132,7 @@ List orm =
     {
         'name': 'UserToSetLengthZero',
         'listName': 'UserToSetLengthZeroList',
+        'type': 'Model',
         'pk': 0,
         'abb': 'utslz',
         'column': [
@@ -165,6 +169,7 @@ List orm =
     {
         'name': 'UserForever',
         'listName': 'UserForeverList',
+        'type': 'Model',
         'pk': 0,
         'abb': 'uf',
         'column': [
@@ -196,6 +201,30 @@ List orm =
                 'shardMethod': 'CRC32',
                 'master': 'GameDB',
                 'slave': 'GameDBSlave',
+            },
+        ],
+    },
+    {
+        'name': 'User',
+        'type': 'PK',
+        'abb': 'u',
+        'global': false,
+        'backupStep': 50,
+        'storeOrder': [
+            {
+                'type': 'redis',
+                'readWriteSeparate': false,
+                'shardMethod': 'NONE',
+                'master': 'SingleCache',
+                'slave': 'SingleCacheSlave',
+            },
+            {
+                'type': 'mariaDB',
+                'readWriteSeparate': false,
+                'shardMethod': 'NONE',
+                'master': 'SingleDB',
+                'slave': 'SingleDBSlave',
+                'table': 'GlobalPKBackup',
             },
         ],
     },

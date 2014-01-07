@@ -80,52 +80,47 @@ class IRedisHandlerPool {
 
   RedisClient getWriteHandler(model) {
     _checkInitialized();
-    num pk = model.getPK();
 
     Map redisStore = model.getRedisStore();
     String groupType = 'master';
     String groupName = redisStore[groupType];
 
     int modValue = nodesLength[groupName];
-    String shardMethod = redisStore['shardMethod'];
-
-    int shardIndex;
-    switch (shardMethod) {
-      case 'CRC32':
-        shardIndex = CRC32.compute(pk.toString()) % modValue;
-        break;
-      default:
-        throw new IStoreException(20008);
-    }
+    int shardIndex = _getShardIndex(redisStore['shardMethod'], model, modValue);
 
     return dbs[groupName][shardIndex];
   }
 
   RedisClient getReaderHandler(model) {
     _checkInitialized();
-    num pk = model.getPK();
 
     Map redisStore = model.getRedisStore();
-    String groupType = redisStore['readWriteSeparate'] ? 'master' : 'slave';
+    String groupType = redisStore['readWriteSeparate'] ? 'slave' : 'master';
     String groupName = redisStore[groupType];
 
     int modValue = nodesLength[groupName];
-    String shardMethod = redisStore['shardMethod'];
-
-    int shardIndex;
-    switch (shardMethod) {
-      case 'CRC32':
-        shardIndex = CRC32.compute(pk.toString()) % modValue;
-        break;
-      default:
-        throw new IStoreException(20008);
-    }
+    int shardIndex = _getShardIndex(redisStore['shardMethod'], model, modValue);
 
     return dbs[groupName][shardIndex];
   }
 
   void _checkInitialized() {
     if (!_initialized) throw new IStoreException(20033);
+  }
+
+  int _getShardIndex(String shardMethod, model, num modValue) {
+    int shardIndex;
+    switch (shardMethod) {
+      case 'NONE':
+        shardIndex = 0;
+        break;
+      case 'CRC32':
+        shardIndex = CRC32.compute(model.getPK().toString()) % modValue;
+        break;
+      default:
+        throw new IStoreException(20008);
+    }
+    return shardIndex;
   }
 }
 

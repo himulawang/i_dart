@@ -28,17 +28,22 @@ class IStoreMaker extends IMaker {
 
     _orm.forEach((orm) {
       String lowerName = makeLowerUnderline(orm['name']);
-      // redis
-      String redisCode = makeRedisStore(orm);
-      if (!redisCode.isEmpty) writeFile('${lowerName}_rdb_store.dart', _outStoreDir, redisCode, true);
+      if (orm['type'] == 'Model') {
+        // redis
+        String redisCode = makeRedisStore(orm);
+        if (!redisCode.isEmpty) writeFile('${lowerName}_rdb_store.dart', _outStoreDir, redisCode, true);
 
-      // mariaDB
-      String mariaDBCode = makeMariaDBStore(orm);
-      if (!mariaDBCode.isEmpty) writeFile('${lowerName}_mdb_store.dart', _outStoreDir, mariaDBCode, true);
+        // mariaDB
+        String mariaDBCode = makeMariaDBStore(orm);
+        if (!mariaDBCode.isEmpty) writeFile('${lowerName}_mdb_store.dart', _outStoreDir, mariaDBCode, true);
 
-      // combined
-      String combinedCode = makeCombinedStore(orm);
-      if (!combinedCode.isEmpty) writeFile('${lowerName}_store.dart', _outStoreDir, combinedCode, true);
+        // combined
+        String combinedCode = makeCombinedStore(orm);
+        if (!combinedCode.isEmpty) writeFile('${lowerName}_store.dart', _outStoreDir, combinedCode, true);
+      } else if (orm['type'] == 'PK') {
+        String redisCode = makeRedisPKStore(orm);
+        if (!redisCode.isEmpty) writeFile('${lowerName}_pk_rdb_store.dart', _outStoreDir, redisCode, true);
+      }
     });
 
   }
@@ -182,6 +187,7 @@ class ${orm['name']}RedisStore extends IRedisStore {
       throw e;
     });
   }
+
 ''';
 
     StringBuffer codeSB = new StringBuffer();
@@ -428,6 +434,70 @@ class ${orm['name']}Store {
 
     codeSB.write(codeFooter);
     return codeSB.toString();
+  }
+
+  String makeRedisPKStore(Map orm) {
+    String name = orm['name'];
+    String code = '''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${name}PKRedisStore extends IRedisStore {
+  static const _key = '${orm['abb']}-pk';
+
+  static Future set(${name}PK pk) {
+    if (pk is! ${name}PK) throw new IStoreException(20034);
+    if (!pk.isUpdated()) {
+      new IStoreException(25005);
+      Completer completer = new Completer();
+      completer.complete(pk);
+      return completer.future;
+    }
+
+    num value = pk.get();
+    if (value is! num) throw new IStoreException(20035);
+
+    RedisClient handler = new IRedisHandlerPool().getWriteHandler(pk);
+    return handler.set(_key, value.toString())
+    .then((String result) {
+      if (result != 'OK') throw new IStoreException(20036);
+      return pk..setUpdated(false);
+    })
+    .catchError(_handleErr);
+  }
+
+  static Future get() {
+    ${name}PK pk = new ${name}PK();
+
+    RedisClient handler = new IRedisHandlerPool().getReaderHandler(pk);
+
+    return handler.exists(_key)
+    .then((bool exist) {
+      if (!exist) throw new IStoreException(25006);
+      return handler.get(_key);
+    })
+    .then((String value) => pk..set(double.parse(value))..setUpdated(false))
+    .catchError((e) {
+      if (e is IStoreException && e.code == 25006) return pk;
+      throw e;
+    });
+  }
+
+  static Future del(pk) {
+    RedisClient handler = new IRedisHandlerPool().getReaderHandler(pk);
+
+    return handler.del(_key)
+    .then((bool result) {
+      if (!result) new IStoreException(25007);
+      return result;
+    })
+    .catchError(_handleErr);
+  }
+
+  static void _handleErr(e) => throw e;
+}
+''';
+    return code;
   }
 
   void makeSubDir() {

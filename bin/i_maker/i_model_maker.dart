@@ -27,9 +27,12 @@ class IModelMaker extends IMaker {
     // make model files
     _orm.forEach((orm) {
       String lowerName = makeLowerUnderline(orm['name']);
-      writeFile('${lowerName}.dart', _outModelDir, makeModel(orm), true);
-      writeFile('${lowerName}_pk.dart', _outModelDir, makePK(orm), true);
-      writeFile('${lowerName}_list.dart', _outModelDir, makeList(orm), true);
+      if (orm['type'] == 'Model') {
+        writeFile('${lowerName}.dart', _outModelDir, makeModel(orm), true);
+        writeFile('${lowerName}_list.dart', _outModelDir, makeList(orm), true);
+      } else if (orm['type'] == 'PK') {
+        writeFile('${lowerName}_pk.dart', _outModelDir, makePK(orm), true);
+      }
     });
   }
   
@@ -275,8 +278,16 @@ class ${orm['name']} extends IModel {
     return codeSB.toString();
   }
   String makePK(Map orm) {
+    if (orm['global']) {
+      return ''; //TODO
+    } else {
+      return _makeCommonPK(orm);
+    }
+  }
+  String _makeCommonPK(Map orm) {
     String name = orm['name'];
-    String code = '''
+    StringBuffer codeSB = new StringBuffer();
+    codeSB.write('''
 ${_DECLARATION}
 part of lib_${_app};
 
@@ -284,9 +295,23 @@ class ${name}PK extends IPK {
   ${name}PK([num pk = 0]) {
     _pk = pk;
   }
+
+''');
+
+    // store information
+    Map store;
+    for (num j = 0; j < orm['storeOrder'].length; ++j) {
+      store = orm['storeOrder'][j];
+      codeSB.write('''
+  static const Map _${store['type']}Store = const ${JSON.encode(store)};
+  Map get${makeUpperFirstLetter(store['type'])}Store() => _${store['type']}Store;
+''');
+    }
+
+    codeSB.writeln('''
 }
-''';
-    return code;
+''');
+    return codeSB.toString();
   }
   String makeList(Map orm) {
     String name = orm['name'];

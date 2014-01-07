@@ -52,53 +52,48 @@ class IMariaDBHandlerPool {
     if (!node.containsKey('maxHandler')) throw new IStoreException(21007);
   }
 
-  ConnectionPool getWriteHandler(M model) {
+  ConnectionPool getWriteHandler(model) {
     _checkInitialized();
-    num pk = model.getPK();
 
     Map mariaDBStore = model.getMariaDBStore();
     String groupType = 'master';
     String groupName = mariaDBStore[groupType];
 
     int modValue = nodesLength[groupName];
-    String shardMethod = mariaDBStore['shardMethod'];
-
-    int shardIndex;
-    switch (shardMethod) {
-      case 'CRC32':
-        shardIndex = CRC32.compute(pk.toString()) % modValue;
-        break;
-      default:
-        throw new IStoreException(20008);
-    }
+    int shardIndex = _getShardIndex(mariaDBStore['shardMethod'], model, modValue);
 
     return dbs[groupName][shardIndex];
   }
 
-  ConnectionPool getReaderHandler(M model) {
+  ConnectionPool getReaderHandler(model) {
     _checkInitialized();
-    num pk = model.getPK();
 
     Map mariaDBStore = model.getMariaDBStore();
-    String groupType = mariaDBStore['readWriteSeparate'] ? 'master' : 'slave';
+    String groupType = mariaDBStore['readWriteSeparate'] ? 'slave' : 'master';
     String groupName = mariaDBStore[groupType];
 
     int modValue = nodesLength[groupName];
-    String shardMethod = mariaDBStore['shardMethod'];
-
-    int shardIndex;
-    switch (shardMethod) {
-      case 'CRC32':
-        shardIndex = CRC32.compute(pk.toString()) % modValue;
-        break;
-      default:
-        throw new IStoreException(20008);
-    }
+    int shardIndex = _getShardIndex(mariaDBStore['shardMethod'], model, modValue);
 
     return dbs[groupName][shardIndex];
   }
 
   void _checkInitialized() {
     if (!_initialized) throw new IStoreException(21029);
+  }
+
+  int _getShardIndex(String shardMethod, model, num modValue) {
+    int shardIndex;
+    switch (shardMethod) {
+      case 'NONE':
+        shardIndex = 0;
+        break;
+      case 'CRC32':
+        shardIndex = CRC32.compute(model.getPK().toString()) % modValue;
+        break;
+      default:
+        throw new IStoreException(20008);
+    }
+    return shardIndex;
   }
 }
