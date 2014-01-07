@@ -1,35 +1,12 @@
-import 'dart:io';
+//import 'dart:io';
+import 'dart:io' show Platform;
+
 main() {
-  //print('\aaabb'.replaceAll(new RegExp(r'\\'), '/'));
-  //var b = new B.fromText(1);
-  var collection = [0, 2, 2];
-  for (var x in collection) {
-    print(x);
-  }
-  collection.forEach((int a, int b) {
-    print(a);
-    print(b);
+  Map<String, String> envVars = Platform.environment;
+  //print(envVars);
+  envVars.forEach((k, a) {
+    print('$k : $a');
   });
-
-}
-
-class A {
-  num _pk;
-  A(num pk) {
-    _pk = pk;
-  }
-
-  A.fromNum(num pk);
-}
-
-class B extends A {
-  B(num pk) : super(pk) {}
-
-  B.fromNum(num pk): super(pk) {
-    _pk = pk;
-  }
-  B.fromText(num pk): super(pk) {
-    _pk = pk;
-  }
+  //print(Platform.environment);
 }
 

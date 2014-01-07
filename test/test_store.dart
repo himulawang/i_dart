@@ -35,6 +35,9 @@ Future flushdb() {
       waitList.add(
           pool.query('TRUNCATE TABLE `User`;')
       );
+      waitList.add(
+          pool.query('TRUNCATE TABLE `UserToSetLengthZero`;')
+      );
     });
   });
 
@@ -48,7 +51,9 @@ startTest() {
   group('Test store', () {
 
     group('add', () {
+
       setUp(() => flushdb());
+
       test('add successfully should reset updatedList', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         user.name = 'c';
@@ -57,11 +62,13 @@ startTest() {
           expect(user.isUpdated(), isFalse);
         }));
       });
+
       setUp(() {});
 
     });
 
     group('set', () {
+
       test('set successfully should reset updatedList', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         user.name = 'a';
@@ -85,6 +92,49 @@ startTest() {
 
     });
 
-  });
+    group('get', () {
 
+      test('get rdb model if model exists in rdb', () {
+        UserStore.get(1)
+        .then(expectAsync1((User user) {
+          expect(user.name, equals('a'));
+        }));
+      });
+
+      test('get mdb model if model exists in mdb', () {
+        UserRedisStore.del(1)
+        .then((_) => UserStore.get(1))
+        .then(expectAsync1((User user) {
+          expect(user.name, equals('a'));
+        }));
+      });
+
+      test('got model with !isExist if model not exists in both db', () {
+        UserStore.del(1)
+        .then((_) => UserStore.get(1))
+        .then(expectAsync1((User user) {
+          expect(user.isExist(), isFalse);
+        }));
+      });
+
+    });
+
+    group('del', () {
+
+      tearDown(() {
+        endTimestamp = new DateTime.now().millisecondsSinceEpoch;
+        print('cost ${endTimestamp - startTimestamp} ms');
+      });
+
+      test('del successfully', () {
+        UserToSetLengthZeroStore.del(1)
+        .then((_) => UserToSetLengthZeroStore.get(1))
+        .then(expectAsync1((UserToSetLengthZero user) {
+          expect(user.isExist(), isFalse);
+        }));
+      });
+
+    });
+
+  });
 }

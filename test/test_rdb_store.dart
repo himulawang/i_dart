@@ -37,7 +37,9 @@ startTest() {
   group('Test rdb store', () {
 
     group('add', () {
+
       setUp(() => flushdb());
+
       test('model is invalid', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         expect(
@@ -45,6 +47,7 @@ startTest() {
             throwsA(predicate((e) => e is IStoreException && e.code == 20022))
         );
       });
+
       setUp(() {});
 
       test('pk is not num', () {
@@ -90,6 +93,7 @@ startTest() {
     });
 
     group('set', () {
+
       test('model is invalid', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         expect(
@@ -135,6 +139,7 @@ startTest() {
       });
 
       setUp(() => flushdb());
+
       test('model not exist should throw exception', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         user.name = '2';
@@ -147,6 +152,7 @@ startTest() {
     });
 
     group('get', () {
+
       test('pk is not num', () {
         expect(
             () => RoomRedisStore.get('1'),
@@ -174,6 +180,7 @@ startTest() {
     });
 
     group('del', () {
+
       test('input is not model or num', () {
         expect(
             () => UserRedisStore.del('a'),
@@ -201,6 +208,7 @@ startTest() {
         endTimestamp = new DateTime.now().millisecondsSinceEpoch;
         print('cost ${endTimestamp - startTimestamp} ms');
       });
+
       test('del model not exist return normally', () {
         UserRedisStore.del(1).then(expectAsync1((result) {
           expect(result, equals(false));

@@ -120,6 +120,7 @@ startTest() {
     });
 
     group('set', () {
+
       test('model is invalid', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         expect(
@@ -167,6 +168,7 @@ startTest() {
     });
 
     group('get', () {
+
       test('pk is not num', () {
         expect(
             () => UserMariaDBStore.get('1'),
@@ -192,6 +194,7 @@ startTest() {
     });
 
     group('del', () {
+
       test('input is not num or model', () {
         expect(
             () => UserMariaDBStore.del('1'),
@@ -216,6 +219,7 @@ startTest() {
         endTimestamp = new DateTime.now().millisecondsSinceEpoch;
         print('cost ${endTimestamp - startTimestamp} ms');
       });
+
       test('input is model del successfully', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));
         UserMariaDBStore.add(user)
