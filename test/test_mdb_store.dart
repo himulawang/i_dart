@@ -32,6 +32,13 @@ CREATE TABLE IF NOT EXISTS `UserToSetLengthZero` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB;
 
+DROP TABLE IF EXISTS `PK`;
+CREATE TABLE IF NOT EXISTS `PK` (
+  `key` varchar(32) NOT NULL,
+  `pk` bigint(20) NOT NULL,
+  PRIMARY KEY (`key`)
+) ENGINE=InnoDB;
+
  */
 import 'dart:async';
 

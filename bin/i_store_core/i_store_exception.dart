@@ -56,6 +56,9 @@ class IStoreException {
       '21033': 'No column to use when making del SQL for mariaDB.',
       '21034': 'Invalid pk when del model from mariaDB.',
       '21035': 'Model has no attribute to add to mariaDB.',
+      '21036': 'PK invalid when set to mariaDB.',
+      '21037': 'PK value invalid when set to mariaDB.',
+      '21037': 'Set pk to mariaDB failed.',
 
       // redis warning for interrupting future chain
       '25001': 'Model has no attribute to set to redis.',
@@ -71,6 +74,8 @@ class IStoreException {
       '26003': 'Multiple records affected when set model to mariaDB.',
       '26004': 'No record affected when del model from mariaDB.',
       '26005': 'Multiple records affected when del model from mariaDB.',
+      '26006': 'PK has not changed when set to mariaDB.',
+      '26007': 'PK not exist when del it from mariaDB.',
   };
   IStoreException(int inputCode, [List inputParameters]) {
     code = inputCode;

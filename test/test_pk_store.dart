@@ -33,10 +33,7 @@ Future flushdb() {
   IMariaDBHandlerPool.dbs.forEach((groupName, List group) {
     group.forEach((ConnectionPool pool) {
       waitList.add(
-          pool.query('TRUNCATE TABLE `User`;')
-      );
-      waitList.add(
-          pool.query('TRUNCATE TABLE `UserToSetLengthZero`;')
+          pool.query('TRUNCATE TABLE `PK`;')
       );
     });
   });
@@ -50,22 +47,141 @@ Future flushdb() {
 startTest() {
   group('Test pk store', () {
 
-    group('common pk', () {
+    group('common pk with backup', () {
 
       setUp(() => flushdb());
 
-      test('set successfully', () {
-        UserPK pk = new UserPK();
-        user.name = 'c';
-        UserStore.add(user)
-        .then(expectAsync1((User user) {
-          expect(user.isUpdated(), isFalse);
+      test('pk not exist should get pk with value 0', () {
+        UserPKStore.get()
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), isZero);
         }));
       });
 
       setUp(() {});
 
+      test('first set should backup to mdb', () {
+        UserPK pk = new UserPK();
+        pk.incr();
+        UserPKStore.set(pk)
+        .then((_) => UserPKMariaDBStore.get())
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), 5);
+        }))
+        .then((_) => UserPKRedisStore.get())
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), 1);
+        }));
+      });
+
+      test('should backup after to mdb', () {
+        UserPKStore.get()
+        .then((UserPK pk) {
+          pk..incr()
+            ..incr()
+            ..incr()
+            ..incr();
+          return UserPKStore.set(pk);
+        })
+        .then((_) => UserPKMariaDBStore.get())
+        .then((UserPK pk) {
+          expect(pk.get(), 5);
+          return UserPKStore.get();
+        })
+        .then((UserPK pk) {
+          pk.incr();
+          return UserPKStore.set(pk);
+        })
+        .then((_) => UserPKRedisStore.get())
+        .then((UserPK pk) {
+          expect(pk.get(), 6);
+          return UserPKMariaDBStore.get();
+        })
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), 10);
+        }));
+      });
+
+      test('when rdb pk not exist get from mdb', () {
+        UserPK pk = new UserPK();
+        UserPKRedisStore.del(pk)
+        .then((_) => UserPKStore.get())
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), 10);
+        }));
+      });
+
+      test('del successfully', () {
+        UserPK pk = new UserPK();
+        UserPKStore.del(pk)
+        .then(expectAsync1((_) {
+          expect(true, isTrue);
+        }));
+      });
+
+      test('del pk not exist should get warning', () {
+        UserPK pk = new UserPK();
+        UserPKStore.del(pk)
+        .then(expectAsync1((_) {
+          expect(true, isTrue);
+        }));
+      });
     });
 
+    group('common pk without backup', () {
+
+      test('pk not exist should get pk with value 0', () {
+        RoomPKStore.get()
+        .then(expectAsync1((RoomPK pk) {
+          expect(pk.get(), isZero);
+        }));
+      });
+
+      test('set should not backup to mdb', () {
+        RoomPK pk = new RoomPK();
+        pk.incr();
+        RoomPKStore.set(pk)
+        .then((_) => RoomPKMariaDBStore.get())
+        .then(expectAsync1((RoomPK pk) {
+          expect(pk.get(), 0);
+        }))
+        .then((_) => RoomPKRedisStore.get())
+        .then(expectAsync1((RoomPK pk) {
+          expect(pk.get(), 1);
+        }));
+      });
+
+      test('should not backup after incr', () {
+        RoomPKStore.get()
+        .then((RoomPK pk) {
+          pk..incr()
+            ..incr()
+            ..incr()
+            ..incr();
+          return RoomPKStore.set(pk);
+        })
+        .then((_) => RoomPKMariaDBStore.get())
+        .then(expectAsync1((RoomPK pk) {
+          expect(pk.get(), 0);
+        }));
+      });
+
+      test('del successfully', () {
+        RoomPK pk = new RoomPK();
+        RoomPKStore.del(pk)
+        .then(expectAsync1((_) {
+          expect(true, isTrue);
+        }));
+      });
+
+      test('del pk not exist should get warning', () {
+        RoomPK pk = new RoomPK();
+        RoomPKStore.del(pk)
+        .then(expectAsync1((_) {
+          expect(true, isTrue);
+        }));
+      });
+
+    });
   });
 }

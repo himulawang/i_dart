@@ -209,7 +209,7 @@ List orm =
         'type': 'PK',
         'abb': 'u',
         'global': false,
-        'backupStep': 50,
+        'backupStep': 5, // 0 means do not use backup
         'storeOrder': [
             {
                 'type': 'redis',
@@ -224,7 +224,31 @@ List orm =
                 'shardMethod': 'NONE',
                 'master': 'SingleDB',
                 'slave': 'SingleDBSlave',
-                'table': 'GlobalPKBackup',
+                'table': 'PK',
+            },
+        ],
+    },
+    {
+        'name': 'Room',
+        'type': 'PK',
+        'abb': 'r',
+        'global': false,
+        'backupStep': 0, // 0 means do not use backup
+        'storeOrder': [
+            {
+                'type': 'redis',
+                'readWriteSeparate': false,
+                'shardMethod': 'NONE',
+                'master': 'SingleCache',
+                'slave': 'SingleCacheSlave',
+            },
+            {
+                'type': 'mariaDB',
+                'readWriteSeparate': false,
+                'shardMethod': 'NONE',
+                'master': 'SingleDB',
+                'slave': 'SingleDBSlave',
+                'table': 'PK',
             },
         ],
     },

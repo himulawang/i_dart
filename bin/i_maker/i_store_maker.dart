@@ -41,8 +41,17 @@ class IStoreMaker extends IMaker {
         String combinedCode = makeCombinedStore(orm);
         if (!combinedCode.isEmpty) writeFile('${lowerName}_store.dart', _outStoreDir, combinedCode, true);
       } else if (orm['type'] == 'PK') {
+        // redis
         String redisCode = makeRedisPKStore(orm);
         if (!redisCode.isEmpty) writeFile('${lowerName}_pk_rdb_store.dart', _outStoreDir, redisCode, true);
+
+        // mariaDB
+        String mariaDBCode = makeMariaDBPKStore(orm);
+        if (!mariaDBCode.isEmpty) writeFile('${lowerName}_pk_mdb_store.dart', _outStoreDir, mariaDBCode, true);
+
+        // combined
+        String combinedCode = makeCombinedPKStore(orm);
+        if (!combinedCode.isEmpty) writeFile('${lowerName}_pk_store.dart', _outStoreDir, combinedCode, true);
       }
     });
 
@@ -476,7 +485,7 @@ class ${name}PKRedisStore extends IRedisStore {
       if (!exist) throw new IStoreException(25006);
       return handler.get(_key);
     })
-    .then((String value) => pk..set(double.parse(value))..setUpdated(false))
+    .then((String value) => pk..set(int.parse(value))..setUpdated(false))
     .catchError((e) {
       if (e is IStoreException && e.code == 25006) return pk;
       throw e;
@@ -484,7 +493,7 @@ class ${name}PKRedisStore extends IRedisStore {
   }
 
   static Future del(pk) {
-    RedisClient handler = new IRedisHandlerPool().getReaderHandler(pk);
+    RedisClient handler = new IRedisHandlerPool().getWriteHandler(pk);
 
     return handler.del(_key)
     .then((bool result) {
@@ -498,6 +507,117 @@ class ${name}PKRedisStore extends IRedisStore {
 }
 ''';
     return code;
+  }
+
+  String makeMariaDBPKStore(Map orm) {
+    String name = orm['name'];
+    Map storeConfig = _getStoreConfig('mariaDB', orm);
+    String code = '''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${name}PKMariaDBStore extends IMariaDBStore {
+  static const _key = '${orm['abb']}-pk';
+  static const _table = '${storeConfig['table']}';
+
+  static Future set(${name}PK pk) {
+    if (pk is! ${name}PK) throw new IStoreException(21036);
+    if (!pk.isUpdated()) {
+      new IStoreException(26006);
+      Completer completer = new Completer();
+      completer.complete(pk);
+      return completer.future;
+    }
+
+    num value = pk.get();
+    if (value is! num) throw new IStoreException(21037);
+
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(pk);
+    return handler.prepareExecute('INSERT INTO `\${_table}` (`key`, `pk`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `pk` = ?;', [_key, value, value])
+    .then((Results results) {
+      if (results.affectedRows == 0) throw new IStoreException(21037);
+      return pk..setUpdated(false);
+    })
+    .catchError(_handleErr);
+  }
+
+  static Future get() {
+    ${name}PK pk = new ${name}PK();
+
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(pk);
+
+    return handler.prepareExecute('SELECT `pk` FROM `\${_table}` WHERE `key` = ?', [_key])
+    .then((Results results) => results.toList())
+    .then((List list) {
+      if (list.length == 0) return pk;
+      return pk..set(list[0][0])..setUpdated(false);
+    })
+    .catchError(_handleErr);
+  }
+
+  static Future del(pk) {
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(pk);
+
+    return handler.prepareExecute('DELETE FROM `\${_table}` WHERE `key` = ?', [_key])
+    .then((Results results) {
+      if (results.affectedRows == 0) new IStoreException(26007);
+      if (results.affectedRows == 1) return true;
+      return false;
+    })
+    .catchError(_handleErr);
+  }
+
+  static void _handleErr(e) => throw e;
+}
+''';
+    return code;
+  }
+
+  String makeCombinedPKStore(Map orm) {
+    String name = orm['name'];
+    String firstStoreTypeName = makeUpperFirstLetter(orm['storeOrder'].first['type']);
+    String lastStoreTypeName = makeUpperFirstLetter(orm['storeOrder'].last['type']);
+
+    StringBuffer codeSB = new StringBuffer();
+    codeSB.write('''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${name}PKStore {
+  static int _step = ${orm['backupStep']};
+
+  static Future set(${name}PK pk) {
+    num value = pk.get();
+    List waitList = [];
+    if (_step != 0 && (value - 1) % _step == 0) {
+      ${name}PK backupPK = new ${name}PK()..set(value - 1 + _step);
+      waitList.add(${name}PK${lastStoreTypeName}Store.set(backupPK));
+    }
+
+    waitList.add(${name}PK${firstStoreTypeName}Store.set(pk));
+
+    return Future.wait(waitList);
+  }
+
+  static Future get() {
+    return ${name}PK${firstStoreTypeName}Store.get()
+    .then((${name}PK pk) {
+      if (pk.get() != 0) return pk;
+      if (_step == 0) return pk;
+      return ${name}PK${lastStoreTypeName}Store.get();
+    });
+  }
+
+  static Future del(${name}PK pk) {
+    List waitList = [];
+    waitList.add(${name}PK${firstStoreTypeName}Store.del(pk));
+    waitList.add(${name}PK${lastStoreTypeName}Store.del(pk));
+
+    return Future.wait(waitList);
+  }
+}
+''');
+    return codeSB.toString();
   }
 
   void makeSubDir() {
