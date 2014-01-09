@@ -321,6 +321,10 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${listName} extends IList {
+  static const String _abb = '${orm['abb']}-l';
+
+  String getAbb() => _abb;
+
   ${listName}(num pk) { _initPK(pk); }
 
   ${listName}.filledMap(num pk, Map dataList) {

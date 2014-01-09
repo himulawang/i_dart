@@ -47,7 +47,7 @@ Future flushdb() {
 startTest() {
   group('Test pk store', () {
 
-    group('common pk with backup', () {
+    group('pk with backup', () {
 
       setUp(() => flushdb());
 
@@ -126,9 +126,48 @@ startTest() {
           expect(true, isTrue);
         }));
       });
+
+      test('incr not reach step', () {
+        UserPKStore.incr()
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(1));
+          return UserPKStore.incr();
+        }))
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(2));
+          return UserPKMariaDBStore.get();
+        }))
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(5));
+        }));
+      });
+
+      test('incr reach step', () {
+        UserPKStore.incr()
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(3));
+          return UserPKStore.incr();
+        }))
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(4));
+          return UserPKStore.incr();
+        }))
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(5));
+          return UserPKStore.incr();
+        }))
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(6));
+          return UserPKMariaDBStore.get();
+        }))
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(10));
+        }));
+      });
+
     });
 
-    group('common pk without backup', () {
+    group('pk without backup', () {
 
       test('pk not exist should get pk with value 0', () {
         RoomPKStore.get()
@@ -179,6 +218,21 @@ startTest() {
         RoomPKStore.del(pk)
         .then(expectAsync1((_) {
           expect(true, isTrue);
+        }));
+      });
+
+      test('incr should not backup to mdb', () {
+        RoomPKStore.incr()
+        .then(expectAsync1((RoomPK pk) {
+          expect(pk.get(), equals(1));
+          return RoomPKStore.incr();
+        }))
+        .then(expectAsync1((RoomPK pk) {
+          expect(pk.get(), equals(2));
+          return RoomPKMariaDBStore.get();
+        }))
+        .then(expectAsync1((RoomPK pk) {
+          expect(pk.get(), equals(0));
         }));
       });
 

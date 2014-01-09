@@ -113,10 +113,10 @@ startTest() {
       test('toSetAbb return list length is 0 should get warning', () {
         UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm[2]['column'].length, 1));
         UserToSetLengthZeroRedisStore.add(user)
-        .then((UserToSetLengthZero user) {
+        .then(expectAsync1((UserToSetLengthZero user) {
           user.name = '2';
           return UserToSetLengthZeroRedisStore.set(user);
-        })
+        }))
         .then(expectAsync1((UserToSetLengthZero user) {
           expect(user is UserToSetLengthZero, isTrue);
         }));

@@ -223,8 +223,8 @@ class ${orm['name']}RedisStore extends IRedisStore {
     return handler.exists(abbModelKey)
     .then((bool exist) {
       if (!exist) throw new IStoreException(25003);
+      return handler.hmget(abbModelKey, model.getMapAbb().keys);
     })
-    .then((_) => handler.hmget(abbModelKey, model.getMapAbb().keys))
     .then((List data) => model..fromList(data)..setExist())
     .catchError((e) {
       if (e is IStoreException && e.code == 25003) return model;
@@ -503,6 +503,15 @@ class ${name}PKRedisStore extends IRedisStore {
     .catchError(_handleErr);
   }
 
+  static Future incr() {
+    ${name}PK pk = new ${name}PK();
+    RedisClient handler = new IRedisHandlerPool().getWriteHandler(pk);
+
+    return handler.incr(_key)
+    .then((num value) => pk..set(value)..setUpdated(false))
+    .catchError(_handleErr);
+  }
+
   static void _handleErr(e) => throw e;
 }
 ''';
@@ -535,7 +544,7 @@ class ${name}PKMariaDBStore extends IMariaDBStore {
     ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(pk);
     return handler.prepareExecute('INSERT INTO `\${_table}` (`key`, `pk`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `pk` = ?;', [_key, value, value])
     .then((Results results) {
-      if (results.affectedRows == 0) throw new IStoreException(21037);
+      if (results.affectedRows == 0) throw new IStoreException(21038);
       return pk..setUpdated(false);
     })
     .catchError(_handleErr);
@@ -589,14 +598,13 @@ class ${name}PKStore {
   static Future set(${name}PK pk) {
     num value = pk.get();
     List waitList = [];
-    if (_step != 0 && (value - 1) % _step == 0) {
-      ${name}PK backupPK = new ${name}PK()..set(value - 1 + _step);
-      waitList.add(${name}PK${lastStoreTypeName}Store.set(backupPK));
-    }
+    ${name}PK backupPK = _checkReachBackupStep(pk);
+    if (backupPK != null) waitList.add(${name}PK${lastStoreTypeName}Store.set(backupPK));
 
     waitList.add(${name}PK${firstStoreTypeName}Store.set(pk));
 
-    return Future.wait(waitList);
+    return Future.wait(waitList)
+    .catchError(_handleErr);
   }
 
   static Future get() {
@@ -605,7 +613,8 @@ class ${name}PKStore {
       if (pk.get() != 0) return pk;
       if (_step == 0) return pk;
       return ${name}PK${lastStoreTypeName}Store.get();
-    });
+    })
+    .catchError(_handleErr);
   }
 
   static Future del(${name}PK pk) {
@@ -613,8 +622,28 @@ class ${name}PKStore {
     waitList.add(${name}PK${firstStoreTypeName}Store.del(pk));
     waitList.add(${name}PK${lastStoreTypeName}Store.del(pk));
 
-    return Future.wait(waitList);
+    return Future.wait(waitList)
+    .catchError(_handleErr);
   }
+
+  static Future incr() {
+    return ${name}PK${firstStoreTypeName}Store.incr()
+    .then((${name}PK pk) {
+      ${name}PK backupPK = _checkReachBackupStep(pk);
+      if (backupPK == null) return pk;
+
+      return ${name}PK${lastStoreTypeName}Store.set(backupPK)
+      .then((_) => pk);
+    })
+    .catchError(_handleErr);
+  }
+
+  static ${name}PK _checkReachBackupStep(${name}PK pk) {
+    if (!(_step != 0 && (pk.get() - 1) % _step == 0)) return null;
+    return new ${name}PK()..set(pk.get() - 1 + _step);
+  }
+
+  static void _handleErr(e) => throw e;
 }
 ''');
     return codeSB.toString();

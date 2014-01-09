@@ -40,7 +40,7 @@ Future flushdb() {
 startTest() {
   group('Test pk mdb store', () {
 
-    group('common pk', () {
+    group('pk', () {
 
       setUp(() => flushdb());
 

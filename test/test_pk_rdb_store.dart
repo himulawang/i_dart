@@ -38,7 +38,7 @@ Future flushdb() {
 startTest() {
   group('Test pk rdb store', () {
 
-    group('common pk', () {
+    group('pk', () {
 
       setUp(() => flushdb());
 
@@ -94,6 +94,22 @@ startTest() {
         UserPKRedisStore.del(pk)
         .then(expectAsync1((bool result) {
           expect(result, isFalse);
+        }));
+      });
+
+      test('incr successfully', () {
+        UserPKRedisStore.incr()
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(1));
+          return UserPKRedisStore.incr();
+        }))
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(2));
+          return UserPKRedisStore.incr();
+        }))
+        .then(expectAsync1((UserPK pk) {
+          expect(pk.get(), equals(3));
+          return UserPKRedisStore.incr();
         }));
       });
 

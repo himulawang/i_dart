@@ -11,15 +11,6 @@ void main() {
   num startTimestamp;
   num endTimestamp;
   startTimestamp = new DateTime.now().millisecondsSinceEpoch;
-  setUp(() {
-// init
-//IRedisHandlerPool redisHandlerPool;
-//IMariaDBHandlerPool mariaDBHandlerPool;
-//redisHandlerPool = new IRedisHandlerPool(store['redis']);
-//mariaDBHandlerPool = new IMariaDBHandlerPool(store['mariaDB']);
-  });
-  tearDown(() {
-  });
 
   group('Test PK', () {
     group('constructor', () {
@@ -93,6 +84,7 @@ void main() {
         expect(userPK.isUpdated(), equals(false));
       });
     });
+
   });
 
   endTimestamp = new DateTime.now().millisecondsSinceEpoch;

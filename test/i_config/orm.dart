@@ -39,7 +39,7 @@ List orm =
         'storeOrder': [
             {
                 'type': 'redis',
-                'readWriteSeparate': true,
+                'readWriteSeparate': false,
                 'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
                 'master': 'GameCache',
                 'slave': 'GameCacheSlave',
@@ -48,7 +48,7 @@ List orm =
             },
             {
                 'type': 'mariaDB',
-                'readWriteSeparate': true,
+                'readWriteSeparate': false,
                 'shardMethod': 'CRC32',
                 'master': 'GameDB',
                 'slave': 'GameDBSlave',
