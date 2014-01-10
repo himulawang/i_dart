@@ -4,31 +4,31 @@
  */
 
 class IMariaDBSQLPrepare {
-  static String makeAdd(IModel model) {
+  static String makeAdd(String table, IModel model) {
     Map toAddMap = model.toAddFull(true);
     if (toAddMap.length == 0) throw new IStoreException(21030);
     List values = new List.filled(toAddMap.length, '?');
 
-    return 'INSERT INTO `${model.getName()}` (`${toAddMap.keys.join("`, `")}`) VALUES (${values.join(", ")});';
+    return 'INSERT INTO `${table}` (`${toAddMap.keys.join("`, `")}`) VALUES (${values.join(", ")});';
   }
 
-  static String makeSet(IModel model) {
+  static String makeSet(String table, IModel model) {
     Map toSetMap = model.toSetFull(true);
     if (toSetMap.length == 0) throw new IStoreException(21031);
     List columns = [];
     toSetMap.forEach((column, value) => columns.add("`${column}` = ?"));
 
-    return 'UPDATE `${model.getName()}` SET ${columns.join(", ")} WHERE `${model.getPKName()}` = ?;';
+    return 'UPDATE `${table}` SET ${columns.join(", ")} WHERE `${model.getPKName()}` = ?;';
   }
 
-  static String makeGet(IModel model) {
+  static String makeGet(String table, IModel model) {
     Map toGetMap = model.getMapFull();
     if (toGetMap.length == 0) throw new IStoreException(21032);
 
-    return 'SELECT `${toGetMap.keys.join("`, `")}` FROM `${model.getName()}` WHERE `${model.getPKName()}` = ?;';
+    return 'SELECT `${toGetMap.keys.join("`, `")}` FROM `${table}` WHERE `${model.getPKName()}` = ?;';
   }
 
-  static String makeDel(IModel model) {
-    return 'DELETE FROM `${model.getName()}` WHERE `${model.getPKName()}` = ?;';
+  static String makeDel(String table, IModel model) {
+    return 'DELETE FROM `${table}` WHERE `${model.getPKName()}` = ?;';
   }
 }

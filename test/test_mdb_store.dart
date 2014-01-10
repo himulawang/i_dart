@@ -81,6 +81,18 @@ Future flushdb() {
 startTest() {
   group('Test mdb store', () {
 
+    group('store', () {
+      test('should equal store in store.dart', () {
+        expect(UserMariaDBStore.store, equals(orm[0]['storeOrder'][1]));
+      });
+    });
+
+    group('table', () {
+      test('should equal table in orm.dart', () {
+        expect(UserMariaDBStore.table, equals(orm[0]['storeOrder'][1]['table']));
+      });
+    });
+
     group('add', () {
       test('model is invalid', () {
         User user = new User(new List.filled(orm[0]['column'].length, 1));

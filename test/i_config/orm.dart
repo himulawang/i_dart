@@ -52,6 +52,7 @@ List orm =
                 'shardMethod': 'CRC32',
                 'master': 'GameDB',
                 'slave': 'GameDBSlave',
+                'table': 'User'
             },
         ],
     },
@@ -89,6 +90,7 @@ List orm =
                 'shardMethod': 'CRC32',
                 'master': 'GameDB',
                 'slave': 'GameDBSlave',
+                'table': 'Room'
             },
         ],
     },
@@ -126,6 +128,7 @@ List orm =
                 'shardMethod': 'CRC32',
                 'master': 'GameDB',
                 'slave': 'GameDBSlave',
+                'table': 'UserToAddLengthZero'
             },
         ],
     },
@@ -163,6 +166,7 @@ List orm =
                 'shardMethod': 'CRC32',
                 'master': 'GameDB',
                 'slave': 'GameDBSlave',
+                'table': 'UserToSetLengthZero'
             },
         ],
     },
@@ -201,6 +205,7 @@ List orm =
                 'shardMethod': 'CRC32',
                 'master': 'GameDB',
                 'slave': 'GameDBSlave',
+                'table': 'UserForever'
             },
         ],
     },

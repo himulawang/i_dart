@@ -66,6 +66,8 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${orm['name']}RedisStore extends IRedisStore {
+  static const String abb = '${orm['abb']}';
+
 ''';
 
     String codeFooter = '''
@@ -76,8 +78,13 @@ class ${orm['name']}RedisStore extends IRedisStore {
 ''';
 
     StringBuffer codeSB = new StringBuffer();
+    codeSB.write(codeHeader);
+
+    Map store = _getStoreConfig('redis', orm);
+    codeSB.writeln('  static const Map store = const ${JSON.encode(store)};');
+    codeSB.writeln('');
+
     codeSB.writeAll([
-        codeHeader,
         _makeRedisAdd(orm, storeConfig),
         _makeRedisSet(orm, storeConfig),
         _makeRedisGet(orm, storeConfig),
@@ -90,15 +97,16 @@ class ${orm['name']}RedisStore extends IRedisStore {
 
   String _makeRedisAdd(Map orm, Map storeConfig) {
     String codeHeader = '''
-  static Future add(${orm['name']} model) {
+  static Future add(${orm['name']} model, [String abbListKey = null]) {
     if (model is! ${orm['name']}) throw new IStoreException(20022);
 
     num pk = model.getPK();
     if (pk is! num) throw new IStoreException(20023);
 
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(model);
+    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, model);
 
-    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+    String abbPrefix = abbListKey == null ? abb : abbListKey;
+    String abbModelKey = _makeAbbModelKey(abbPrefix, pk);
 
     Map toAddAbb = model.toAddAbb(true);
     if (toAddAbb.length == 0) throw new IStoreException(20032);
@@ -106,15 +114,15 @@ class ${orm['name']}RedisStore extends IRedisStore {
     return handler.exists(abbModelKey)
     .then((bool exist) {
       if (exist) throw new IStoreException(20024);
+      return handler.hmset(abbModelKey, toAddAbb);
     })
-    .then((_) => handler.hmset(abbModelKey, toAddAbb))
 ''';
 
     String codeAddWithExpire = '''
     .then((String result) {
       if (result != 'OK') throw IStoreException(20025);
+      return handler.expire(abbModelKey, ${storeConfig['expire']});
     })
-    .then((_) => handler.expire(abbModelKey, ${storeConfig['expire']}))
     .then((bool result) {
       if (result) return model;
       new IStoreException(25004);
@@ -149,23 +157,23 @@ class ${orm['name']}RedisStore extends IRedisStore {
 
   String _makeRedisSet(Map orm, Map storeConfig) {
     String codeHeader = '''
-  static Future set(${orm['name']} model) {
+  static Future set(${orm['name']} model, [String abbListKey = null]) {
     if (model is! ${orm['name']}) throw new IStoreException(20026);
 
     num pk = model.getPK();
     if (pk is! num) throw new IStoreException(20027);
 
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(model);
-    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, model);
+
+    String abbPrefix = abbListKey == null ? abb : abbListKey;
+    String abbModelKey = _makeAbbModelKey(abbPrefix, pk);
 
     Map toSetAbb = model.toSetAbb(true);
 
     return handler.exists(abbModelKey)
     .then((bool exist) {
       if (!exist) throw new IStoreException(20028);
-      if (toSetAbb.length == 0) {
-        throw new IStoreException(25001);
-      }
+      if (toSetAbb.length == 0)  throw new IStoreException(25001);
 
       return handler.hmset(abbModelKey, toSetAbb);
     })
@@ -174,8 +182,8 @@ class ${orm['name']}RedisStore extends IRedisStore {
     String codeSetWithExpire = '''
     .then((String result) {
       if (result != 'OK') throw IStoreException(20029);
+      return handler.expire(abbModelKey, ${storeConfig['expire']});
     })
-    .then((_) => handler.expire(abbModelKey, ${storeConfig['expire']}))
     .then((bool result) {
       if (result) return model;
       new IStoreException(25005);
@@ -213,12 +221,14 @@ class ${orm['name']}RedisStore extends IRedisStore {
 
   String _makeRedisGet(Map orm, Map storeConfig) {
     String code = '''
-  static Future get(num pk) {
+  static Future get(num pk, [String abbListKey = null]) {
     if (pk is! num) throw new IStoreException(20021);
 
     ${orm['name']} model = new ${orm['name']}()..setPK(pk);
-    RedisClient handler = new IRedisHandlerPool().getReaderHandler(model);
-    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+    RedisClient handler = new IRedisHandlerPool().getReaderHandler(store, model);
+
+    String abbPrefix = abbListKey == null ? abb : abbListKey;
+    String abbModelKey = _makeAbbModelKey(abbPrefix, pk);
 
     return handler.exists(abbModelKey)
     .then((bool exist) {
@@ -238,7 +248,7 @@ class ${orm['name']}RedisStore extends IRedisStore {
 
   String _makeRedisDel(Map orm, Map storeConfig) {
     String code = '''
-  static Future del(input) {
+  static Future del(input, [String abbListKey = null]) {
     num pk;
     ${orm['name']} model;
     if (input is ${orm['name']}) {
@@ -250,8 +260,10 @@ class ${orm['name']}RedisStore extends IRedisStore {
     }
     if (pk is! num) throw new IStoreException(20030);
 
-    RedisClient handler = new IRedisHandlerPool().getReaderHandler(model);
-    String abbModelKey = _makeAbbModelKey(model.getAbb(), pk);
+    RedisClient handler = new IRedisHandlerPool().getReaderHandler(store, model);
+
+    String abbPrefix = abbListKey == null ? abb : abbListKey;
+    String abbModelKey = _makeAbbModelKey(abbPrefix, pk);
 
     return handler.del(abbModelKey)
     .then((bool result) {
@@ -266,11 +278,15 @@ class ${orm['name']}RedisStore extends IRedisStore {
   }
 
   String makeMariaDBStore(Map orm) {
+    Map store = _getStoreConfig('mariaDB', orm);
     String code = '''
 ${_DECLARATION}
 part of lib_${_app};
 
 class ${orm['name']}MariaDBStore extends IMariaDBStore {
+  static const Map store = const ${JSON.encode(store)};
+  static const String table = '${store['table']}';
+
   static Future add(${orm['name']} model) {
     if (model is! ${orm['name']}) throw new IStoreException(21023);
 
@@ -280,9 +296,9 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
     Map toAddList = model.toAddList(true);
     if (toAddList.length == 0) throw new IStoreException(21035);
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(model);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
 
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeAdd(model), toAddList)
+    return handler.prepareExecute(IMariaDBSQLPrepare.makeAdd(table, model), toAddList)
     .then((Results results) {
       if (results.affectedRows != 1) throw new IStoreException(21025);
       return model;
@@ -309,9 +325,9 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
       return completer.future;
     }
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(model);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
 
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeSet(model), toSetList..add(model.getPK()))
+    return handler.prepareExecute(IMariaDBSQLPrepare.makeSet(table, model), toSetList..add(model.getPK()))
     .then((Results results) {
       if (results.affectedRows == 0) new IStoreException(26002);
       if (results.affectedRows > 1) new IStoreException(26003);
@@ -323,9 +339,9 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
     if (pk is! num) throw new IStoreException(21021);
 
     ${orm['name']} model = new ${orm['name']}()..setPK(pk);
-    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(model);
+    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model);
 
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeGet(model), [pk])
+    return handler.prepareExecute(IMariaDBSQLPrepare.makeGet(table, model), [pk])
     .then((Results results) => results.toList())
     .then((List result) {
       if (result.length == 0) return model;
@@ -347,8 +363,8 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
     }
     if (pk is! num) throw new IStoreException(21034);
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(model);
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeDel(model), [pk])
+    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model);
+    return handler.prepareExecute(IMariaDBSQLPrepare.makeDel(table, model), [pk])
     .then((Results results) {
       if (results.affectedRows == 0) new IStoreException(26004);
       if (results.affectedRows != 1) new IStoreException(26005);

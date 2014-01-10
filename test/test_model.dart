@@ -50,52 +50,31 @@ void main() {
       });
     });
 
-    group('getRedisStore', () {
-      test('should equal store in store.dart', () {
-        User u = new User();
-        expect(u.getRedisStore(), equals(orm[0]['storeOrder'][0]));
-      });
-    });
-
-    group('getMariaDBStore', () {
-      test('should equal store in store.dart', () {
-        User u = new User();
-        expect(u.getMariaDBStore(), equals(orm[0]['storeOrder'][1]));
-      });
-    });
-
-    group('getAbb', () {
-      test('should equal abb in orm.dart', () {
-        User u = new User();
-        expect(u.getAbb(), equals(orm[0]['abb']));
-      });
-    });
-
     group('getName', () {
       test('should equal name in orm.dart', () {
-        User u = new User();
-        expect(u.getName(), equals(orm[0]['name']));
+        User user = new User();
+        expect(user.getName(), equals(orm[0]['name']));
       });
     });
 
     group('getListName', () {
       test('should equal listName in orm.dart', () {
-        User u = new User();
-        expect(u.getListName(), equals(orm[0]['listName']));
+        User user = new User();
+        expect(user.getListName(), equals(orm[0]['listName']));
       });
     });
 
     group('getPKName', () {
       test('should equal pk in orm.dart', () {
-        User u = new User();
-        expect(u.getPKName(), equals(orm[0]['column'][orm[0]['pk']]));
+        User user = new User();
+        expect(user.getPKName(), equals(orm[0]['column'][orm[0]['pk']]));
       });
     });
 
     group('getColumnCount', () {
       test('should equal column length in orm.dart', () {
-        User u = new User();
-        expect(u.getColumnCount(), equals(orm[0]['column'].length));
+        User user = new User();
+        expect(user.getColumnCount(), equals(orm[0]['column'].length));
       });
     });
 

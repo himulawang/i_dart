@@ -52,28 +52,26 @@ class IMariaDBHandlerPool {
     if (!node.containsKey('maxHandler')) throw new IStoreException(21007);
   }
 
-  ConnectionPool getWriteHandler(model) {
+  ConnectionPool getWriteHandler(Map store, model) {
     _checkInitialized();
 
-    Map mariaDBStore = model.getMariaDBStore();
     String groupType = 'master';
-    String groupName = mariaDBStore[groupType];
+    String groupName = store[groupType];
 
     int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(mariaDBStore['shardMethod'], model, modValue);
+    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
 
     return dbs[groupName][shardIndex];
   }
 
-  ConnectionPool getReaderHandler(model) {
+  ConnectionPool getReaderHandler(Map store, model) {
     _checkInitialized();
 
-    Map mariaDBStore = model.getMariaDBStore();
-    String groupType = mariaDBStore['readWriteSeparate'] ? 'slave' : 'master';
-    String groupName = mariaDBStore[groupType];
+    String groupType = store['readWriteSeparate'] ? 'slave' : 'master';
+    String groupName = store[groupType];
 
     int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(mariaDBStore['shardMethod'], model, modValue);
+    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
 
     return dbs[groupName][shardIndex];
   }

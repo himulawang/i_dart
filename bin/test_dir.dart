@@ -10,9 +10,11 @@ main() {
   });
   //print(Platform.environment);
   */
-  var a = int.parse('112400000000');
-  print(a);
-  print(a is int);
-  print(a is num);
+  var a = new A();
+  print(A is Object);
 }
 
+class A {
+  static const _a = 1;
+  static getA() => _a;
+}

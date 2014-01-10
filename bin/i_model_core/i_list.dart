@@ -9,6 +9,7 @@ class IList {
   Map _toAddList = {};
   Map _toDelList = {};
   Map _toSetList = {};
+  bool _updated = false;
 
   void _unset(input) => _list.remove(_getInputIndex(input));
   bool _set(IModel model) => _list[_getInputIndex(model.getPK())] = model;
@@ -16,11 +17,23 @@ class IList {
   get length => _list.length;
   num setPK(num pk) => _pk = pk;
   num getPK() => _pk;
+  bool isUpdated() => _updated;
+  void setUpdated(bool flag) => _updated = flag;
 
   Map getList() => _list;
   Map getToAddList() => _toAddList;
   Map getToDelList() => _toDelList;
   Map getToSetList() => _toSetList;
+
+  void resetToAddList() => _toAddList.clear();
+  void resetToDelList() => _toDelList.clear();
+  void resetToSetList() => _toSetList.clear();
+  void resetAllToList() {
+    resetToAddList();
+    resetToDelList();
+    resetToSetList();
+    _updated = false;
+  }
 
   String _getInputIndex(input) {
     String index;
@@ -35,12 +48,15 @@ class IList {
   }
 
   get(index) => _list[_getInputIndex(index)];
+
   void add(IModel model) {
     String index = _getInputIndex(model.getPK());
     if (_list.containsKey(index)) throw new IModelException(10003);
     
     _list[index] = model;
     _toAddList[index] = model;
+
+    _updated = true;
   }
   void set(IModel model) {
     if (get(model.getPK()) == null) throw new IModelException(10005);
@@ -51,6 +67,8 @@ class IList {
     _toSetList[index] = model;
 
     if (_toAddList.containsKey(index)) _toAddList[index] = model;
+
+    _updated = true;
   }
   void del(input) {
     String index;
@@ -72,6 +90,8 @@ class IList {
     if (_toAddList.containsKey(index)) _toAddList.remove(index);
 
     if (_toSetList.containsKey(index)) _toSetList.remove(index);
+
+    _updated = true;
   }
 
   Map toFixedList([bool filterOn = false]) {

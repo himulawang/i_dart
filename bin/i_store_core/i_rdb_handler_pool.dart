@@ -74,32 +74,28 @@ class IRedisHandlerPool {
     return connectionSB.toString();
   }
 
-  static void _handleErr(err) {
-    throw err;
-  }
+  static void _handleErr(err) => throw err;
 
-  RedisClient getWriteHandler(model) {
+  RedisClient getWriteHandler(Map store, model) {
     _checkInitialized();
 
-    Map redisStore = model.getRedisStore();
     String groupType = 'master';
-    String groupName = redisStore[groupType];
+    String groupName = store[groupType];
 
     int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(redisStore['shardMethod'], model, modValue);
+    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
 
     return dbs[groupName][shardIndex];
   }
 
-  RedisClient getReaderHandler(model) {
+  RedisClient getReaderHandler(Map store, model) {
     _checkInitialized();
 
-    Map redisStore = model.getRedisStore();
-    String groupType = redisStore['readWriteSeparate'] ? 'slave' : 'master';
-    String groupName = redisStore[groupType];
+    String groupType = store['readWriteSeparate'] ? 'slave' : 'master';
+    String groupName = store[groupType];
 
     int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(redisStore['shardMethod'], model, modValue);
+    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
 
     return dbs[groupName][shardIndex];
   }

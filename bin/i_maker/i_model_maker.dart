@@ -70,7 +70,6 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${orm['name']} extends IModel {
-  static const String _abb = '${orm['abb']}';
   static const String _name = '${orm['name']}';
   static const String _listName = '${orm['listName']}';
   static const String _pkName = '${orm['column'][orm['pk']]}';
@@ -82,16 +81,6 @@ class ${orm['name']} extends IModel {
   static const Map _mapFull = const ${JSON.encode(mapFull)};
 
 ''');
-
-    // store information
-    Map store;
-    for (num j = 0; j < orm['storeOrder'].length; ++j) {
-      store = orm['storeOrder'][j];
-      codeSB.write('''
-  static const Map _${store['type']}Store = const ${JSON.encode(store)};
-  Map get${makeUpperFirstLetter(store['type'])}Store() => _${store['type']}Store;
-''');
-    }
 
     codeSB.write('''
 
@@ -110,7 +99,6 @@ class ${orm['name']} extends IModel {
     _updatedList = new List.filled(_length, false);
   }
 
-  String getAbb() => _abb;
   String getName() => _name;
   String getListName() => _listName;
   String getPKName() => _pkName;
@@ -316,15 +304,12 @@ class ${name}PK extends IPK {
   String makeList(Map orm) {
     String name = orm['name'];
     String listName = orm['listName'];
-    String code = '''
+    StringBuffer codeSB = new StringBuffer();
+    codeSB.write('''
 ${_DECLARATION}
 part of lib_${_app};
 
 class ${listName} extends IList {
-  static const String _abb = '${orm['abb']}-l';
-
-  String getAbb() => _abb;
-
   ${listName}(num pk) { _initPK(pk); }
 
   ${listName}.filledMap(num pk, Map dataList) {
@@ -410,8 +395,8 @@ class ${listName} extends IList {
     });
   }
 }
-''';
-    return code;
+''');
+    return codeSB.toString();
   }
 
   String makeConstJSON(List columns) {

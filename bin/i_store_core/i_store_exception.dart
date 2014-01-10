@@ -36,6 +36,8 @@ class IStoreException {
       '20037': 'Invalid id when get list from redis.',
       '20038': 'Invalid list when del list from redis.',
       '20039': 'Invalid id when del list from redis.',
+      '20040': 'Invalid list when set list from redis.',
+      '20041': 'Invalid id when set list from redis.',
       // mariaDB
       '21001': 'Cannot find config key [no] in mariaDB store.',
       '21002': 'Cannot find config key [host] in mariaDB store.',
@@ -72,6 +74,7 @@ class IStoreException {
       '25006': 'PK not exist when get it from redis.',
       '25007': 'PK not exist when del it from redis.',
       '25008': 'List not exist when get it from redis.',
+      '25009': 'List not changed when set to redis.',
       // mariaDB warning for interrupting future chain
       '26001': 'Model has no attribute to set to mariaDB.',
       '26002': 'No record affected when set model to mariaDB.',

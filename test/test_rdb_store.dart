@@ -36,6 +36,18 @@ Future flushdb() {
 startTest() {
   group('Test rdb store', () {
 
+    group('store', () {
+      test('should equal store in store.dart', () {
+        expect(UserRedisStore.store, equals(orm[0]['storeOrder'][0]));
+      });
+    });
+
+    group('abb', () {
+      test('should equal abb in orm.dart', () {
+        expect(UserRedisStore.abb, equals(orm[0]['abb']));
+      });
+    });
+
     group('add', () {
 
       setUp(() => flushdb());
