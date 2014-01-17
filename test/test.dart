@@ -30,7 +30,6 @@ void main() {
     /*
     waitList..add(UserRedisStore.get(1, 'u:1'))
             ..add(UserRedisStore.get(2, 'u:1'));
-            */
     waitList
       ..add(handler.hmget('u:1:1', user.getMapAbb().keys).then((_) => print(1)))
       ..add(handler.hmget('u:1:2', user.getMapAbb().keys).then((_) => print(2)))
@@ -38,6 +37,25 @@ void main() {
       ..add(handler.hmget('u:1:4', user.getMapAbb().keys).then((_) => print(4)))
       ..add(handler.hmget('u:1:5', user.getMapAbb().keys).then((_) => print(5)))
     ;
+    */
+    waitList
+      ..add(handler.hmget('u:1:1', ['a', 'b']).then((_) => print(1)))
+      ..add(handler.hmget('u:1:2', ['a', 'b']).then((_) => print(2)))
+      ..add(handler.hmget('u:1:3', ['a', 'b']).then((_) => print(3)))
+      ..add(handler.hmget('u:1:4', ['a', 'b']).then((_) => print(4)))
+      ..add(handler.hmget('u:1:5', ['a', 'b']).then((_) => print(5)))
+      ..add(handler.hmget('u:1:6', ['a', 'b']).then((_) => print(6)))
+      ..add(handler.hmget('u:1:7', ['a', 'b']).then((_) => print(7)))
+    ;
+    /*
+    waitList
+      ..add(handler.smembers('u:1:1').then((_) => print(1)))
+      ..add(handler.smembers('u:1:2').then((_) => print(2)))
+      ..add(handler.smembers('u:1:3').then((_) => print(3)))
+      ..add(handler.smembers('u:1:4').then((_) => print(4)))
+      ..add(handler.smembers('u:1:5').then((_) => print(5)))
+    ;
+    */
 
     return Future.wait(waitList);
   })

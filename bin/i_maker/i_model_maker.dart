@@ -1,12 +1,12 @@
 part of i_maker;
 
 class IModelMaker extends IMaker {
-  List _orm;
+  Map <String, Map>_orm;
   String _outModelCoreDir;
   String _srcModelCoreDir;
   String _outModelDir;
 
-  IModelMaker(Map deploy, List orm) : super(deploy) {
+  IModelMaker(Map deploy, Map orm) : super(deploy) {
     _orm = orm;
   }
 
@@ -25,18 +25,23 @@ class IModelMaker extends IMaker {
     copyFileWithHeader(_srcModelCoreDir, 'i_model_exception.dart', _outModelCoreDir, 'i_model_exception.dart', 'part of lib_${_app};');
 
     // make model files
-    _orm.forEach((orm) {
-      String lowerName = makeLowerUnderline(orm['name']);
-      if (orm['type'] == 'Model') {
-        writeFile('${lowerName}.dart', _outModelDir, makeModel(orm), true);
+    _orm.forEach((String name, Map orm) {
+      String lowerName = makeLowerUnderline(name);
+      if (orm.containsKey('Model')) {
+        writeFile('${lowerName}.dart', _outModelDir, makeModel(name, orm['Model']), true);
+      }
+      /*
+      if (orm.containsKey('List')) {
         writeFile('${lowerName}_list.dart', _outModelDir, makeList(orm), true);
-      } else if (orm['type'] == 'PK') {
+      }
+      if (orm.containsKey('PK')) {
         writeFile('${lowerName}_pk.dart', _outModelDir, makePK(orm), true);
       }
+      */
     });
   }
   
-  String makeModel(Map orm) {
+  String makeModel(String name, Map orm) {
     StringBuffer codeSB = new StringBuffer();
 
     Map abbs = makeAbbs(orm['column']);
@@ -69,12 +74,10 @@ class IModelMaker extends IMaker {
 ${_DECLARATION}
 part of lib_${_app};
 
-class ${orm['name']} extends IModel {
-  static const String _name = '${orm['name']}';
-  static const String _listName = '${orm['listName']}';
-  static const String _pkName = '${orm['column'][orm['pk']]}';
+class ${name} extends IModel {
+  static const String _name = '${name}';
 
-  static const num _pk = ${orm['pk']};
+  static const List _pk = const ${JSON.encode(orm['pk'])};
   static const num _length = ${length};
   static const List _columns = const ${makeConstJSON(columns)};
   static const Map _mapAbb = const ${JSON.encode(mapAbb)};
@@ -88,7 +91,7 @@ class ${orm['name']} extends IModel {
   List<bool> _updatedList;
   bool _exist = false;
 
-  ${orm['name']}([List args = null]) : super() {
+  ${name}([List args = null]) : super() {
     if (args == null) {
       _args = new List.filled(_length, null);
     } else {
@@ -100,8 +103,6 @@ class ${orm['name']} extends IModel {
   }
 
   String getName() => _name;
-  String getListName() => _listName;
-  String getPKName() => _pkName;
   String getColumnCount() => _length;
 
   Map getColumns() => _columns;
@@ -127,8 +128,33 @@ class ${orm['name']} extends IModel {
   void setExist([bool exist = true]) { _exist = exist; }
   bool isExist() => _exist;
 
-  void setPK(pk) => _args[_pk] = pk;
-  getPK() => _args[_pk];
+''');
+
+    if (orm['pk'].length == 1) {
+      codeSB..writeln('  void setPK(pk) => _args[_pk[0]] = pk;')
+            ..writeln('  getPK() => _args[_pk];');
+    } else {
+      // setPK
+      codeSB.write('  void setPK(pk');
+      List pkParams = new List.generate(orm['pk'].length, (int i) => i + 1);
+      codeSB.write(pkParams.join(', pk'));
+      codeSB.write(') {\n');
+      for (int i = 0; i < orm['pk'].length; ++i) {
+        codeSB.writeln('    _args[_pk[${i}]] = pk${i + 1};');
+      }
+      codeSB.writeln('  }');
+
+      // getPK
+      codeSB.writeln('  getPK() {');
+      codeSB.writeln('    List pk = new List();');
+      for (int i = 0; i < orm['pk'].length; ++i) {
+        codeSB.writeln('    pk.add(_args[${i}]);');
+      }
+      codeSB.writeln('    return pk;');
+      codeSB.writeln('  }');
+    }
+
+    codeSB.write('''
 
   bool isUpdated() => _updatedList.any((bool e) => e);
   void setUpdatedList(bool flag) => _updatedList.fillRange(0, _length, flag);

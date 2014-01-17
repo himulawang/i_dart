@@ -1,12 +1,12 @@
 part of i_maker;
 
 class IStoreMaker extends IMaker {
-  List _orm;
+  Map _orm;
   String _outStoreCoreDir;
   String _srcStoreCoreDir;
   String _outStoreDir;
 
-  IStoreMaker(Map deploy, List orm) : super(deploy) {
+  IStoreMaker(Map deploy, Map orm) : super(deploy) {
     _orm = orm;
   }
 
