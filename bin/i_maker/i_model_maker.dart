@@ -28,20 +28,18 @@ class IModelMaker extends IMaker {
     _orm.forEach((String name, Map orm) {
       String lowerName = makeLowerUnderline(name);
       if (orm.containsKey('Model')) {
-        writeFile('${lowerName}.dart', _outModelDir, makeModel(name, orm['Model']), true);
-      }
-      /*
-      if (orm.containsKey('List')) {
-        writeFile('${lowerName}_list.dart', _outModelDir, makeList(orm), true);
+        writeFile('${lowerName}.dart', _outModelDir, makeModel(name, orm['Model'], orm['List']), true);
       }
       if (orm.containsKey('PK')) {
-        writeFile('${lowerName}_pk.dart', _outModelDir, makePK(orm), true);
+        writeFile('${lowerName}_pk.dart', _outModelDir, makePK(name, orm['PK']), true);
       }
-      */
+      if (orm.containsKey('List')) {
+        writeFile('${lowerName}_list.dart', _outModelDir, makeList(name, orm['Model'], orm['List']), true);
+      }
     });
   }
   
-  String makeModel(String name, Map orm) {
+  String makeModel(String name, Map orm, Map listOrm) {
     StringBuffer codeSB = new StringBuffer();
 
     Map abbs = makeAbbs(orm['column']);
@@ -130,28 +128,69 @@ class ${name} extends IModel {
 
 ''');
 
-    if (orm['pk'].length == 1) {
-      codeSB..writeln('  void setPK(pk) => _args[_pk[0]] = pk;')
-            ..writeln('  getPK() => _args[_pk];');
-    } else {
-      // setPK
-      codeSB.write('  void setPK(pk');
-      List pkParams = new List.generate(orm['pk'].length, (int i) => i + 1);
-      codeSB.write(pkParams.join(', pk'));
-      codeSB.write(') {\n');
-      for (int i = 0; i < orm['pk'].length; ++i) {
-        codeSB.writeln('    _args[_pk[${i}]] = pk${i + 1};');
-      }
-      codeSB.writeln('  }');
+    // pk
+    List pkColumnName = [];
+    List pkColumnRawName = [];
+    for (int i = 0; i < orm['pk'].length; ++i) {
+      pkColumnName.add(orm['column'][orm['pk'][i]]);
+      pkColumnRawName.add('${orm['column'][orm['pk'][i]]}Raw');
+    }
+    codeSB.writeln('  void setPK(${pkColumnRawName.join(', ')}) {');
 
-      // getPK
-      codeSB.writeln('  getPK() {');
-      codeSB.writeln('    List pk = new List();');
-      for (int i = 0; i < orm['pk'].length; ++i) {
-        codeSB.writeln('    pk.add(_args[${i}]);');
+    pkColumnName.forEach((name) {
+      codeSB.writeln('    ${name} = ${name}Raw;');
+    });
+    codeSB.writeln('  }');
+
+    if (pkColumnName.length == 1) {
+      codeSB.writeln('  getPK() => ${pkColumnName[0]};');
+    } else {
+      codeSB.writeln('  List getPK() => [${pkColumnName.join(', ')}];');
+    }
+
+    // united pk
+    if (pkColumnName.length == 1) {
+      codeSB.write('''
+  String getUnitedPK() {
+    var pk = getPK();
+    if (pk == null) throw new IModelException(10015);
+    return getPK().toString();
+  }
+''');
+    } else {
+      codeSB.write('''
+  String getUnitedPK() {
+    List pk = getPK();
+    if (pk.contains(null)) throw new IModelException(10016);
+    return pk.join('_');
+  }
+''');
+    }
+
+    // united child pk
+    if (listOrm != null) {
+      List childPKColumnName = [];
+      listOrm['childPK'].forEach((index) => childPKColumnName.add(orm['column'][index]));
+
+      if (childPKColumnName.length == 1) {
+        codeSB.writeln('  getChildPK() => ${childPKColumnName[0]};');
+        codeSB.write('''
+  String getUnitedChildPK() {
+    var childPK = getChildPK();
+    if (childPK == null) throw new IModelException(10017);
+    return childPK.toString();
+  }
+''');
+      } else {
+        codeSB.writeln('  List getChildPK() => [${childPKColumnName.join(', ')}];');
+        codeSB.write('''
+  String getUnitedChildPK() {
+    List childPK = getChildPK();
+    if (childPK.contains(null)) throw new IModelException(10018);
+    return childPK.join('_');
+  }
+''');
       }
-      codeSB.writeln('    return pk;');
-      codeSB.writeln('  }');
     }
 
     codeSB.write('''
@@ -291,83 +330,63 @@ class ${name} extends IModel {
 
     return codeSB.toString();
   }
-  String makePK(Map orm) {
-    if (orm['global']) {
-      return ''; //TODO
-    } else {
-      return _makeCommonPK(orm);
-    }
-  }
-  String _makeCommonPK(Map orm) {
-    String name = orm['name'];
+  String makePK(String name, Map orm) {
+    String className = orm['className'];
     StringBuffer codeSB = new StringBuffer();
     codeSB.write('''
 ${_DECLARATION}
 part of lib_${_app};
 
-class ${name}PK extends IPK {
+class ${className} extends IPK {
   ${name}PK([num pk = 0]) {
     _pk = pk;
   }
-
-''');
-
-    // store information
-    Map store;
-    for (num j = 0; j < orm['storeOrder'].length; ++j) {
-      store = orm['storeOrder'][j];
-      codeSB.write('''
-  static const Map _${store['type']}Store = const ${JSON.encode(store)};
-  Map get${makeUpperFirstLetter(store['type'])}Store() => _${store['type']}Store;
-''');
-    }
-
-    codeSB.writeln('''
 }
 ''');
+
     return codeSB.toString();
   }
-  String makeList(Map orm) {
-    String name = orm['name'];
-    String listName = orm['listName'];
+
+  String makeList(String name, Map orm, Map listOrm) {
+    String listName = listOrm['className'];
+    List<String> childPKColumnName = [];
+
+    listOrm['childPK'].forEach((index) {
+      childPKColumnName.add(orm['column'][index]);
+    });
+
     StringBuffer codeSB = new StringBuffer();
     codeSB.write('''
 ${_DECLARATION}
 part of lib_${_app};
 
 class ${listName} extends IList {
-  ${listName}(num pk) { _initPK(pk); }
+  ${listName}(pk) { _initPK(pk); }
 
-  ${listName}.filledMap(num pk, Map dataList) {
+  ${listName}.filledMap(pk, Map dataList) {
     _initPK(pk);
 
     dataList.forEach((String i, ${name} model) {
       if (model is! ${name}) return;
-
-      var childPK = model.getPK();
-      if (childPK == null) return;
-
       _set(model);
     });
   }
 
-  ${listName}.filledList(num pk, List dataList) {
+  ${listName}.filledList(pk, List dataList) {
     _initPK(pk);
 
     dataList.forEach((${name} model) {
       if (model is! ${name}) return;
-
-      var childPK = model.getPK();
-      if (childPK == null) return;
-
       _set(model);
     });
   }
 
-  void _initPK(num pk) {
-    if (pk is! num) throw new IModelException(10011);
+  void _initPK(pk) {
+    if (pk is! num && pk is! String) throw new IModelException(10011);
     _pk = pk;
   }
+
+  ${name} get(${childPKColumnName.join(', ')}) => _list["\${${childPKColumnName.join('}_\${')}}"];
 
   void fromList(List dataList, [bool changeUpdatedList = false]) {
     if (dataList is! List) throw new IModelException(10012);
@@ -376,7 +395,7 @@ class ${listName} extends IList {
       ${name} model = new ${name}();
       model.fromList(data, changeUpdatedList);
       if (changeUpdatedList) {
-        if (get(model.getPK()) == null) {
+        if (get(model.getUnitedChildPK()) == null) {
           add(model);
         } else {
           set(model);
@@ -393,7 +412,7 @@ class ${listName} extends IList {
       ${name} model = new ${name}();
       model.fromFull(data, changeUpdatedList);
       if (changeUpdatedList) {
-        if (get(model.getPK()) == null) {
+        if (get(model.getUnitedChildPK()) == null) {
           add(model);
         } else {
           set(model);
@@ -410,7 +429,7 @@ class ${listName} extends IList {
       ${name} model = new ${name}();
       model.fromAbb(data, changeUpdatedList);
       if (changeUpdatedList) {
-        if (get(model.getPK()) == null) {
+        if (get(model.getUnitedChildPK()) == null) {
           add(model);
         } else {
           set(model);

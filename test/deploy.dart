@@ -8,7 +8,7 @@ void main() {
   modelMaker.make();
 
   IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
-  //storeMaker.make();
+  storeMaker.make();
 
   IUtilMaker utilMaker = new IUtilMaker(deploy);
   utilMaker.make();

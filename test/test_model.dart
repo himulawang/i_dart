@@ -11,21 +11,12 @@ void main() {
   num startTimestamp;
   num endTimestamp;
   startTimestamp = new DateTime.now().millisecondsSinceEpoch;
-  setUp(() {
-    // init
-    //IRedisHandlerPool redisHandlerPool;
-    //IMariaDBHandlerPool mariaDBHandlerPool;
-    //redisHandlerPool = new IRedisHandlerPool(store['redis']);
-    //mariaDBHandlerPool = new IMariaDBHandlerPool(store['mariaDB']);
-  });
-  tearDown(() {
-  });
 
   group('Test Model', () {
     group('constructor', () {
       test('no argument input', () {
         User u = new User();
-        expect(u.toFixedList(), equals(new List.filled(orm[0]['column'].length, null)));
+        expect(u.toFixedList(), equals(new List.filled(orm['User']['Model']['column'].length, null)));
       });
 
       test('input argument with wrong type', () {
@@ -44,7 +35,7 @@ void main() {
 
       test('construct with right parameters', () {
         expect(
-            () => new User(new List.filled(orm[0]['column'].length, 1)),
+            () => new User(new List.filled(orm['User']['Model']['column'].length, 1)),
             returnsNormally
         );
       });
@@ -53,28 +44,14 @@ void main() {
     group('getName', () {
       test('should equal name in orm.dart', () {
         User user = new User();
-        expect(user.getName(), equals(orm[0]['name']));
-      });
-    });
-
-    group('getListName', () {
-      test('should equal listName in orm.dart', () {
-        User user = new User();
-        expect(user.getListName(), equals(orm[0]['listName']));
-      });
-    });
-
-    group('getPKName', () {
-      test('should equal pk in orm.dart', () {
-        User user = new User();
-        expect(user.getPKName(), equals(orm[0]['column'][orm[0]['pk']]));
+        expect(user.getName(), equals('User'));
       });
     });
 
     group('getColumnCount', () {
       test('should equal column length in orm.dart', () {
         User user = new User();
-        expect(user.getColumnCount(), equals(orm[0]['column'].length));
+        expect(user.getColumnCount(), equals(orm['User']['Model']['column'].length));
       });
     });
 
@@ -361,7 +338,7 @@ void main() {
         expect(u.getPK(), equals(null));
       });
 
-      test('setPK & getPK success', () {
+      test('setPK & getPK single success', () {
         User u = new User();
         num value = 209;
         u.setPK(value);
@@ -373,6 +350,15 @@ void main() {
         num value = 209;
         u.setPK(value);
         expect(u.id, equals(value));
+      });
+
+      test('setPK & getPK multiple success', () {
+        UserMulti u = new UserMulti();
+        u.setPK(1, 'name', 'uniqueName');
+        expect(u.getPK(), equals([1, 'name', 'uniqueName']));
+        expect(u.id, equals(1));
+        expect(u.name, equals('name'));
+        expect(u.uniqueName, equals('uniqueName'));
       });
     });
 
@@ -412,22 +398,22 @@ void main() {
 
     group('toAddFixedList', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toAddFixedList();
-        expect(r, equals(new List.filled(orm[0]['column'].length, 1)));
+        expect(r, equals(new List.filled(orm['User']['Model']['column'].length, 1)));
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toAddFixedList(true);
-        List expectR = new List.filled(orm[0]['column'].length, 1);
+        List expectR = new List.filled(orm['User']['Model']['column'].length, 1);
         expectR[8] = null;
         expectR[9] = null;
         expect(r, equals(expectR));
       });
 
       test('length of return list should not be changed', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toAddFixedList();
         expect(
           () => r.add(1),
@@ -438,20 +424,20 @@ void main() {
 
     group('toAddList', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toAddList();
-        expect(r, equals(new List.filled(orm[0]['column'].length, 1)));
+        expect(r, equals(new List.filled(orm['User']['Model']['column'].length, 1)));
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toAddList(true);
-        List expectR = new List.filled(orm[0]['column'].length - 2, 1);
+        List expectR = new List.filled(orm['User']['Model']['column'].length - 2, 1);
         expect(r, equals(expectR));
       });
 
       test('length of return list can be changed', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toAddList();
         expect(() => r.add(1), returnsNormally);
       });
@@ -459,7 +445,7 @@ void main() {
 
     group('toAddFull', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         Map r = u.toAddFull();
         Map e = {
             'id': 1,
@@ -485,7 +471,7 @@ void main() {
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         Map r = u.toAddFull(true);
         Map e = {
             'id': 1,
@@ -511,7 +497,7 @@ void main() {
 
     group('toAddAbb', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         Map r = u.toAddAbb();
         Map e = {
             'i': 1,
@@ -537,7 +523,7 @@ void main() {
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         Map r = u.toAddAbb(true);
         Map e = {
             'i': 1,
@@ -563,14 +549,14 @@ void main() {
 
     group('toSetFixedList', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
         u.testSetFilterColumn2 = 'd';
         List r = u.toSetFixedList();
 
-        List e =  new List.filled(orm[0]['column'].length, null);
+        List e =  new List.filled(orm['User']['Model']['column'].length, null);
         e[1] = 'a';
         e[2] = 'b';
         e[10] = 'c';
@@ -579,21 +565,21 @@ void main() {
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
         u.testSetFilterColumn2 = 'd';
         List r = u.toSetFixedList(true);
 
-        List e = new List.filled(orm[0]['column'].length, null);
+        List e = new List.filled(orm['User']['Model']['column'].length, null);
         e[1] = 'a';
         e[2] = 'b';
         expect(r, equals(e));
       });
 
       test('length of return list should not be changed', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
@@ -604,7 +590,7 @@ void main() {
 
     group('toSetList', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
@@ -616,7 +602,7 @@ void main() {
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
@@ -628,7 +614,7 @@ void main() {
       });
 
       test('length of return list can be changed', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
@@ -639,7 +625,7 @@ void main() {
 
     group('toSetFull', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
@@ -655,7 +641,7 @@ void main() {
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
@@ -671,7 +657,7 @@ void main() {
 
     group('toSetAbb', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
@@ -687,7 +673,7 @@ void main() {
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         u.name = 'a';
         u.userName = 'b';
         u.testSetFilterColumn1 = 'c';
@@ -703,23 +689,23 @@ void main() {
 
     group('toFixedList', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toFixedList();
-        List e = new List.filled(orm[0]['column'].length, 1);
+        List e = new List.filled(orm['User']['Model']['column'].length, 1);
         expect(r, equals(e));
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toFixedList(true);
-        List e = new List.filled(orm[0]['column'].length, 1);
+        List e = new List.filled(orm['User']['Model']['column'].length, 1);
         e[16] = null;
         e[17] = null;
         expect(r, equals(e));
       });
 
       test('length of return list should not be changed', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toFixedList();
         expect(() => r.add(1), throwsA(new isInstanceOf<UnsupportedError>()));
       });
@@ -727,21 +713,21 @@ void main() {
 
     group('toList', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toList();
-        List e = new List.filled(orm[0]['column'].length, 1);
+        List e = new List.filled(orm['User']['Model']['column'].length, 1);
         expect(r, equals(e));
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toList(true);
-        List e = new List.filled(orm[0]['column'].length - 2, 1);
+        List e = new List.filled(orm['User']['Model']['column'].length - 2, 1);
         expect(r, equals(e));
       });
 
       test('length of return list can be changed', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         List r = u.toList();
         expect(() => r.add(1), returnsNormally);
       });
@@ -749,7 +735,7 @@ void main() {
 
     group('toFull', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         Map r = u.toFull();
         Map e = {
             'id': 1,
@@ -775,7 +761,7 @@ void main() {
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         Map r = u.toFull(true);
         Map e = {
             'id': 1,
@@ -801,7 +787,7 @@ void main() {
 
     group('toAbb', () {
       test('filter off', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         Map r = u.toAbb();
         Map e = {
             'i': 1,
@@ -827,7 +813,7 @@ void main() {
       });
 
       test('filter on', () {
-        User u = new User(new List.filled(orm[0]['column'].length, 1));
+        User u = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         Map r = u.toAbb(true);
         Map e = {
             'i': 1,
@@ -948,6 +934,54 @@ void main() {
 
         expect(toList, equals(e));
         expect(u.isUpdated(), equals(true));
+      });
+    });
+
+    group('getUnitedPK', () {
+      test('single pk get success', () {
+        User u = new User();
+        u.setPK(1);
+        expect(u.getUnitedPK(), equals('1'));
+      });
+
+      test('multple pk get success', () {
+        UserMulti u = new UserMulti();
+        u.setPK(1, 'aa', 'bb');
+        expect(u.getUnitedPK(), equals('1_aa_bb'));
+      });
+
+      test('single pk not set should throw exception', () {
+        User u = new User();
+        expect(() => u.getUnitedPK(), throwsA(predicate((e) => e is IModelException && e.code == 10015)));;
+      });
+
+      test('multple pk not set should throw exception', () {
+        UserMulti u = new UserMulti();
+        expect(() => u.getUnitedPK(), throwsA(predicate((e) => e is IModelException && e.code == 10016)));;
+      });
+    });
+
+    group('getUnitedChildPK', () {
+      test('single child pk get success', () {
+        UserSingle u = new UserSingle();
+        u.setPK(1, 'ila');
+        expect(u.getUnitedChildPK(), equals('ila'));
+      });
+
+      test('multple child pk get success', () {
+        UserMulti u = new UserMulti();
+        u.setPK(1, 'aa', 'bb');
+        expect(u.getUnitedChildPK(), equals('aa_bb'));
+      });
+
+      test('single child pk not set should throw exception', () {
+        UserSingle u = new UserSingle();
+        expect(() => u.getUnitedChildPK(), throwsA(predicate((e) => e is IModelException && e.code == 10017)));;
+      });
+
+      test('multple child pk not set should throw exception', () {
+        UserMulti u = new UserMulti();
+        expect(() => u.getUnitedChildPK(), throwsA(predicate((e) => e is IModelException && e.code == 10018)));;
       });
     });
   });

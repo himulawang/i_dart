@@ -8,7 +8,7 @@ class IModelException {
   List parameters;
   static final Map _CODES = {
     //'10001': 'Model has no pk when set to list.',
-    '10002': 'Invalid index when check model pk from list.',
+    //'10002': 'Invalid index when check model pk from list.',
     '10003': 'Model exists when add model to list.',
     '10004': 'Model not exist when del model from list.',
     '10005': 'Model not exist when update model to list.',
@@ -21,6 +21,10 @@ class IModelException {
     '10012': 'Invalid datas when fromList.',
     '10013': 'Invalid datas when fromFull.',
     '10014': 'Invalid datas when fromAbb.',
+    '10015': 'PK is not set.',
+    '10016': 'Multiple PK is not set.',
+    '10017': 'ChildPK is not set.',
+    '10018': 'Multiple ChildPK is not set.',
   };
   IModelException(int inputCode, [List inputParameters]) {
     code = inputCode;

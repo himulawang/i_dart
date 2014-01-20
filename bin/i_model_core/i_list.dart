@@ -11,8 +11,7 @@ class IList {
   Map _toSetList = {};
   bool _updated = false;
 
-  void _unset(input) => _list.remove(_getInputIndex(input));
-  bool _set(IModel model) => _list[_getInputIndex(model.getPK())] = model;
+  bool _set(IModel model) => _list[model.getUnitedChildPK()] = model;
 
   get length => _list.length;
   num setPK(num pk) => _pk = pk;
@@ -35,22 +34,8 @@ class IList {
     _updated = false;
   }
 
-  String _getInputIndex(input) {
-    String index;
-    if (input is num) {
-      index = input.toString();
-    } else if (input is String) {
-      index = input;
-    } else {
-      throw new IModelException(10002);
-    }
-    return index;
-  }
-
-  get(index) => _list[_getInputIndex(index)];
-
   void add(IModel model) {
-    String index = _getInputIndex(model.getPK());
+    String index = model.getUnitedChildPK();
     if (_list.containsKey(index)) throw new IModelException(10003);
     
     _list[index] = model;
@@ -59,9 +44,8 @@ class IList {
     _updated = true;
   }
   void set(IModel model) {
-    if (get(model.getPK()) == null) throw new IModelException(10005);
-
-    String index = _getInputIndex(model.getPK());
+    String index = model.getUnitedChildPK();
+    if (_list[index] == null) throw new IModelException(10005);
 
     _list[index] = model;
     _toSetList[index] = model;
@@ -70,23 +54,15 @@ class IList {
 
     _updated = true;
   }
-  void del(input) {
-    String index;
-    IModel model;
-    if (input is num || input is String) {
-      index = _getInputIndex(input);
-      model = get(index);
-    } else {
-      index = _getInputIndex(input.getPK());
-      model = get(index);
-    }
-    if (model == null) throw new IModelException(10004);
-    
+  void del(IModel model) {
+    String index = model.getUnitedChildPK();
+    if (_list[index] == null) throw new IModelException(10004);
+
     if (_list.containsKey(index)) {
       _list.remove(index);
       _toDelList[index] = model;
     }
-    
+
     if (_toAddList.containsKey(index)) _toAddList.remove(index);
 
     if (_toSetList.containsKey(index)) _toSetList.remove(index);
@@ -96,29 +72,29 @@ class IList {
 
   Map toFixedList([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((i, IModel child) {
-      result[i.toString()] = child.toFixedList(filterOn);
+    _list.forEach((String index, IModel child) {
+      result[index] = child.toFixedList(filterOn);
     });
     return result;
   }
   Map toList([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((i, IModel child) {
-      result[i.toString()] = child.toList(filterOn);
+    _list.forEach((String index, IModel child) {
+      result[index] = child.toList(filterOn);
     });
     return result;
   }
   Map toFull([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((i, IModel child) {
-      result[i.toString()] = child.toFull(filterOn);
+    _list.forEach((String index, IModel child) {
+      result[index] = child.toFull(filterOn);
     });
     return result;
   }
   Map toAbb([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((i, IModel child) {
-      result[i.toString()] = child.toAbb(filterOn);
+    _list.forEach((String index, IModel child) {
+      result[index] = child.toAbb(filterOn);
     });
     return result;
   }
