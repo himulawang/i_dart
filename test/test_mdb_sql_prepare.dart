@@ -20,7 +20,7 @@ void main() {
       });
 
       test('return the right SQL', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         String eSQL = 'INSERT INTO `User` (`id`, `name`, `userName`, `uniqueName`, `underworldName`, `underworldName1`, `underworldName2`, `thisIsABitLongerAttribute`, `testSetFilterColumn1`, `testSetFilterColumn2`, `testFullFilterColumn1`, `testFullFilterColumn2`, `testAbbFilterColumn1`, `testAbbFilterColumn2`, `testListFilterColumn1`, `testListFilterColumn2`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);';
         expect(IMariaDBSQLPrepare.makeAdd(UserMariaDBStore.table, user), equals(eSQL));
       });
@@ -33,7 +33,7 @@ void main() {
       });
 
       test('return the right SQL', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = 'ila';
         user.userName = 'ParaNoidz';
         user.testSetFilterColumn1 = 2;
@@ -45,14 +45,14 @@ void main() {
 
     group('makeGet', () {
       test('return the right SQL', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         expect(IMariaDBSQLPrepare.makeGet(UserMariaDBStore.table, user), equals('SELECT `id`, `name`, `userName`, `uniqueName`, `underworldName`, `underworldName1`, `underworldName2`, `thisIsABitLongerAttribute`, `testAddFilterColumn1`, `testAddFilterColumn2`, `testSetFilterColumn1`, `testSetFilterColumn2`, `testFullFilterColumn1`, `testFullFilterColumn2`, `testAbbFilterColumn1`, `testAbbFilterColumn2`, `testListFilterColumn1`, `testListFilterColumn2` FROM `User` WHERE `id` = ?;'));
       });
     });
 
     group('makeDel', () {
       test('return the right SQL', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         expect(IMariaDBSQLPrepare.makeDel(UserMariaDBStore.table, user), equals('DELETE FROM `User` WHERE `id` = ?;'));
       });
     });

@@ -68,6 +68,13 @@ class IModelMaker extends IMaker {
       mapFull[full] = i;
     }
 
+    List pkColumnName = [];
+    List pkColumnRawName = [];
+    for (int i = 0; i < orm['pk'].length; ++i) {
+      pkColumnName.add(orm['column'][orm['pk'][i]]);
+      pkColumnRawName.add('${orm['column'][orm['pk'][i]]}Raw');
+    }
+
     codeSB.write('''
 ${_DECLARATION}
 part of lib_${_app};
@@ -76,6 +83,7 @@ class ${name} extends IModel {
   static const String _name = '${name}';
 
   static const List _pk = const ${JSON.encode(orm['pk'])};
+  static const List _pkColumns = const ${JSON.encode(pkColumnName)};
   static const num _length = ${length};
   static const List _columns = const ${makeConstJSON(columns)};
   static const Map _mapAbb = const ${JSON.encode(mapAbb)};
@@ -84,7 +92,6 @@ class ${name} extends IModel {
 ''');
 
     codeSB.write('''
-
   List _args;
   List<bool> _updatedList;
   bool _exist = false;
@@ -106,22 +113,6 @@ class ${name} extends IModel {
   Map getColumns() => _columns;
   Map getMapAbb() => _mapAbb;
   Map getMapFull() => _mapFull;
-''');
-
-    for (num i = 0; i < length; ++i) {
-      String full = orm['column'][i];
-      codeSB.write('''
-
-  void set ${full}(v) {
-    if (_args[${i}] == v) return;
-    _args[${i}] = v;
-    _updatedList[${i}] = true;
-  }
-  get ${full} => _args[${i}];
-''');
-    }
-
-    codeSB.write('''
 
   void setExist([bool exist = true]) { _exist = exist; }
   bool isExist() => _exist;
@@ -129,12 +120,6 @@ class ${name} extends IModel {
 ''');
 
     // pk
-    List pkColumnName = [];
-    List pkColumnRawName = [];
-    for (int i = 0; i < orm['pk'].length; ++i) {
-      pkColumnName.add(orm['column'][orm['pk'][i]]);
-      pkColumnRawName.add('${orm['column'][orm['pk'][i]]}Raw');
-    }
     codeSB.writeln('  void setPK(${pkColumnRawName.join(', ')}) {');
 
     pkColumnName.forEach((name) {
@@ -147,10 +132,12 @@ class ${name} extends IModel {
     } else {
       codeSB.writeln('  List getPK() => [${pkColumnName.join(', ')}];');
     }
+    codeSB.writeln('  List getPKColumns() => _pkColumns;');
 
     // united pk
     if (pkColumnName.length == 1) {
       codeSB.write('''
+
   String getUnitedPK() {
     var pk = getPK();
     if (pk == null) throw new IModelException(10015);
@@ -164,6 +151,7 @@ class ${name} extends IModel {
     if (pk.contains(null)) throw new IModelException(10016);
     return pk.join('_');
   }
+
 ''');
     }
 
@@ -191,6 +179,19 @@ class ${name} extends IModel {
   }
 ''');
       }
+    }
+
+    for (num i = 0; i < length; ++i) {
+      String full = orm['column'][i];
+      codeSB.write('''
+
+  void set ${full}(v) {
+    if (_args[${i}] == v) return;
+    _args[${i}] = v;
+    _updatedList[${i}] = true;
+  }
+  get ${full} => _args[${i}];
+''');
     }
 
     codeSB.write('''

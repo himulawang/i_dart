@@ -83,19 +83,19 @@ startTest() {
 
     group('store', () {
       test('should equal store in store.dart', () {
-        expect(UserMariaDBStore.store, equals(orm[0]['storeOrder'][1]));
+        expect(UserMariaDBStore.store, equals(orm['User']['ModelStore']['storeOrder'][1]));
       });
     });
 
     group('table', () {
       test('should equal table in orm.dart', () {
-        expect(UserMariaDBStore.table, equals(orm[0]['storeOrder'][1]['table']));
+        expect(UserMariaDBStore.table, equals(orm['User']['ModelStore']['storeOrder'][1]['table']));
       });
     });
 
     group('add', () {
       test('model is invalid', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         expect(
             () => RoomMariaDBStore.add(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 21023))
@@ -103,7 +103,7 @@ startTest() {
       });
 
       test('pk is not num', () {
-        User user = new User(new List.filled(orm[0]['column'].length, '1'));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, '1'));
         expect(
             () => UserMariaDBStore.add(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 21024))
@@ -111,7 +111,7 @@ startTest() {
       });
 
       test('toAddAbb return list length is 0 should throw exception', () {
-        UserToAddLengthZero user = new UserToAddLengthZero(new List.filled(orm[2]['column'].length, 1));
+        UserToAddLengthZero user = new UserToAddLengthZero(new List.filled(orm['UserToAddLengthZero']['Model']['column'].length, 1));
         expect(
             () => UserToAddLengthZeroMariaDBStore.add(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 21035))
@@ -119,7 +119,7 @@ startTest() {
       });
 
       test('add successfully', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1))
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1))
         ..name = '2';
         UserMariaDBStore.add(user)
         .then(expectAsync1((User user) {
@@ -128,7 +128,7 @@ startTest() {
       });
 
       test('add duplicated pk model should throw exception', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserMariaDBStore.add(user)
         .catchError(expectAsync1((e) {
           expect(e is IStoreException, isTrue);
@@ -141,7 +141,7 @@ startTest() {
     group('set', () {
 
       test('model is invalid', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         expect(
             () => RoomMariaDBStore.set(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 21026))
@@ -149,7 +149,7 @@ startTest() {
       });
 
       test('pk is not num', () {
-        User user = new User(new List.filled(orm[0]['column'].length, '1'));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, '1'));
         expect(
             () => UserMariaDBStore.set(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 21027))
@@ -157,7 +157,7 @@ startTest() {
       });
 
       test('toSetAbb return list length is 0 should get warning', () {
-        UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm[2]['column'].length, 1));
+        UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm['UserToSetLengthZero']['Model']['column'].length, 1));
         user.name = '3';
         UserToSetLengthZeroMariaDBStore.set(user)
         .then(expectAsync1((UserToSetLengthZero user) {
@@ -166,7 +166,7 @@ startTest() {
       });
 
       test('no record affected should get warning', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 2));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 2));
         user..name = 'b'
             ..underworldName = 'c';
         UserMariaDBStore.set(user)
@@ -176,7 +176,7 @@ startTest() {
       });
 
       test('set successfully', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user..name = 'b'
             ..underworldName = 'c';
         UserMariaDBStore.set(user)
@@ -220,7 +220,7 @@ startTest() {
             throwsA(predicate((e) => e is IStoreException && e.code == 21034))
         );
 
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         expect(
             () => RoomMariaDBStore.del(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 21034))
@@ -240,7 +240,7 @@ startTest() {
       });
 
       test('input is model del successfully', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserMariaDBStore.add(user)
         .then((_) => UserMariaDBStore.del(user))
         .then(expectAsync1((affectedRows) {

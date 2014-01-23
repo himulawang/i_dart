@@ -55,7 +55,7 @@ startTest() {
       setUp(() => flushdb());
 
       test('add successfully should reset updatedList', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = 'c';
         UserStore.add(user)
         .then(expectAsync1((User user) {
@@ -70,7 +70,7 @@ startTest() {
     group('set', () {
 
       test('set successfully should reset updatedList', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = 'a';
         UserStore.set(user)
         .then(expectAsync1((User user) {
@@ -79,7 +79,7 @@ startTest() {
       });
 
       test('toSetAbb return list length is 0 should get 2 warnings', () {
-        UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm[2]['column'].length, 1));
+        UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm['UserToSetLengthZero']['Model']['column'].length, 1));
         UserToSetLengthZeroStore.add(user)
         .then((UserToSetLengthZero user) {
           user.name = 'c';

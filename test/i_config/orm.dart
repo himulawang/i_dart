@@ -334,6 +334,31 @@ Map orm = {
             'toAbbFilter': [],
             'toListFilter': [],
         },
+        'ModelStore': {
+            'searchColumn': [0],
+            'storeOrder': [
+                {
+                    'type': 'redis',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
+                    'master': 'GameCache',
+                    'slave': 'GameCacheSlave',
+                    'expire': 86400,
+                    'mode': 'Atom', // TODO 'Atom' mode use hash type store model, 'Block' mode compress model to string type
+                    'abb': 'r',
+                },
+                {
+                    'type': 'mariaDB',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32',
+                    'master': 'GameDB',
+                    'slave': 'GameDBSlave',
+                    'table': 'Room',
+                },
+            ],
+        },
         'PK': {
             'className': 'RoomPK',
         },
@@ -363,6 +388,124 @@ Map orm = {
             'className': 'RoomList',
             'seachColumn': [0],
             'childPK': [1],
+        },
+    },
+    'UserToAddLengthZero': {
+        'Model': {
+            'pk': [0],
+            'column': [
+                'id',
+                'name',
+            ],
+            'toAddFilter': [0, 1],
+            'toSetFilter': [],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [],
+        },
+        'ModelStore': {
+            'searchColumn': [0],
+            'storeOrder': [
+                {
+                    'type': 'redis',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
+                    'master': 'GameCache',
+                    'slave': 'GameCacheSlave',
+                    'expire': 86400,
+                    'mode': 'Atom', // TODO 'Atom' mode use hash type store model, 'Block' mode compress model to string type
+                    'abb': 'utalz',
+                },
+                {
+                    'type': 'mariaDB',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32',
+                    'master': 'GameDB',
+                    'slave': 'GameDBSlave',
+                    'table': 'UserToAddLengthZero',
+                },
+            ],
+        },
+    },
+    'UserToSetLengthZero': {
+        'Model': {
+            'pk': [0],
+            'column': [
+                'id',
+                'name',
+            ],
+            'toAddFilter': [],
+            'toSetFilter': [0, 1],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [],
+        },
+        'ModelStore': {
+            'searchColumn': [0],
+            'storeOrder': [
+                {
+                    'type': 'redis',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
+                    'master': 'GameCache',
+                    'slave': 'GameCacheSlave',
+                    'expire': 86400,
+                    'mode': 'Atom', // TODO 'Atom' mode use hash type store model, 'Block' mode compress model to string type
+                    'abb': 'utslz',
+                },
+                {
+                    'type': 'mariaDB',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32',
+                    'master': 'GameDB',
+                    'slave': 'GameDBSlave',
+                    'table': 'UserToSetLengthZero',
+                },
+            ],
+        },
+    },
+    'UserForever': {
+        'Model': {
+            'pk': [0],
+            'column': [
+                'id',
+                'name',
+                'userName',
+            ],
+            'toAddFilter': [],
+            'toSetFilter': [],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [],
+        },
+        'ModelStore': {
+            'searchColumn': [0],
+            'storeOrder': [
+                {
+                    'type': 'redis',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
+                    'master': 'GameCache',
+                    'slave': 'GameCacheSlave',
+                    'expire': 0,
+                    'mode': 'Atom', // TODO 'Atom' mode use hash type store model, 'Block' mode compress model to string type
+                    'abb': 'uf',
+                },
+                {
+                    'type': 'mariaDB',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32',
+                    'master': 'GameDB',
+                    'slave': 'GameDBSlave',
+                    'table': 'UserForever',
+                },
+            ],
         },
     },
 };

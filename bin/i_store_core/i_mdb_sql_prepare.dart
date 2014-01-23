@@ -18,17 +18,19 @@ class IMariaDBSQLPrepare {
     List columns = [];
     toSetMap.forEach((column, value) => columns.add("`${column}` = ?"));
 
-    return 'UPDATE `${table}` SET ${columns.join(", ")} WHERE `${model.getPKName()}` = ?;';
+    return 'UPDATE `${table}` SET ${columns.join(", ")} WHERE ${_makeWhere(model)};';
   }
 
   static String makeGet(String table, IModel model) {
     Map toGetMap = model.getMapFull();
     if (toGetMap.length == 0) throw new IStoreException(21032);
 
-    return 'SELECT `${toGetMap.keys.join("`, `")}` FROM `${table}` WHERE `${model.getPKName()}` = ?;';
+    return 'SELECT `${toGetMap.keys.join("`, `")}` FROM `${table}` WHERE ${_makeWhere(model)};';
   }
 
   static String makeDel(String table, IModel model) {
-    return 'DELETE FROM `${table}` WHERE `${model.getPKName()}` = ?;';
+    return 'DELETE FROM `${table}` WHERE ${_makeWhere(model)};';
   }
+
+  static String _makeWhere(IModel model) => '`${model.getPKColumns().join('` = ?, `')}` = ?';
 }

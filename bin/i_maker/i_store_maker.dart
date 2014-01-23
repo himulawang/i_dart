@@ -41,47 +41,33 @@ class IStoreMaker extends IMaker {
         String combinedCode = makeCombinedPKStore(name, orm['PK'], orm['PKStore']);
         if (!combinedCode.isEmpty) writeFile('${lowerName}_pk_store.dart', _outStoreDir, combinedCode, true);
       }
-      /*
-      if (orm['type'] == 'Model') {
+      if (orm.containsKey('Model') && orm.containsKey('ModelStore')) {
         // redis
-        String redisCode = makeRedisStore(orm);
+        String redisCode = makeRedisStore(name, orm['Model'], orm['ModelStore']);
         if (!redisCode.isEmpty) writeFile('${lowerName}_rdb_store.dart', _outStoreDir, redisCode, true);
 
         // mariaDB
-        String mariaDBCode = makeMariaDBStore(orm);
+        String mariaDBCode = makeMariaDBStore(name, orm['Model'], orm['ModelStore']);
         if (!mariaDBCode.isEmpty) writeFile('${lowerName}_mdb_store.dart', _outStoreDir, mariaDBCode, true);
 
         // combined
-        String combinedCode = makeCombinedStore(orm);
+        String combinedCode = makeCombinedStore(name, orm['Model'], orm['ModelStore']);
         if (!combinedCode.isEmpty) writeFile('${lowerName}_store.dart', _outStoreDir, combinedCode, true);
-      } else if (orm['type'] == 'PK') {
-        // redis
-        String redisCode = makeRedisPKStore(orm);
-        if (!redisCode.isEmpty) writeFile('${lowerName}_pk_rdb_store.dart', _outStoreDir, redisCode, true);
-
-        // mariaDB
-        String mariaDBCode = makeMariaDBPKStore(orm);
-        if (!mariaDBCode.isEmpty) writeFile('${lowerName}_pk_mdb_store.dart', _outStoreDir, mariaDBCode, true);
-
-        // combined
-        String combinedCode = makeCombinedPKStore(orm);
-        if (!combinedCode.isEmpty) writeFile('${lowerName}_pk_store.dart', _outStoreDir, combinedCode, true);
       }
-      */
     });
 
   }
 
-  String makeRedisStore(Map orm) {
-    Map storeConfig = _getStoreConfig('redis', orm);
+  String makeRedisStore(String name, Map orm, Map storeOrm) {
+    Map storeConfig = _getStoreConfig('redis', storeOrm);
     if (storeConfig == null) return '';
 
     String codeHeader = '''
 ${_DECLARATION}
 part of lib_${_app};
 
-class ${orm['name']}RedisStore extends IRedisStore {
-  static const String abb = '${orm['abb']}';
+class ${name}RedisStore extends IRedisStore {
+  static const String abb = '${storeConfig['abb']}';
 
 ''';
 
@@ -95,25 +81,23 @@ class ${orm['name']}RedisStore extends IRedisStore {
     StringBuffer codeSB = new StringBuffer();
     codeSB.write(codeHeader);
 
-    Map store = _getStoreConfig('redis', orm);
-    codeSB.writeln('  static const Map store = const ${JSON.encode(store)};');
-    codeSB.writeln('');
+    codeSB.writeln('  static const Map store = const ${JSON.encode(storeConfig)};\n');
 
     codeSB.writeAll([
-        _makeRedisAdd(orm, storeConfig),
-        _makeRedisSet(orm, storeConfig),
-        _makeRedisGet(orm, storeConfig),
-        _makeRedisDel(orm, storeConfig),
+        _makeRedisAdd(name, orm, storeConfig),
+        _makeRedisSet(name, orm, storeConfig),
+        _makeRedisGet(name, orm, storeConfig),
+        _makeRedisDel(name, orm, storeConfig),
         codeFooter
     ]);
 
     return codeSB.toString();
   }
 
-  String _makeRedisAdd(Map orm, Map storeConfig) {
+  String _makeRedisAdd(String name, Map orm, Map storeConfig) {
     String codeHeader = '''
-  static Future add(${orm['name']} model, [String abbListKey = null]) {
-    if (model is! ${orm['name']}) throw new IStoreException(20022);
+  static Future add(${name} model, [String abbListKey = null]) {
+    if (model is! ${name}) throw new IStoreException(20022);
 
     num pk = model.getPK();
     if (pk is! num) throw new IStoreException(20023);
@@ -170,10 +154,10 @@ class ${orm['name']}RedisStore extends IRedisStore {
     return codeSB.toString();
   }
 
-  String _makeRedisSet(Map orm, Map storeConfig) {
+  String _makeRedisSet(String name, Map orm, Map storeConfig) {
     String codeHeader = '''
-  static Future set(${orm['name']} model, [String abbListKey = null]) {
-    if (model is! ${orm['name']}) throw new IStoreException(20026);
+  static Future set(${name} model, [String abbListKey = null]) {
+    if (model is! ${name}) throw new IStoreException(20026);
 
     num pk = model.getPK();
     if (pk is! num) throw new IStoreException(20027);
@@ -234,12 +218,12 @@ class ${orm['name']}RedisStore extends IRedisStore {
     return codeSB.toString();
   }
 
-  String _makeRedisGet(Map orm, Map storeConfig) {
+  String _makeRedisGet(String name, Map orm, Map storeConfig) {
     String code = '''
   static Future get(num pk, [String abbListKey = null]) {
     if (pk is! num) throw new IStoreException(20021);
 
-    ${orm['name']} model = new ${orm['name']}()..setPK(pk);
+    ${name} model = new ${name}()..setPK(pk);
     RedisClient handler = new IRedisHandlerPool().getReaderHandler(store, model);
 
     String abbPrefix = abbListKey == null ? abb : abbListKey;
@@ -261,16 +245,16 @@ class ${orm['name']}RedisStore extends IRedisStore {
     return code;
   }
 
-  String _makeRedisDel(Map orm, Map storeConfig) {
+  String _makeRedisDel(String name, Map orm, Map storeConfig) {
     String code = '''
   static Future del(input, [String abbListKey = null]) {
     num pk;
-    ${orm['name']} model;
-    if (input is ${orm['name']}) {
+    ${name} model;
+    if (input is ${name}) {
       model = input;
       pk = model.getPK();
     } else {
-      model = new ${orm['name']}()..setPK(input);
+      model = new ${name}()..setPK(input);
       pk = input;
     }
     if (pk is! num) throw new IStoreException(20030);
@@ -292,18 +276,18 @@ class ${orm['name']}RedisStore extends IRedisStore {
     return code;
   }
 
-  String makeMariaDBStore(Map orm) {
-    Map store = _getStoreConfig('mariaDB', orm);
+  String makeMariaDBStore(String name, Map orm, Map storeOrm) {
+    Map store = _getStoreConfig('mariaDB', storeOrm);
     String code = '''
 ${_DECLARATION}
 part of lib_${_app};
 
-class ${orm['name']}MariaDBStore extends IMariaDBStore {
+class ${name}MariaDBStore extends IMariaDBStore {
   static const Map store = const ${JSON.encode(store)};
   static const String table = '${store['table']}';
 
-  static Future add(${orm['name']} model) {
-    if (model is! ${orm['name']}) throw new IStoreException(21023);
+  static Future add(${name} model) {
+    if (model is! ${name}) throw new IStoreException(21023);
 
     num pk = model.getPK();
     if (pk is! num) throw new IStoreException(21024);
@@ -326,8 +310,8 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
     });
   }
 
-  static Future set(${orm['name']} model) {
-    if (model is! ${orm['name']}) throw new IStoreException(21026);
+  static Future set(${name} model) {
+    if (model is! ${name}) throw new IStoreException(21026);
 
     num pk = model.getPK();
     if (pk is! num) throw new IStoreException(21027);
@@ -342,7 +326,7 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
 
     ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
 
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeSet(table, model), toSetList..add(model.getPK()))
+    return handler.prepareExecute(IMariaDBSQLPrepare.makeSet(table, model), _makeWhereValues(model, toSetList))
     .then((Results results) {
       if (results.affectedRows == 0) new IStoreException(26002);
       if (results.affectedRows > 1) new IStoreException(26003);
@@ -353,10 +337,10 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
   static Future get(num pk) {
     if (pk is! num) throw new IStoreException(21021);
 
-    ${orm['name']} model = new ${orm['name']}()..setPK(pk);
+    ${name} model = new ${name}()..setPK(pk);
     ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model);
 
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeGet(table, model), [pk])
+    return handler.prepareExecute(IMariaDBSQLPrepare.makeGet(table, model), _makeWhereValues(model, []))
     .then((Results results) => results.toList())
     .then((List result) {
       if (result.length == 0) return model;
@@ -368,18 +352,18 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
 
   static Future del(input) {
     num pk;
-    ${orm['name']} model;
-    if (input is ${orm['name']}) {
+    ${name} model;
+    if (input is ${name}) {
       model = input;
       pk = model.getPK();
     } else {
-      model = new ${orm['name']}()..setPK(input);
+      model = new ${name}()..setPK(input);
       pk = input;
     }
     if (pk is! num) throw new IStoreException(21034);
 
     ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model);
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeDel(table, model), [pk])
+    return handler.prepareExecute(IMariaDBSQLPrepare.makeDel(table, model), _makeWhereValues(model, []))
     .then((Results results) {
       if (results.affectedRows == 0) new IStoreException(26004);
       if (results.affectedRows != 1) new IStoreException(26005);
@@ -388,20 +372,30 @@ class ${orm['name']}MariaDBStore extends IMariaDBStore {
   }
 
   static void _handleErr(e) => throw e;
+
+  static List _makeWhereValues(${name} model, List list) {
+    var pk = model.getPK();
+    if (pk is List) {
+      list.addAll(pk);
+    } else {
+      list.add(pk);
+    }
+    return list;
+  }
 }
     ''';
     return code;
 
   }
 
-  String makeCombinedStore(Map orm) {
-    List storeOrder = orm['storeOrder'];
+  String makeCombinedStore(String name, Map orm, Map storeOrm) {
+    List storeOrder = storeOrm['storeOrder'];
 
     String codeHeader = '''
 ${_DECLARATION}
 part of lib_${_app};
 
-class ${orm['name']}Store {
+class ${name}Store {
 ''';
 
     String codeFooter = '''
@@ -412,31 +406,31 @@ class ${orm['name']}Store {
     codeSB.write(codeHeader);
 
     // add
-    codeSB.writeln('  static Future add(${orm['name']} model) {');
+    codeSB.writeln('  static Future add(${name} model) {');
     for (int i = storeOrder.length - 1; i >= 0; --i) {
-      String upperType = makeUpperFirstLetter(orm['storeOrder'][i]['type']);
+      String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
       if (i == storeOrder.length - 1) {
-        codeSB.writeln('    return ${orm['name']}${upperType}Store.add(model)');
+        codeSB.writeln('    return ${name}${upperType}Store.add(model)');
       } else {
-        codeSB.writeln('    .then((_) => ${orm['name']}${upperType}Store.add(model))');
+        codeSB.writeln('    .then((_) => ${name}${upperType}Store.add(model))');
       }
     }
-    codeSB..writeln('    .then((${orm['name']} model) => model..setUpdatedList(false))')
+    codeSB..writeln('    .then((${name} model) => model..setUpdatedList(false))')
           ..writeln('    ;')
           ..writeln('  }')
           ..writeln('');
 
     // set
-    codeSB.writeln('  static Future set(${orm['name']} model) {');
+    codeSB.writeln('  static Future set(${name} model) {');
     for (int i = storeOrder.length - 1; i >= 0; --i) {
-      String upperType = makeUpperFirstLetter(orm['storeOrder'][i]['type']);
+      String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
       if (i == storeOrder.length - 1) {
-        codeSB.writeln('    return ${orm['name']}${upperType}Store.set(model)');
+        codeSB.writeln('    return ${name}${upperType}Store.set(model)');
       } else {
-        codeSB.writeln('    .then((_) => ${orm['name']}${upperType}Store.set(model))');
+        codeSB.writeln('    .then((_) => ${name}${upperType}Store.set(model))');
       }
     }
-    codeSB..writeln('    .then((${orm['name']} model) => model..setUpdatedList(false))')
+    codeSB..writeln('    .then((${name} model) => model..setUpdatedList(false))')
           ..writeln('    ;')
           ..writeln('  }')
           ..writeln('');
@@ -444,13 +438,13 @@ class ${orm['name']}Store {
     // get
     codeSB.writeln('  static Future get(num pk) {');
     for (int i = 0; i < storeOrder.length; ++i) {
-      String upperType = makeUpperFirstLetter(orm['storeOrder'][i]['type']);
+      String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
       if (i == 0) {
-        codeSB..writeln('    return ${orm['name']}${upperType}Store.get(pk)');
+        codeSB..writeln('    return ${name}${upperType}Store.get(pk)');
       } else {
-        codeSB..writeln('    .then((${orm['name']} model) {')
+        codeSB..writeln('    .then((${name} model) {')
               ..writeln('      if (model.isExist()) return model;')
-              ..writeln('      return ${orm['name']}${upperType}Store.get(pk);')
+              ..writeln('      return ${name}${upperType}Store.get(pk);')
               ..writeln('    })');
       }
     }
@@ -462,22 +456,22 @@ class ${orm['name']}Store {
     // del
     codeSB.writeln('  static Future del(input) {');
     for (int i = storeOrder.length - 1; i >= 0; --i) {
-      String upperType = makeUpperFirstLetter(orm['storeOrder'][i]['type']);
+      String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
       if (i == storeOrder.length - 1) {
-        codeSB.writeln('    return ${orm['name']}${upperType}Store.del(input)');
+        codeSB.writeln('    return ${name}${upperType}Store.del(input)');
       } else {
-        codeSB.writeln('    .then((_) => ${orm['name']}${upperType}Store.del(input))');
+        codeSB.writeln('    .then((_) => ${name}${upperType}Store.del(input))');
       }
     }
     codeSB..writeln('    ;')
-      ..writeln('  }');
+          ..writeln('  }');
 
     codeSB.write(codeFooter);
     return codeSB.toString();
   }
 
-  String makeRedisPKStore(String name, Map pkOrm, Map storeOrm) {
-    String pkName = pkOrm['className'];
+  String makeRedisPKStore(String name, Map orm, Map storeOrm) {
+    String pkName = orm['className'];
     Map storeConfig = _getStoreConfig('redis', storeOrm);
     String code = '''
 ${_DECLARATION}
@@ -552,8 +546,8 @@ class ${pkName}RedisStore extends IRedisStore {
     return code;
   }
 
-  String makeMariaDBPKStore(String name, Map pkOrm, Map storeOrm) {
-    String pkName = pkOrm['className'];
+  String makeMariaDBPKStore(String name, Map orm, Map storeOrm) {
+    String pkName = orm['className'];
     Map storeConfig = _getStoreConfig('mariaDB', storeOrm);
     String code = '''
 ${_DECLARATION}
@@ -617,8 +611,8 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
     return code;
   }
 
-  String makeCombinedPKStore(String name, Map pkOrm, Map storeOrm) {
-    String pkName = pkOrm['className'];
+  String makeCombinedPKStore(String name, Map orm, Map storeOrm) {
+    String pkName = orm['className'];
     String firstStoreTypeName = makeUpperFirstLetter(storeOrm['storeOrder'].first['type']);
     String lastStoreTypeName = makeUpperFirstLetter(storeOrm['storeOrder'].last['type']);
 

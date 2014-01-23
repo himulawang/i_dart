@@ -38,13 +38,13 @@ startTest() {
 
     group('store', () {
       test('should equal store in store.dart', () {
-        expect(UserRedisStore.store, equals(orm[0]['storeOrder'][0]));
+        expect(UserRedisStore.store, equals(orm['User']['ModelStore']['storeOrder'][0]));
       });
     });
 
     group('abb', () {
       test('should equal abb in orm.dart', () {
-        expect(UserRedisStore.abb, equals(orm[0]['abb']));
+        expect(UserRedisStore.abb, equals(orm['User']['ModelStore']['storeOrder'][0]['abb']));
       });
     });
 
@@ -53,7 +53,7 @@ startTest() {
       setUp(() => flushdb());
 
       test('model is invalid', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         expect(
             () => RoomRedisStore.add(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 20022))
@@ -63,7 +63,7 @@ startTest() {
       setUp(() {});
 
       test('pk is not num', () {
-        Room user = new Room(new List.filled(orm[1]['column'].length, '1'));
+        Room user = new Room(new List.filled(orm['Room']['Model']['column'].length, '1'));
         expect(
             () => RoomRedisStore.add(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 20023))
@@ -71,7 +71,7 @@ startTest() {
       });
 
       test('toAddAbb return list length is 0 should throw exception', () {
-        UserToAddLengthZero user = new UserToAddLengthZero(new List.filled(orm[2]['column'].length, 1));
+        UserToAddLengthZero user = new UserToAddLengthZero(new List.filled(orm['UserToAddLengthZero']['Model']['column'].length, 1));
         expect(
             () => UserToAddLengthZeroRedisStore.add(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 20032))
@@ -79,7 +79,7 @@ startTest() {
       });
 
       test('add expire model successfully', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.underworldName = '2';
         UserRedisStore.add(user).then(expectAsync1((User user) {
           expect(user is User, isTrue);
@@ -87,7 +87,7 @@ startTest() {
       });
 
       test('add no expire model successfully', () {
-        UserForever user = new UserForever(new List.filled(orm[4]['column'].length, 1));
+        UserForever user = new UserForever(new List.filled(orm['UserForever']['Model']['column'].length, 1));
         user.name = '2';
         UserForeverRedisStore.add(user).then(expectAsync1((UserForever user) {
           expect(user is UserForever, isTrue);
@@ -95,7 +95,7 @@ startTest() {
       });
 
       test('model exist should throw exception', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserRedisStore.add(user).catchError(expectAsync1((e) {
           expect(e is IStoreException, equals(true));
           expect(e.code, equals(20024));
@@ -107,7 +107,7 @@ startTest() {
     group('set', () {
 
       test('model is invalid', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         expect(
             () => RoomRedisStore.set(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 20026))
@@ -115,7 +115,7 @@ startTest() {
       });
 
       test('pk is not num', () {
-        Room user = new Room(new List.filled(orm[1]['column'].length, '1'));
+        Room user = new Room(new List.filled(orm['Room']['Model']['column'].length, '1'));
         expect(
             () => RoomRedisStore.set(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 20027))
@@ -123,7 +123,7 @@ startTest() {
       });
 
       test('toSetAbb return list length is 0 should get warning', () {
-        UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm[2]['column'].length, 1));
+        UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm['UserToSetLengthZero']['Model']['column'].length, 1));
         UserToSetLengthZeroRedisStore.add(user)
         .then(expectAsync1((UserToSetLengthZero user) {
           user.name = '2';
@@ -135,7 +135,7 @@ startTest() {
       });
 
       test('set expire model successfully', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = '2';
         UserRedisStore.set(user).then(expectAsync1((User user) {
           expect(user is User, isTrue);
@@ -143,7 +143,7 @@ startTest() {
       });
 
       test('set expire model successfully', () {
-        UserForever user = new UserForever(new List.filled(orm[4]['column'].length, 1));
+        UserForever user = new UserForever(new List.filled(orm['UserForever']['Model']['column'].length, 1));
         user.name = '2';
         UserForeverRedisStore.set(user).then(expectAsync1((UserForever user) {
           expect(user is UserForever, isTrue);
@@ -153,7 +153,7 @@ startTest() {
       setUp(() => flushdb());
 
       test('model not exist should throw exception', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = '2';
         UserRedisStore.set(user).catchError(expectAsync1((e) {
           expect(e is IStoreException, equals(true));
@@ -179,7 +179,7 @@ startTest() {
       });
 
       test('get success', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserRedisStore
         .add(user)
         .then((_) => UserRedisStore.get(1))
@@ -207,7 +207,7 @@ startTest() {
       });
 
       test('input is mode del success', () {
-        User user = new User(new List.filled(orm[0]['column'].length, 1));
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserRedisStore
         .add(user)
         .then((_) => UserRedisStore.del(user))
