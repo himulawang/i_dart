@@ -62,11 +62,11 @@ startTest() {
 
       setUp(() {});
 
-      test('pk is not num', () {
-        Room user = new Room(new List.filled(orm['Room']['Model']['column'].length, '1'));
+      test('pk is null should throw exception', () {
+        Room user = new Room();
         expect(
             () => RoomRedisStore.add(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 20023))
+            throwsA(predicate((e) => e is IStoreException && e.code == 20042))
         );
       });
 
@@ -114,11 +114,11 @@ startTest() {
         );
       });
 
-      test('pk is not num', () {
-        Room user = new Room(new List.filled(orm['Room']['Model']['column'].length, '1'));
+      test('pk is null should throw exception', () {
+        Room user = new Room();
         expect(
             () => RoomRedisStore.set(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 20027))
+            throwsA(predicate((e) => e is IStoreException && e.code == 20042))
         );
       });
 
@@ -165,13 +165,6 @@ startTest() {
 
     group('get', () {
 
-      test('pk is not num', () {
-        expect(
-            () => RoomRedisStore.get('1'),
-            throwsA(predicate((e) => e is IStoreException && e.code == 20021))
-        );
-      });
-
       test('model does not exist in redis return model', () {
         UserRedisStore.get(22).then(expectAsync1((User user) {
           expect(user.isExist(), equals(false));
@@ -193,24 +186,17 @@ startTest() {
 
     group('del', () {
 
-      test('input is not model or num', () {
+      test('input model invalid', () {
         expect(
-            () => UserRedisStore.del('a'),
+            () => UserRedisStore.del([]),
             throwsA(predicate((e) => e is IStoreException && e.code == 20030))
         );
-      });
-
-      test('input is num del success', () {
-        UserRedisStore.del(1).then(expectAsync1((result) {
-          expect(result, equals(true));
-        }));
       });
 
       test('input is mode del success', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserRedisStore
-        .add(user)
-        .then((_) => UserRedisStore.del(user))
+        .del(user)
         .then(expectAsync1((result) {
           expect(result, equals(true));
         }));
@@ -222,7 +208,8 @@ startTest() {
       });
 
       test('del model not exist return normally', () {
-        UserRedisStore.del(1).then(expectAsync1((result) {
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
+        UserRedisStore.del(user).then(expectAsync1((result) {
           expect(result, equals(false));
         }));
       });

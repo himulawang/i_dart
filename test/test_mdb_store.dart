@@ -39,8 +39,18 @@ CREATE TABLE IF NOT EXISTS `PK` (
   PRIMARY KEY (`key`)
 ) ENGINE=InnoDB;
 
+DROP TABLE IF EXISTS `UserMulti`;
+CREATE TABLE IF NOT EXISTS `UserMulti` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(16) NOT NULL,
+  `gender` int(11) NOT NULL,
+  `uniqueName` varchar(12) NOT NULL,
+  PRIMARY KEY (`id`, `name`, `uniquename`)
+) ENGINE=InnoDB;
+
  */
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
@@ -73,6 +83,9 @@ Future flushdb() {
       waitList.add(
         pool.query('TRUNCATE TABLE `User`;')
       );
+      waitList.add(
+        pool.query('TRUNCATE TABLE `UserMulti`;')
+      );
     });
   });
   return Future.wait(waitList);
@@ -102,8 +115,8 @@ startTest() {
         );
       });
 
-      test('pk is not num', () {
-        User user = new User(new List.filled(orm['User']['Model']['column'].length, '1'));
+      test('pk is null should throw exception', () {
+        User user = new User();
         expect(
             () => UserMariaDBStore.add(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 21024))
@@ -136,6 +149,27 @@ startTest() {
         }));
       });
 
+      test('multiple pk: pk contains null should throw exception', () {
+        UserMulti um = new UserMulti();
+        expect(
+            () => UserMultiMariaDBStore.add(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 21024))
+        );
+      });
+
+      test('multiple pk: add successfully', () {
+        UserMulti um = new UserMulti()
+          ..id = 1
+          ..name = '2'
+          ..gender = 2
+          ..uniqueName = 'aaa'
+          ;
+        UserMultiMariaDBStore.add(um)
+        .then(expectAsync1((UserMulti userMulti) {
+          expect(userMulti is UserMulti, isTrue);
+        }));
+      });
+
     });
 
     group('set', () {
@@ -148,8 +182,8 @@ startTest() {
         );
       });
 
-      test('pk is not num', () {
-        User user = new User(new List.filled(orm['User']['Model']['column'].length, '1'));
+      test('pk is null should throw exception', () {
+        User user = new User()..name = 2;
         expect(
             () => UserMariaDBStore.set(user),
             throwsA(predicate((e) => e is IStoreException && e.code == 21027))
@@ -184,16 +218,32 @@ startTest() {
           expect(user is User, isTrue);
         }));
       });
+
+      test('multiple pk: pk contains null should throw exception', () {
+        UserMulti um = new UserMulti();
+        um.id = 1;
+        expect(
+            () => UserMultiMariaDBStore.set(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 21027))
+        );
+      });
+
+      test('multiple pk: set successfully', () {
+        UserMulti um = new UserMulti()
+          ..id = 1
+          ..name = '2'
+          ..gender = 3
+          ..uniqueName = 'aaa'
+        ;
+        UserMultiMariaDBStore.set(um)
+        .then(expectAsync1((UserMulti userMulti) {
+          expect(userMulti is UserMulti, isTrue);
+        }));
+      });
+
     });
 
     group('get', () {
-
-      test('pk is not num', () {
-        expect(
-            () => UserMariaDBStore.get('1'),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21021))
-        );
-      });
 
       test('model not exist in mdb should return model with !isExist', () {
         UserMariaDBStore.get(9)
@@ -210,13 +260,21 @@ startTest() {
         }));
       });
 
+      test('multiple pk: get model successfully', () {
+        UserMultiMariaDBStore.get(1, '2', 'aaa')
+        .then(expectAsync1((UserMulti um) {
+          expect(um.isExist(), equals(true));
+          expect(um.name, equals('2'));
+        }));
+      });
+
     });
 
     group('del', () {
 
-      test('input is not num or model', () {
+      test('input model invalid', () {
         expect(
-            () => UserMariaDBStore.del('1'),
+            () => UserMariaDBStore.del([]),
             throwsA(predicate((e) => e is IStoreException && e.code == 21034))
         );
 
@@ -227,8 +285,9 @@ startTest() {
         );
       });
 
-      test('input is num del successfully', () {
-        UserMariaDBStore.del(1)
+      test('del successfully', () {
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
+        UserMariaDBStore.del(user)
         .then(expectAsync1((affectedRows) {
           expect(affectedRows, equals(1));
         }));
@@ -239,10 +298,14 @@ startTest() {
         print('cost ${endTimestamp - startTimestamp} ms');
       });
 
-      test('input is model del successfully', () {
-        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
-        UserMariaDBStore.add(user)
-        .then((_) => UserMariaDBStore.del(user))
+      test('multiple pk: del successfully', () {
+        UserMulti um = new UserMulti()
+          ..id = 1
+          ..name = 2
+          ..gender = 3
+          ..uniqueName = 'aaa'
+        ;
+        UserMultiMariaDBStore.del(um)
         .then(expectAsync1((affectedRows) {
           expect(affectedRows, equals(1));
         }));

@@ -32,5 +32,5 @@ class IMariaDBSQLPrepare {
     return 'DELETE FROM `${table}` WHERE ${_makeWhere(model)};';
   }
 
-  static String _makeWhere(IModel model) => '`${model.getPKColumns().join('` = ?, `')}` = ?';
+  static String _makeWhere(IModel model) => '`${model.getPKColumns().join('` = ? AND `')}` = ?';
 }
