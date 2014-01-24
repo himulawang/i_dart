@@ -37,7 +37,7 @@ class IStoreException {
       '20038': 'Invalid list when del list from redis.',
       '20039': 'Invalid id when del list from redis.',
       '20040': 'Invalid list when set list from redis.',
-      '20041': 'Invalid id when set list from redis.',
+      //'20041': 'Invalid id when set list from redis.',
       '20042': 'Invalid pk when make redis key.',
       // mariaDB
       '21001': 'Cannot find config key [no] in mariaDB store.',

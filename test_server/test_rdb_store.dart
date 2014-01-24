@@ -102,6 +102,29 @@ startTest() {
         }));
       });
 
+      test('multiple pk: pk contains null should throw exception', () {
+        UserMulti um = new UserMulti()
+          ..id = 1
+        ;
+        expect(
+            () => UserMultiRedisStore.add(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 20042))
+        );
+      });
+
+      test('multiple pk: add model successfully', () {
+        UserMulti um = new UserMulti()
+          ..id = 10
+          ..name = 'aa'
+          ..gender = 1
+          ..uniqueName = 'bb'
+        ;
+
+        UserMultiRedisStore.add(um).then(expectAsync1((UserMulti userMulti) {
+          expect(userMulti is UserMulti, isTrue);
+        }));
+      });
+
     });
 
     group('set', () {
@@ -150,6 +173,25 @@ startTest() {
         }));
       });
 
+      test('multiple pk: pk contains null should throw exception', () {
+        UserMulti um = new UserMulti()
+          ..id = 1
+        ;
+        expect(
+            () => UserMultiRedisStore.set(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 20042))
+        );
+      });
+
+      test('multiple pk: set model successfully', () {
+        UserMulti um = new UserMulti([10, 'aa', 1, 'bb'])
+          ..gender = 200
+        ;
+        UserMultiRedisStore.set(um).then(expectAsync1((UserMulti userMulti) {
+          expect(userMulti is UserMulti, isTrue);
+        }));
+      });
+
       setUp(() => flushdb());
 
       test('model not exist should throw exception', () {
@@ -160,6 +202,8 @@ startTest() {
           expect(e.code, equals(20028));
         }));
       });
+
+      setUp(() {});
 
     });
 
@@ -179,6 +223,18 @@ startTest() {
         .then(expectAsync1((User gotUser) {
           expect(gotUser.getPK(), equals(1));
           expect(gotUser.name, equals(1));
+        }));
+      });
+
+      test('multiple pk: get success', () {
+        UserMulti um = new UserMulti([2, 'aa', 3, 'bb']);
+        UserMultiRedisStore
+        .add(um)
+        .then((_) => UserMultiRedisStore.get(2, 'aa', 'bb'))
+        .then(expectAsync1((UserMulti gotUM) {
+          expect(gotUM.isExist(), isTrue);
+          expect(gotUM.getPK(), equals([2, 'aa', 'bb']));
+          expect(gotUM.name, equals('aa'));
         }));
       });
 
@@ -202,15 +258,23 @@ startTest() {
         }));
       });
 
+      test('del model not exist return normally', () {
+        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
+        UserRedisStore.del(user).then(expectAsync1((result) {
+          expect(result, isFalse);
+        }));
+      });
+
       tearDown(() {
         endTimestamp = new DateTime.now().millisecondsSinceEpoch;
         print('cost ${endTimestamp - startTimestamp} ms');
       });
 
-      test('del model not exist return normally', () {
-        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
-        UserRedisStore.del(user).then(expectAsync1((result) {
-          expect(result, equals(false));
+      test('multiple pk: del success', () {
+        UserMulti um = new UserMulti([2, 'aa', 200, 'bb']);
+        UserMultiRedisStore.del(um)
+        .then(expectAsync1((result) {
+          expect(result, isTrue);
         }));
       });
 

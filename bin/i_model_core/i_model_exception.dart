@@ -23,7 +23,7 @@ class IModelException {
     '10014': 'Invalid datas when fromAbb.',
     '10015': 'PK is not set.',
     '10016': 'Multiple PK is not set.',
-    '10017': 'ChildPK is not set.',
+    //'10017': 'ChildPK is not set.',
     '10018': 'Multiple ChildPK is not set.',
   };
   IModelException(int inputCode, [List inputParameters]) {

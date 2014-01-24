@@ -3,6 +3,7 @@ part of i_maker;
 class ILibraryMaker extends IMaker {
   final String _header = '''
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:redis_client/redis_client.dart';
 import 'package:sqljocky/sqljocky.dart';

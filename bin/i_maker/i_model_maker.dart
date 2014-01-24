@@ -77,9 +77,12 @@ class IModelMaker extends IMaker {
 
     codeSB.write('''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${name} extends IModel {
+  static String _delimiter = ASCII.decode([0x1D]);
+
   static const String _name = '${name}';
 
   static const List _pk = const ${JSON.encode(orm['pk'])};
@@ -149,7 +152,7 @@ class ${name} extends IModel {
   String getUnitedPK() {
     List pk = getPK();
     if (pk.contains(null)) throw new IModelException(10016);
-    return pk.join('_');
+    return pk.join(_delimiter);
   }
 
 ''');
@@ -160,25 +163,14 @@ class ${name} extends IModel {
       List childPKColumnName = [];
       listOrm['childPK'].forEach((index) => childPKColumnName.add(orm['column'][index]));
 
-      if (childPKColumnName.length == 1) {
-        codeSB.writeln('  getChildPK() => ${childPKColumnName[0]};');
-        codeSB.write('''
-  String getUnitedChildPK() {
-    var childPK = getChildPK();
-    if (childPK == null) throw new IModelException(10017);
-    return childPK.toString();
-  }
-''');
-      } else {
-        codeSB.writeln('  List getChildPK() => [${childPKColumnName.join(', ')}];');
-        codeSB.write('''
+      codeSB.writeln('  List getChildPK() => [${childPKColumnName.join(', ')}];');
+      codeSB.write('''
   String getUnitedChildPK() {
     List childPK = getChildPK();
     if (childPK.contains(null)) throw new IModelException(10018);
-    return childPK.join('_');
+    return childPK.join(_delimiter);
   }
 ''');
-      }
     }
 
     for (num i = 0; i < length; ++i) {
@@ -350,8 +342,13 @@ class ${className} extends IPK {
 
   String makeList(String name, Map orm, Map listOrm) {
     String listName = listOrm['className'];
-    List<String> childPKColumnName = [];
 
+    List pkColumnName = [];
+    List childPKColumnName = [];
+
+    listOrm['pk'].forEach((index) {
+      pkColumnName.add(orm['column'][index]);
+    });
     listOrm['childPK'].forEach((index) {
       childPKColumnName.add(orm['column'][index]);
     });
@@ -362,10 +359,11 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${listName} extends IList {
-  ${listName}(pk) { _initPK(pk); }
+  static String _delimiter = ASCII.decode([0x1D]);
+  ${listName}(${pkColumnName.join(', ')}) { _initPK([${pkColumnName.join(', ')}]); }
 
-  ${listName}.filledMap(pk, Map dataList) {
-    _initPK(pk);
+  ${listName}.filledMap(${pkColumnName.join(', ')}, Map dataList) {
+    _initPK([${pkColumnName.join(', ')}]);
 
     dataList.forEach((String i, ${name} model) {
       if (model is! ${name}) return;
@@ -373,8 +371,8 @@ class ${listName} extends IList {
     });
   }
 
-  ${listName}.filledList(pk, List dataList) {
-    _initPK(pk);
+  ${listName}.filledList(${pkColumnName.join(', ')}, List dataList) {
+    _initPK([${pkColumnName.join(', ')}]);
 
     dataList.forEach((${name} model) {
       if (model is! ${name}) return;
@@ -382,12 +380,11 @@ class ${listName} extends IList {
     });
   }
 
-  void _initPK(pk) {
-    if (pk is! num && pk is! String) throw new IModelException(10011);
-    _pk = pk;
-  }
+  void _initPK(List pk) => _pk = pk;
 
-  ${name} get(${childPKColumnName.join(', ')}) => _list["\${${childPKColumnName.join('}_\${')}}"];
+  void setPK(${pkColumnName.join(', ')}) => _pk = [${pkColumnName.join(', ')}];
+
+  ${name} get(${childPKColumnName.join(', ')}) => _list["\${${childPKColumnName.join('}\$\{_delimiter}\${')}}"];
 
   void fromList(List dataList, [bool changeUpdatedList = false]) {
     if (dataList is! List) throw new IModelException(10012);

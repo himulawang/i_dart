@@ -32,12 +32,10 @@ Future flushdb() {
   List waitList = [];
   IMariaDBHandlerPool.dbs.forEach((groupName, List group) {
     group.forEach((ConnectionPool pool) {
-      waitList.add(
-          pool.query('TRUNCATE TABLE `User`;')
-      );
-      waitList.add(
-          pool.query('TRUNCATE TABLE `UserToSetLengthZero`;')
-      );
+      waitList..add(pool.query('TRUNCATE TABLE `User`;'))
+              ..add(pool.query('TRUNCATE TABLE `UserToSetLengthZero`;'))
+              ..add(pool.query('TRUNCATE TABLE `UserMulti`;'))
+      ;
     });
   });
 
@@ -102,7 +100,8 @@ startTest() {
       });
 
       test('get mdb model if model exists in mdb', () {
-        UserRedisStore.del(1)
+        User u = new User()..setPK(1);
+        UserRedisStore.del(u)
         .then((_) => UserStore.get(1))
         .then(expectAsync1((User user) {
           expect(user.name, equals('a'));
@@ -110,7 +109,8 @@ startTest() {
       });
 
       test('got model with !isExist if model not exists in both db', () {
-        UserStore.del(1)
+        User u = new User()..setPK(1);
+        UserStore.del(u)
         .then((_) => UserStore.get(1))
         .then(expectAsync1((User user) {
           expect(user.isExist(), isFalse);
@@ -127,7 +127,8 @@ startTest() {
       });
 
       test('del successfully', () {
-        UserToSetLengthZeroStore.del(1)
+        UserToSetLengthZero u = new UserToSetLengthZero()..setPK(1);
+        UserToSetLengthZeroStore.del(u)
         .then((_) => UserToSetLengthZeroStore.get(1))
         .then(expectAsync1((UserToSetLengthZero user) {
           expect(user.isExist(), isFalse);

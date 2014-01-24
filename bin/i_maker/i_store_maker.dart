@@ -385,6 +385,11 @@ class ${name}MariaDBStore extends IMariaDBStore {
   String makeCombinedStore(String name, Map orm, Map storeOrm) {
     List storeOrder = storeOrm['storeOrder'];
 
+    List pkColumnName = [];
+    for (int i = 0; i < orm['pk'].length; ++i) {
+      pkColumnName.add(orm['column'][orm['pk'][i]]);
+    }
+
     String codeHeader = '''
 ${_DECLARATION}
 part of lib_${_app};
@@ -430,15 +435,15 @@ class ${name}Store {
           ..writeln('');
 
     // get
-    codeSB.writeln('  static Future get(num pk) {');
+    codeSB.writeln('  static Future get(${pkColumnName.join(', ')}) {');
     for (int i = 0; i < storeOrder.length; ++i) {
       String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
       if (i == 0) {
-        codeSB..writeln('    return ${name}${upperType}Store.get(pk)');
+        codeSB..writeln('    return ${name}${upperType}Store.get(${pkColumnName.join(', ')})');
       } else {
         codeSB..writeln('    .then((${name} model) {')
               ..writeln('      if (model.isExist()) return model;')
-              ..writeln('      return ${name}${upperType}Store.get(pk);')
+              ..writeln('      return ${name}${upperType}Store.get(${pkColumnName.join(', ')});')
               ..writeln('    })');
       }
     }

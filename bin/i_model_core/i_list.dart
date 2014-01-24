@@ -4,7 +4,7 @@
  */
 
 class IList {
-  num _pk;
+  List _pk;
   Map _list = {};
   Map _toAddList = {};
   Map _toDelList = {};
@@ -14,8 +14,7 @@ class IList {
   bool _set(IModel model) => _list[model.getUnitedChildPK()] = model;
 
   get length => _list.length;
-  num setPK(num pk) => _pk = pk;
-  num getPK() => _pk;
+  List getPK() => _pk;
   bool isUpdated() => _updated;
   void setUpdated(bool flag) => _updated = flag;
 

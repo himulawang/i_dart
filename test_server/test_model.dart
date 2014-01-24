@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
@@ -947,7 +948,8 @@ void main() {
       test('multple pk get success', () {
         UserMulti u = new UserMulti();
         u.setPK(1, 'aa', 'bb');
-        expect(u.getUnitedPK(), equals('1_aa_bb'));
+        String delimiter = ASCII.decode([0x1D]);
+        expect(u.getUnitedPK(), equals('1${delimiter}aa${delimiter}bb'));
       });
 
       test('single pk not set should throw exception', () {
@@ -969,14 +971,14 @@ void main() {
       });
 
       test('multple child pk get success', () {
-        UserMulti u = new UserMulti();
-        u.setPK(1, 'aa', 'bb');
-        expect(u.getUnitedChildPK(), equals('aa_bb'));
+        UserMulti u = new UserMulti([1, 2, 'aa', 'bb']);
+        String delimiter = ASCII.decode([0x1D]);
+        expect(u.getUnitedChildPK(), equals('aa${delimiter}bb'));
       });
 
       test('single child pk not set should throw exception', () {
         UserSingle u = new UserSingle();
-        expect(() => u.getUnitedChildPK(), throwsA(predicate((e) => e is IModelException && e.code == 10017)));;
+        expect(() => u.getUnitedChildPK(), throwsA(predicate((e) => e is IModelException && e.code == 10018)));;
       });
 
       test('multple child pk not set should throw exception', () {
