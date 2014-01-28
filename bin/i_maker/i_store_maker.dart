@@ -10,7 +10,7 @@ class IStoreMaker extends IMaker {
     _orm = orm;
   }
 
-  void make() {
+  void makeServer() {
     _srcStoreCoreDir = '${_iPath}/i_store_core';
 
     _outStoreCoreDir = '${_appPath}/i_store_core';
@@ -56,6 +56,34 @@ class IStoreMaker extends IMaker {
       }
     });
 
+  }
+
+  void makeClient() {
+    _srcStoreCoreDir = '${_iPath}/i_store_core';
+
+    _outStoreCoreDir = '${_appPath}/i_store_core';
+    _outStoreDir = '${_appPath}/store';
+
+    makeSubDir();
+
+    // copy core store
+    copyFileWithHeader(_srcStoreCoreDir, 'i_idb_store.dart', _outStoreCoreDir, 'i_idb_store.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcStoreCoreDir, 'i_idb_handler_pool.dart', _outStoreCoreDir, 'i_idb_handler_pool.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcStoreCoreDir, 'i_store_exception.dart', _outStoreCoreDir, 'i_store_exception.dart', 'part of lib_${_app};');
+
+    _orm.forEach((String name, Map orm) {
+      String lowerName = makeLowerUnderline(name);
+      if (orm.containsKey('PK') && orm.containsKey('PKStore')) {
+        // redis
+        String redisCode = makeRedisPKStore(name, orm['PK'], orm['PKStore']);
+        if (!redisCode.isEmpty) writeFile('${lowerName}_pk_rdb_store.dart', _outStoreDir, redisCode, true);
+      }
+      if (orm.containsKey('Model') && orm.containsKey('ModelStore')) {
+        // redis
+        String redisCode = makeRedisStore(name, orm['Model'], orm['ModelStore']);
+        if (!redisCode.isEmpty) writeFile('${lowerName}_rdb_store.dart', _outStoreDir, redisCode, true);
+      }
+    });
   }
 
   String makeRedisStore(String name, Map orm, Map storeOrm) {

@@ -1,7 +1,7 @@
 part of i_maker;
 
 class ILibraryMaker extends IMaker {
-  final String _header = '''
+  final String _serverHeader = '''
 import 'dart:async';
 import 'dart:convert';
 
@@ -11,24 +11,39 @@ import 'package:logging/logging.dart';
 
 ''';
 
+  final String _clientHeader = '''
+import 'dart:async';
+import 'dart:convert';
+
+import 'package:logging/logging.dart';
+
+''';
+
   ILibraryMaker(Map deploy) : super(deploy);
 
-  void make() {
-    writeFile('lib_${_app}.dart', _appPath, makeClassFileLibrary(), true);
+  void makeServer() {
+    writeFile('lib_${_app}.dart', _appPath, _makeClassFileLibrary(_serverHeader), true);
   }
 
-  String makeClassFileLibrary() {
+  void makeClient() {
+    writeFile('lib_${_app}.dart', _appPath, _makeClassFileLibrary(_clientHeader), true);
+  }
+
+  String _makeClassFileLibrary(String header) {
     StringBuffer contentSB = new StringBuffer();
     contentSB.write(_DECLARATION);
     contentSB.writeln('library lib_${_app};\n');
-    contentSB.write(_header);
+    contentSB.write(header);
 
     Directory outDir = new Directory(_appPath);
     List ls = outDir.listSync();
     ls.forEach((entity) {
       // skip File & i_config directory
       String path = makeCompatiblePath(entity.path);
-      if (entity is File || path == '${_appPath}/i_config') return;
+      if (entity is File ||
+        path == '${_appPath}/i_config' ||
+        path == '${_appPath}/packages'
+      ) return;
 
       Directory childDir = new Directory(path);
       List childLs = childDir.listSync(recursive: true);
@@ -41,4 +56,5 @@ import 'package:logging/logging.dart';
 
     return contentSB.toString();
   }
+
 }

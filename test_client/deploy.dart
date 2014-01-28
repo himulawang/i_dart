@@ -8,11 +8,11 @@ void main() {
   modelMaker.make();
 
   IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
-  storeMaker.make();
+  storeMaker.makeClient();
 
   IUtilMaker utilMaker = new IUtilMaker(deploy);
   utilMaker.make();
 
   ILibraryMaker libMaker = new ILibraryMaker(deploy);
-  libMaker.make();
+  libMaker.makeClient();
 }
