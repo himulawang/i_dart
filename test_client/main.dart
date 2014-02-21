@@ -1,52 +1,96 @@
 import 'dart:html';
 import 'dart:indexed_db';
 import 'dart:async';
+
+import 'package:logging/logging.dart';
+import 'package:unittest/unittest.dart';
+import 'package:unittest/html_enhanced_config.dart';
+
 import 'lib_test.dart';
+import './i_config/orm.dart';
+import './i_config/store.dart';
 
 void main() {
-  Database idb;
-  var el = query('#Test');
-  if (!IdbFactory.supported) {
-    el.innerHtml = 'Unsupport';
-    return;
-  }
+  useHtmlEnhancedConfiguration();
 
-  el.innerHtml = 'Support';
+  Logger.root.level = Level.WARNING;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+  });
 
-  open()
-  .then((Database db) => idb = db)
+  IIndexedDBHandlerPool indexedDBPool = new IIndexedDBHandlerPool();
+  indexedDBPool.init(store['indexedDB'], idbUpgrade)
   .then((_) {
-    Transaction tran = idb.transaction('Item', 'readwrite');
-    ObjectStore store = tran.objectStore('Item');
+    startTest();
+  });
+}
 
-    store.add({'i': 1, 'ti': 2, 'n': 'red bottle', 'q': 200})
-    .then((addKey) {
-      print(addKey);
-    }).catchError((e) {
-      print(e);
+startTest() {
+  group('Test idb store', () {
+
+    group('add', () {
+      setUp(() => flushdb());
+
+      test('model is invalid', () {
+        UserMulti um = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
+        expect(
+            () => UserSingleIndexedDBStore.add(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22004))
+        );
+      });
+
+      setUp(() {});
+
+      test('pk is null should throw exception', () {
+        UserSingle us = new UserSingle();
+        expect(
+            () => UserSingleIndexedDBStore.add(us),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22006))
+        );
+      });
+
+      test('toAddAbb return list length is 0 should throw exception', () {
+        UserSingleToAddLengthZero user = new UserSingleToAddLengthZero(new List.filled(orm['UserSingleToAddLengthZero']['Model']['column'].length, 1));
+        expect(
+            () => UserSingleToAddLengthZeroIndexedDBStore.add(user),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22005))
+        );
+      });
+
+      test('add successfully', () {
+        UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
+        UserSingleIndexedDBStore.add(user)
+        .then((UserSingle userSingle) {
+          expect(identical(userSingle, user), isTrue);
+        });
+      });
+
+      test('model exists should throw exception', () {
+        UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
+        UserSingleIndexedDBStore.add(user)
+        .then((UserSingle userSingle) {
+          //expect(identical(userSingle, user), isTrue);
+        });
+      });
+
     });
 
   });
 }
 
-Future open() {
-  return window.indexedDB.open('GameDB', version: 2, onUpgradeNeeded: upgrade)
-  ;
+Future flushdb() {
+  List waitList = [];
+  Database db = IIndexedDBHandlerPool.dbs['GameIDB'];
+
+  waitList
+    ..add(clearTable(db, 'UserMultiple'))
+    ..add(clearTable(db, 'UserSingle'));
+
+  return Future.wait(waitList);
 }
 
-void upgrade(VersionChangeEvent e) {
-  Database db = (e.target as Request).result;
-
-  db.deleteObjectStore('Item');
-
-  /*
-  * id
-  * typeId
-  * name
-  * quantity
-  * */
-  ObjectStore objectStore = db.createObjectStore('Item', keyPath: 'pk', autoIncrement: true);
-  objectStore.createIndex('id', 'i');
-  objectStore.createIndex('typeId', 'ti');
+Future clearTable(Database db, String storeName) {
+  Transaction tran = db.transaction(storeName, 'readwrite');
+  ObjectStore store = tran.objectStore(storeName);
+  return store.clear();
 }
-

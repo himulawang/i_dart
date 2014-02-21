@@ -73,15 +73,10 @@ class IStoreMaker extends IMaker {
 
     _orm.forEach((String name, Map orm) {
       String lowerName = makeLowerUnderline(name);
-      if (orm.containsKey('PK') && orm.containsKey('PKStore')) {
-        // redis
-        String redisCode = makeRedisPKStore(name, orm['PK'], orm['PKStore']);
-        if (!redisCode.isEmpty) writeFile('${lowerName}_pk_rdb_store.dart', _outStoreDir, redisCode, true);
-      }
       if (orm.containsKey('Model') && orm.containsKey('ModelStore')) {
-        // redis
-        String redisCode = makeRedisStore(name, orm['Model'], orm['ModelStore']);
-        if (!redisCode.isEmpty) writeFile('${lowerName}_rdb_store.dart', _outStoreDir, redisCode, true);
+        // indexedDB
+        String indexedDBCode = makeIndexedDBStore(name, orm['Model'], orm['ModelStore']);
+        if (!indexedDBCode.isEmpty) writeFile('${lowerName}_idb_store.dart', _outStoreDir, indexedDBCode, true);
       }
     });
   }
@@ -408,6 +403,49 @@ class ${name}MariaDBStore extends IMariaDBStore {
     ''';
     return code;
 
+  }
+
+  String makeIndexedDBStore(String name, Map orm, Map storeOrm) {
+    Map store = _getStoreConfig('indexedDB', storeOrm);
+
+    String code = '''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${name}IndexedDBStore extends IIndexedDBStore {
+  static const Map store = const ${JSON.encode(store)};
+
+  static Future add(${name} model) {
+    if (model is! ${name}) throw new IStoreException(22004);
+    Map toAddAbb = model.toAddAbb(true);
+    if (toAddAbb.length == 0) throw new IStoreException(22005);
+
+    toAddAbb['_pk'] = _makeKey(model);
+
+    ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
+
+    return handler.add(toAddAbb)
+    .then((addKey) {
+      print(addKey);
+    }).catchError((e) {
+      print(e);
+      throw e;
+    });
+  }
+
+  static _makeKey(${name} model) {
+    var pk = model.getPK();
+    if (pk is List) {
+      if (pk.contains(null)) throw new IStoreException(22006);
+    } else {
+      if (pk == null) throw new IStoreException(22006);
+    }
+    return pk;
+  }
+}
+    ''';
+
+    return code;
   }
 
   String makeCombinedStore(String name, Map orm, Map storeOrm) {

@@ -14,6 +14,9 @@ import 'package:logging/logging.dart';
   final String _clientHeader = '''
 import 'dart:async';
 import 'dart:convert';
+import 'dart:math';
+import 'dart:indexed_db';
+import 'dart:html';
 
 import 'package:logging/logging.dart';
 

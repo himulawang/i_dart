@@ -5,3 +5,5 @@ dependencies:
   redis_client: any
   unittest: any
   lawndart: any
+  http: any
+  logging: any

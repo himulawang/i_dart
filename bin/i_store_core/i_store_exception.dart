@@ -65,6 +65,13 @@ class IStoreException {
       '21036': 'PK invalid when set to mariaDB.',
       '21037': 'PK value invalid when set to mariaDB.',
       '21038': 'Set pk to mariaDB failed.',
+      // indexedDB
+      '22001': 'Browser do not support IndexedDB.',
+      '22002': 'Cannot find upgrade script when init IndexedDB.',
+      '22003': 'IndexedDB handler pool is not initialized.',
+      '22004': 'Invalid model when add model to indexedDB.',
+      '22005': 'Model has no attribute to add to indexedDB.',
+      '22006': 'Invalid pk when make pk key.',
 
       // redis warning for interrupting future chain
       '25001': 'Model has no attribute to set to redis.',

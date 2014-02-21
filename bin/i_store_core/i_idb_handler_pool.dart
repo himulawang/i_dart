@@ -7,10 +7,41 @@ class IIndexedDBHandlerPool {
   static bool _initialized = false;
   static IIndexedDBHandlerPool _instance;
 
-  static final Map dbs = <String, List<RedisClient>>{};
-  static final Map nodesLength = <String, int>{};
+  static final Map dbs = <String, Database>{};
 
-  Future init(Map config) {
+  Future init(Map config, Map upgradeScripts) {
+    if (!IdbFactory.supported) throw new IStoreException(22001);
+
+    List waitList = [];
+    config.forEach((String dbName, Map config) {
+      String name = config['db'];
+      if (!upgradeScripts.containsKey(name)) throw new IStoreException(22002);
+
+      Map upgradeScript = upgradeScripts[name];
+      // find max db version
+      int newVersion = upgradeScript.keys.map((v) => int.parse(v)).toList().reduce(max);
+
+      waitList.add(
+          window.indexedDB.open(name, version: newVersion, onUpgradeNeeded: (VersionChangeEvent e) {
+            Database db = (e.target as Request).result;
+            // upgrade all diff version
+            int oldVersion = e.oldVersion;
+
+            for (int nowVersion = oldVersion + 1; nowVersion <= newVersion; ++nowVersion) {
+              String nowVersionString = nowVersion.toString();
+              if (!upgradeScript.containsKey(nowVersionString)) continue;
+              upgradeScript[nowVersion.toString()](db);
+            }
+          })
+          .then((Database db) => dbs[name] = db)
+          .catchError(_handleErr)
+      );
+    });
+
+    return Future.wait(waitList).then((_) {
+      _initialized = true;
+      print('IndexedDB connected.');
+    });
   }
 
   factory IIndexedDBHandlerPool() {
@@ -21,51 +52,31 @@ class IIndexedDBHandlerPool {
 
   IIndexedDBHandlerPool._internal();
 
-  static String _makeConnectionString(Map node) {
-  }
-
   static void _handleErr(err) => throw err;
 
-  RedisClient getWriteHandler(Map store, model) {
+  ObjectStore getWriteHandler(Map store) {
     _checkInitialized();
 
-    String groupType = 'master';
-    String groupName = store[groupType];
+    String objectStoreName = store['objectStore'];
+    Database db = dbs[store['master']];
 
-    int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
-
-    return dbs[groupName][shardIndex];
+    Transaction tran = db.transaction(objectStoreName, 'readwrite');
+    ObjectStore objectStore = tran.objectStore(objectStoreName);
+    return objectStore;
   }
 
-  RedisClient getReaderHandler(Map store, model) {
+  ObjectStore getReaderHandler(Map store) {
     _checkInitialized();
 
-    String groupType = store['readWriteSeparate'] ? 'slave' : 'master';
-    String groupName = store[groupType];
+    String objectStoreName = store['objectStore'];
+    Database db = dbs[store['master']];
 
-    int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
-
-    return dbs[groupName][shardIndex];
+    Transaction tran = db.transaction(objectStoreName, 'readwrite');
+    ObjectStore objectStore = tran.objectStore(objectStoreName);
+    return objectStore;
   }
 
   void _checkInitialized() {
-    if (!_initialized) throw new IStoreException(20033);
-  }
-
-  int _getShardIndex(String shardMethod, model, num modValue) {
-    int shardIndex;
-    switch (shardMethod) {
-      case 'NONE':
-        shardIndex = 0;
-        break;
-      case 'CRC32':
-        shardIndex = CRC32.compute(model.getPK().toString()) % modValue;
-        break;
-      default:
-        throw new IStoreException(20008);
-    }
-    return shardIndex;
+    if (!_initialized) throw new IStoreException(22003);
   }
 }
