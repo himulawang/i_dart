@@ -407,6 +407,10 @@ class ${name}MariaDBStore extends IMariaDBStore {
 
   String makeIndexedDBStore(String name, Map orm, Map storeOrm) {
     Map store = _getStoreConfig('indexedDB', storeOrm);
+    List pkColumnName = [];
+    for (int i = 0; i < orm['pk'].length; ++i) {
+      pkColumnName.add(orm['column'][orm['pk'][i]]);
+    }
 
     String code = '''
 ${_DECLARATION}
@@ -426,11 +430,70 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
 
     return handler.add(toAddAbb)
     .then((addKey) {
-      print(addKey);
+      return model..setUpdatedList(false);
     }).catchError((e) {
-      print(e);
+      if (e is Event) {
+        if (e.target.error.message == 'Key already exists in the object store.') {
+          throw new IStoreException(22007);
+        }
+        throw e.target.error;
+      }
       throw e;
     });
+  }
+
+  static Future set(${name} model) {
+    if (model is! ${name}) throw new IStoreException(22008);
+
+    // model has not been updated
+    if (!model.isUpdated()) {
+      new IStoreException(27001);
+      Completer completer = new Completer();
+      completer.complete(model);
+      return completer.future;
+    }
+
+    // indexedDB did not like redis, put(set) will overwrite the whole key
+    // so we use toSet filter the whole _args
+    Map toSetAbb = {};
+    ${name}._mapAbb.forEach((abb, i) {
+      if (${name}._columns[i]['toSet']) return;
+      toSetAbb[abb] = model._args[i];
+    });
+    if (toSetAbb.length == 0) throw new IStoreException(22009);
+
+    toSetAbb['_pk'] = _makeKey(model);
+
+    ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
+
+    return handler.put(toSetAbb)
+    .then((setKey) {
+      return model..setUpdatedList(false);
+    }).catchError(_handleErr);
+  }
+
+  static Future get(${pkColumnName.join(', ')}) {
+    ${name} model = new ${name}()..setPK(${pkColumnName.join(', ')});
+
+    var pk = _makeKey(model);
+
+    ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
+
+    return handler.getObject(pk)
+    .then((result) {
+      if (result == null) return model;
+      return model..fromAbb(result)..setExist();
+    }).catchError(_handleErr);
+  }
+
+  static Future del(${name} model) {
+    if (model is! ${name}) throw new IStoreException(22010);
+
+    var pk = _makeKey(model);
+
+    ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
+
+    return handler.delete(pk).catchError(_handleErr);
   }
 
   static _makeKey(${name} model) {
@@ -441,6 +504,11 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
       if (pk == null) throw new IStoreException(22006);
     }
     return pk;
+  }
+
+  static _handleErr(e) {
+    if (e is Event)  throw e.target.error;
+    throw e;
   }
 }
     ''';

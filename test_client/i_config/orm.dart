@@ -51,6 +51,15 @@ Map orm = {
             'pk': [0, 1],
             'childPK': [2, 3],
         },
+        'ModelStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'UserMultiple',
+                },
+            ],
+        },
     },
     'UserSingleToAddLengthZero': {
         'Model': {
@@ -73,6 +82,31 @@ Map orm = {
                     'type': 'indexedDB',
                     'master': 'GameIDB',
                     'objectStore': 'UserSingleToAddLengthZero',
+                },
+            ],
+        },
+    },
+    'UserSingleToSetLengthZero': {
+        'Model': {
+            'pk': [0],
+            'column': [
+                'id',
+                'name',
+                'userName',
+                'uniqueName',
+            ],
+            'toAddFilter': [],
+            'toSetFilter': [0, 1, 2, 3],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [],
+        },
+        'ModelStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'UserSingleToSetLengthZero',
                 },
             ],
         },

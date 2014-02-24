@@ -68,9 +68,158 @@ startTest() {
       test('model exists should throw exception', () {
         UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
         UserSingleIndexedDBStore.add(user)
+        .catchError(expectAsync1((e) {
+          expect(e is IStoreException, isTrue);
+          expect(e.code == 22007, isTrue);
+        }));
+      });
+
+      test('multiple pk: pk contains null should throw exception', () {
+        UserMulti um = new UserMulti();
+        expect(
+            () => UserMultiIndexedDBStore.add(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22006))
+        );
+      });
+
+      test('multiple pk: add successfully', () {
+        UserMulti um = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
+        expect(
+            () => UserMultiIndexedDBStore.add(um),
+            returnsNormally
+        );
+      });
+
+    });
+
+    group('set', () {
+      test('model is invalid', () {
+        UserMulti um = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
+        expect(
+            () => UserSingleIndexedDBStore.set(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22008))
+        );
+      });
+
+      test('pk is null should throw exception', () {
+        UserSingle us = new UserSingle();
+        us.name = 'a';
+        expect(
+            () => UserSingleIndexedDBStore.set(us),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22006))
+        );
+      });
+
+      test('toSetAbb return list length is 0 should throw exception', () {
+        UserSingleToSetLengthZero user = new UserSingleToSetLengthZero(new List.filled(orm['UserSingleToSetLengthZero']['Model']['column'].length, 1));
+        user.uniqueName = 'a';
+        expect(
+            () => UserSingleToSetLengthZeroIndexedDBStore.set(user),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22009))
+        );
+      });
+
+      test('set successfully', () {
+        UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
+        user.name = 'a';
+        user.uniqueName = 'b';
+
+        UserSingleIndexedDBStore.set(user)
         .then((UserSingle userSingle) {
-          //expect(identical(userSingle, user), isTrue);
+          expect(identical(userSingle, user), isTrue);
+          expect(user.isUpdated(), isFalse);
         });
+      });
+
+      test('model has no attribute to set, should get warning', () {
+        UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
+
+        UserSingleIndexedDBStore.set(user)
+        .then((UserSingle userSingle) {
+          expect(identical(userSingle, user), isTrue);
+          expect(user.isUpdated(), isFalse);
+        });
+      });
+
+      test('multiple pk: pk contains null should throw exception', () {
+        UserMulti um = new UserMulti();
+        um.name = 'a';
+        expect(
+            () => UserMultiIndexedDBStore.set(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22006))
+        );
+      });
+
+      test('multiple pk: set successfully', () {
+        UserMulti um = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
+        um.name = 'a';
+        um.uniqueName = 'b';
+        expect(
+            () => UserMultiIndexedDBStore.set(um),
+            returnsNormally
+        );
+      });
+
+    });
+
+    group('get', () {
+
+      test('get successfully', () {
+        UserSingleIndexedDBStore.get(1)
+        .then(expectAsync1((UserSingle user) {
+          expect(user.isExist(), isTrue);
+          expect(user.id, equals(1));
+          expect(user.name, equals('a'));
+          expect(user.uniqueName, equals('b'));
+        }));
+      });
+
+      test('model does not exist in indexedDB return model', () {
+        UserSingleIndexedDBStore.get(2)
+        .then(expectAsync1((UserSingle user) {
+          expect(user.isExist(), isFalse);
+          expect(user.id, equals(2));
+        }));
+      });
+
+      test('multiple pk: get successfully', () {
+        UserMultiIndexedDBStore.get(1, 'a', 'b')
+        .then(expectAsync1((UserMulti user) {
+          expect(user.isExist(), isTrue);
+          expect(user.id, equals(1));
+          expect(user.name, equals('a'));
+          expect(user.uniqueName, equals('b'));
+        }));
+      });
+
+    });
+
+    group('del', () {
+
+      test('input model invalid', () {
+        UserMulti um = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
+        expect(
+            () => UserSingleIndexedDBStore.del(um),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22010))
+        );
+      });
+
+      test('del successfully', () {
+        UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
+        UserSingleIndexedDBStore.del(user).then((_) {
+          return UserSingleIndexedDBStore.get(user);
+        }).then(expectAsync1((UserSingle u) {
+          expect(u.isExist(), isFalse);
+        }));
+      });
+
+      test('multiple pk: del successfully', () {
+        UserMulti user = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
+        UserMultiIndexedDBStore.del(user).then((_) {
+          return UserSingleIndexedDBStore.get(user);
+        }).then(expectAsync1((UserMulti u) {
+          expect(u.isExist(), isFalse);
+        }));
       });
 
     });

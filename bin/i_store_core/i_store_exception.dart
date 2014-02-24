@@ -72,8 +72,12 @@ class IStoreException {
       '22004': 'Invalid model when add model to indexedDB.',
       '22005': 'Model has no attribute to add to indexedDB.',
       '22006': 'Invalid pk when make pk key.',
+      '22007': 'Add key to indexedDB failed.',
+      '22008': 'Invalid model when set model to indexedDB.',
+      '22009': 'Model has no attribute to set to indexedDB.',
+      '22010': 'Invalid model when del model from indexedDB.',
 
-      // redis warning for interrupting future chain
+      // redis warning
       '25001': 'Model has no attribute to set to redis.',
       '25002': 'No record affected when del model from redis.',
       '25003': 'Model does not exist when set it.',
@@ -83,7 +87,7 @@ class IStoreException {
       '25007': 'PK not exist when del it from redis.',
       '25008': 'List not exist when get it from redis.',
       '25009': 'List not changed when set to redis.',
-      // mariaDB warning for interrupting future chain
+      // mariaDB warning
       '26001': 'Model has no attribute to set to mariaDB.',
       '26002': 'No record affected when set model to mariaDB.',
       '26003': 'Multiple records affected when set model to mariaDB.',
@@ -91,6 +95,9 @@ class IStoreException {
       '26005': 'Multiple records affected when del model from mariaDB.',
       '26006': 'PK has not changed when set to mariaDB.',
       '26007': 'PK not exist when del it from mariaDB.',
+      // indexedDB warning
+      '27001': 'Model has no attribute to set to indexedDB.',
+
   };
   IStoreException(int inputCode, [List inputParameters]) {
     code = inputCode;
