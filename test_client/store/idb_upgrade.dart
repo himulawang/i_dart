@@ -8,5 +8,8 @@ Map idbUpgrade = {
       '7': (Database db) {
         ObjectStore objectStore = db.createObjectStore('UserSingle', keyPath: '_pk');
       },
+      '8': (Database db) {
+        ObjectStore objectStore = db.createObjectStore('PK', keyPath: '_pk');
+      },
   },
 };

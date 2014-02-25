@@ -21,12 +21,25 @@ Map orm = {
             'pk': [0],
             'childPK': [1],
         },
+        'PK': {
+            'className': 'UserSinglePK',
+        },
         'ModelStore': {
             'storeOrder': [
                 {
                     'type': 'indexedDB',
                     'master': 'GameIDB',
                     'objectStore': 'UserSingle',
+                },
+            ],
+        },
+        'PKStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'PK',
+                    'key': 'UserSinglePK',
                 },
             ],
         },
@@ -51,12 +64,25 @@ Map orm = {
             'pk': [0, 1],
             'childPK': [2, 3],
         },
+        'PK': {
+            'className': 'UserMultiPK',
+        },
         'ModelStore': {
             'storeOrder': [
                 {
                     'type': 'indexedDB',
                     'master': 'GameIDB',
                     'objectStore': 'UserMultiple',
+                },
+            ],
+        },
+        'PKStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'PK',
+                    'key': 'UserMultiPK',
                 },
             ],
         },

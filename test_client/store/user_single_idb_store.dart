@@ -42,7 +42,7 @@ class UserSingleIndexedDBStore extends IIndexedDBStore {
       return completer.future;
     }
 
-    // indexedDB did not like redis, put(set) will overwrite the whole key
+    // indexedDB do not like redis, put(set) will overwrite the whole key
     // so we use toSet filter the whole _args
     Map toSetAbb = {};
     UserSingle._mapAbb.forEach((abb, i) {

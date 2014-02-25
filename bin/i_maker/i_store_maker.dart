@@ -73,6 +73,11 @@ class IStoreMaker extends IMaker {
 
     _orm.forEach((String name, Map orm) {
       String lowerName = makeLowerUnderline(name);
+      if (orm.containsKey('PK') && orm.containsKey('PKStore')) {
+        // indexedDB
+        String indexedDBCode = makeIndexedDBPKStore(name, orm['PK'], orm['PKStore']);
+        if (!indexedDBCode.isEmpty) writeFile('${lowerName}_pk_idb_store.dart', _outStoreDir, indexedDBCode, true);
+      }
       if (orm.containsKey('Model') && orm.containsKey('ModelStore')) {
         // indexedDB
         String indexedDBCode = makeIndexedDBStore(name, orm['Model'], orm['ModelStore']);
@@ -453,7 +458,7 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
       return completer.future;
     }
 
-    // indexedDB did not like redis, put(set) will overwrite the whole key
+    // indexedDB do not like redis, put(set) will overwrite the whole key
     // so we use toSet filter the whole _args
     Map toSetAbb = {};
     ${name}._mapAbb.forEach((abb, i) {
@@ -739,6 +744,64 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
   }
 
   static void _handleErr(e) => throw e;
+}
+''';
+    return code;
+  }
+
+  String makeIndexedDBPKStore(String name, Map orm, Map storeOrm) {
+    String pkName = orm['className'];
+    Map storeConfig = _getStoreConfig('indexedDB', storeOrm);
+    String code = '''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${pkName}IndexedDBStore extends IIndexedDBStore {
+  static const _objectStore = '${storeConfig['objectStore']}';
+  static const _key = '${storeConfig['key']}';
+
+  static const Map store = const ${JSON.encode(storeConfig)};
+
+  static Future set(${pkName} pk) {
+    if (pk is! ${pkName}) throw new IStoreException(22011);
+    if (!pk.isUpdated()) {
+      new IStoreException(27002);
+      Completer completer = new Completer();
+      completer.complete(pk);
+      return completer.future;
+    }
+
+    num value = pk.get();
+    if (value is! num) throw new IStoreException(22012);
+
+    ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
+    return handler.put({'_pk':_key, 'value':value})
+    .then((setKey) {
+      return pk..setUpdated(false);
+    }).catchError(_handleErr);
+  }
+
+  static Future get() {
+    ${pkName} pk = new ${pkName}();
+
+    ObjectStore handler = new IIndexedDBHandlerPool().getReaderHandler(store);
+
+    return handler.getObject(_key)
+    .then((result) {
+      if (result == null) return pk;
+      return pk..set(result['value'])..setUpdated(false);
+    }).catchError(_handleErr);
+  }
+
+  static Future del() {
+    ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
+    return handler.delete(_key).catchError(_handleErr);
+  }
+
+  static _handleErr(e) {
+    if (e is Event)  throw e.target.error;
+    throw e;
+  }
 }
 ''';
     return code;

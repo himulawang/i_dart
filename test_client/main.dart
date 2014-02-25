@@ -26,7 +26,7 @@ void main() {
 }
 
 startTest() {
-  group('Test idb store', () {
+  group('idb model store', () {
 
     group('add', () {
       setUp(() => flushdb());
@@ -207,7 +207,7 @@ startTest() {
       test('del successfully', () {
         UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
         UserSingleIndexedDBStore.del(user).then((_) {
-          return UserSingleIndexedDBStore.get(user);
+          return UserSingleIndexedDBStore.get(1);
         }).then(expectAsync1((UserSingle u) {
           expect(u.isExist(), isFalse);
         }));
@@ -216,9 +216,80 @@ startTest() {
       test('multiple pk: del successfully', () {
         UserMulti user = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
         UserMultiIndexedDBStore.del(user).then((_) {
-          return UserSingleIndexedDBStore.get(user);
+          return UserSingleIndexedDBStore.get(1);
         }).then(expectAsync1((UserMulti u) {
           expect(u.isExist(), isFalse);
+        }));
+      });
+
+    });
+
+  });
+
+  group('idb pk store', () {
+
+    group('set', () {
+
+      test('pk is invalid', () {
+        UserSinglePK pk = new UserSinglePK();
+        pk.incr();
+
+        expect(
+            () => UserMultiPKIndexedDBStore.set(pk),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22011))
+        );
+      });
+
+      test('set unchanged pk should get warning', () {
+        UserSinglePK pk = new UserSinglePK();
+
+        expect(
+            () => UserSinglePKIndexedDBStore.set(pk),
+            returnsNormally
+        );
+      });
+
+      test('set successfully', () {
+        UserSinglePK pk = new UserSinglePK();
+        pk.incr();
+
+        UserSinglePKIndexedDBStore.set(pk)
+        .then(expectAsync1((UserSinglePK pkNew) {
+          expect(pkNew.isUpdated(), isFalse);
+          expect(identical(pk, pkNew), isTrue);
+        }));
+      });
+
+    });
+
+    group('get', () {
+
+      test('pk not exist should get pk with value 0', () {
+        UserMultiPKIndexedDBStore.get()
+        .then(expectAsync1((UserMultiPK pk) {
+          expect(pk.get(), isZero);
+        }));
+      });
+
+      test('get successfully', () {
+        UserSinglePKIndexedDBStore.get()
+        .then(expectAsync1((UserSinglePK pk) {
+          expect(pk.isUpdated(), isFalse);
+          expect(pk.get(), equals(1));
+        }));
+      });
+
+    });
+
+    group('del', () {
+
+      test('del successfully', () {
+        UserSinglePKIndexedDBStore.del()
+        .then(expectAsync1((_) {
+          return UserSinglePKIndexedDBStore.get();
+        }))
+        .then(expectAsync1((UserSinglePK pk) {
+          expect(pk.get(), isZero);
         }));
       });
 
@@ -233,7 +304,8 @@ Future flushdb() {
 
   waitList
     ..add(clearTable(db, 'UserMultiple'))
-    ..add(clearTable(db, 'UserSingle'));
+    ..add(clearTable(db, 'UserSingle'))
+    ..add(clearTable(db, 'PK'));
 
   return Future.wait(waitList);
 }

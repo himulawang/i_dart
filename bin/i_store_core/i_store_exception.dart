@@ -76,6 +76,8 @@ class IStoreException {
       '22008': 'Invalid model when set model to indexedDB.',
       '22009': 'Model has no attribute to set to indexedDB.',
       '22010': 'Invalid model when del model from indexedDB.',
+      '22011': 'Invalid pk when set pk to indexedDB.',
+      '22012': 'PK value invalid when set to indexedDB.',
 
       // redis warning
       '25001': 'Model has no attribute to set to redis.',
@@ -97,6 +99,7 @@ class IStoreException {
       '26007': 'PK not exist when del it from mariaDB.',
       // indexedDB warning
       '27001': 'Model has no attribute to set to indexedDB.',
+      '27002': 'PK has not changed when set to indexedDB.',
 
   };
   IStoreException(int inputCode, [List inputParameters]) {
