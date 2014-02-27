@@ -71,6 +71,9 @@ class IIndexedDBHandlerPool {
     String objectStoreName = store['objectStore'];
     Database db = dbs[store['master']];
 
+    // FIXME. warning!! this transaction should use readonly mode,
+    // but when use readonly mode, get data after operate it will cause
+    // transaction chaos
     Transaction tran = db.transaction(objectStoreName, 'readwrite');
     ObjectStore objectStore = tran.objectStore(objectStoreName);
     return objectStore;

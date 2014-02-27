@@ -22,10 +22,15 @@ void main() {
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
+
+  Map test = {};
+  test..['a'] = 1..['b'] = 2;
+  print(test);
+
+  /*
   Map test = {'1': 1, '2': 2};
   print(test.keys.toList());
   print(test.keys.map((value) => int.parse(value)).toList().reduce(max));
-  /*
 
   IRedisHandlerPool redisPool = new IRedisHandlerPool();
 

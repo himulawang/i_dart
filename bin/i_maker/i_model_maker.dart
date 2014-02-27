@@ -158,8 +158,22 @@ class ${name} extends IModel {
 ''');
     }
 
-    // united child pk
     if (listOrm != null) {
+      // united list pk
+      List listPKColumnName = [];
+      listOrm['pk'].forEach((index) => listPKColumnName.add(orm['column'][index]));
+
+      codeSB.writeln('  List getListPK() => [${listPKColumnName.join(', ')}];');
+      codeSB.write('''
+  String getUnitedListPK() {
+    List listPK = getListPK();
+    if (listPK.contains(null)) throw new IModelException(10020);
+    return listPK.join(_delimiter);
+  }
+
+''');
+
+      // united child pk
       List childPKColumnName = [];
       listOrm['childPK'].forEach((index) => childPKColumnName.add(orm['column'][index]));
 
@@ -169,6 +183,19 @@ class ${name} extends IModel {
     List childPK = getChildPK();
     if (childPK.contains(null)) throw new IModelException(10018);
     return childPK.join(_delimiter);
+  }
+
+''');
+
+      // whole pk
+      List wholePKColumnName = [];
+      wholePKColumnName..addAll(listPKColumnName)..addAll(childPKColumnName);
+      codeSB.writeln('  List getWholePK() => [${wholePKColumnName.join(', ')}];');
+      codeSB.write('''
+  String getUnitedWholePK() {
+    List wholePK = getWholePK();
+    if (wholePK.contains(null)) throw new IModelException(10019);
+    return wholePK.join(_delimiter);
   }
 ''');
     }
@@ -383,6 +410,10 @@ class ${listName} extends IList {
   void _initPK(List pk) => _pk = pk;
 
   void setPK(${pkColumnName.join(', ')}) => _pk = [${pkColumnName.join(', ')}];
+  String getUnitedPK() {
+    if (_pk.contains(null)) throw new IModelException(10021);
+    return _pk.join(_delimiter);
+  }
 
   ${name} get(${childPKColumnName.join(', ')}) => _list["\${${childPKColumnName.join('}\$\{_delimiter}\${')}}"];
 

@@ -36,7 +36,7 @@ class IStoreException {
       '20037': 'Invalid id when get list from redis.',
       '20038': 'Invalid list when del list from redis.',
       '20039': 'Invalid id when del list from redis.',
-      '20040': 'Invalid list when set list from redis.',
+      '20040': 'Invalid list when set list to redis.',
       //'20041': 'Invalid id when set list from redis.',
       '20042': 'Invalid pk when make redis key.',
       // mariaDB
@@ -78,6 +78,7 @@ class IStoreException {
       '22010': 'Invalid model when del model from indexedDB.',
       '22011': 'Invalid pk when set pk to indexedDB.',
       '22012': 'PK value invalid when set to indexedDB.',
+      '22013': 'Invalid list when set list to indexedDB.',
 
       // redis warning
       '25001': 'Model has no attribute to set to redis.',
@@ -88,7 +89,7 @@ class IStoreException {
       '25006': 'PK not exist when get it from redis.',
       '25007': 'PK not exist when del it from redis.',
       '25008': 'List not exist when get it from redis.',
-      '25009': 'List not changed when set to redis.',
+      '25009': 'List is not changed when set to redis.',
       // mariaDB warning
       '26001': 'Model has no attribute to set to mariaDB.',
       '26002': 'No record affected when set model to mariaDB.',
@@ -100,6 +101,10 @@ class IStoreException {
       // indexedDB warning
       '27001': 'Model has no attribute to set to indexedDB.',
       '27002': 'PK has not changed when set to indexedDB.',
+      '27003': 'List is not changed when set to indexedDB.',
+      '27004': 'Model exists when add list to indexedDB.',
+      '27005': 'Model has no attribute to add when set list to indexedDB.',
+      '27006': 'Model has no attribute to set when set list to indexedDB.',
 
   };
   IStoreException(int inputCode, [List inputParameters]) {

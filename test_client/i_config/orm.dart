@@ -137,4 +137,64 @@ Map orm = {
             ],
         },
     },
+    'Single': {
+        'Model': {
+            'pk': [0],
+            'column': [
+                'id',
+                'name',
+                'userName',
+                'uniqueName',
+            ],
+            'toAddFilter': [],
+            'toSetFilter': [],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [],
+        },
+        'List': {
+            'className': 'SingleList',
+            'pk': [0],
+            'childPK': [1],
+        },
+        'ListStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'SingleList',
+                },
+            ],
+        },
+    },
+    'Multiple': {
+        'Model': {
+            'pk': [0, 1, 3],
+            'column': [
+                'id',
+                'name',
+                'gender',
+                'uniqueName',
+            ],
+            'toAddFilter': [],
+            'toSetFilter': [],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [0],
+        },
+        'List': {
+            'className': 'MultipleList',
+            'pk': [0, 1],
+            'childPK': [2, 3],
+        },
+        'ListStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'MultipleList',
+                },
+            ],
+        },
+    },
 };

@@ -5,7 +5,7 @@
 
 part of lib_test;
 
-class UserMultiListRedisStore {
+class UserMultiListRedisStore extends IRedisStore {
   static const Map store = const {"type":"redis","readWriteSeparate":false,"shardMethod":"CRC32","master":"GameCache","slave":"GameCacheSlave","expire":86400,"mode":"Atom"};
   static const String abb = 'um';
 
@@ -26,7 +26,7 @@ class UserMultiListRedisStore {
     list.getToAddList().forEach((String childId, UserMulti model) {
       String childKey = _makeChildKey(list, model);
       waitList..add(_addChild(model, handler))
-              ..add(handler.sadd(listKey, childId.toString()));
+              ..add(handler.sadd(listKey, childId.toString()).catchError(_handleErr));
     });
 
     list.getToSetList().forEach((String childId, UserMulti model) {
@@ -37,11 +37,11 @@ class UserMultiListRedisStore {
     list.getToDelList().forEach((String childId, UserMulti model) {
       String childKey = _makeChildKey(id);
       waitList..add(UserMultiRedisStore.del(model, childKey))
-              ..add(handler.srem(listKey, id.toString()));
+              ..add(handler.srem(listKey, id.toString()).catchError(_handleErr));
     });
 
     return Future.wait(waitList)
-    .then((_) => handler.expire(listKey, 86400))
+    .then((_) => handler.expire(listKey, 86400).catchError(_handleErr))
     .then((_) => list..resetAllToList())
     .catchError(_handleErr);
   }
@@ -68,9 +68,7 @@ class UserMultiListRedisStore {
       });
 
       return Future.wait(waitList)
-      .then((List dataList) {
-        list..fromList(dataList);
-      });
+      .then((List dataList) => list..fromList(dataList));
     })
     .catchError((e) {
       if (e is IStoreException && e.code == 25008) return list;

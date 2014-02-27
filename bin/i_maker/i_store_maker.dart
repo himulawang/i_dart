@@ -73,15 +73,23 @@ class IStoreMaker extends IMaker {
 
     _orm.forEach((String name, Map orm) {
       String lowerName = makeLowerUnderline(name);
+
       if (orm.containsKey('PK') && orm.containsKey('PKStore')) {
         // indexedDB
         String indexedDBCode = makeIndexedDBPKStore(name, orm['PK'], orm['PKStore']);
         if (!indexedDBCode.isEmpty) writeFile('${lowerName}_pk_idb_store.dart', _outStoreDir, indexedDBCode, true);
       }
+
       if (orm.containsKey('Model') && orm.containsKey('ModelStore')) {
         // indexedDB
         String indexedDBCode = makeIndexedDBStore(name, orm['Model'], orm['ModelStore']);
         if (!indexedDBCode.isEmpty) writeFile('${lowerName}_idb_store.dart', _outStoreDir, indexedDBCode, true);
+      }
+
+      if (orm.containsKey('List') && orm.containsKey('ListStore')) {
+        // indexedDB
+        String indexedDBCode = makeIndexedDBListStore(name, orm['Model'], orm['List'], orm['ListStore']);
+        if (!indexedDBCode.isEmpty) writeFile('${lowerName}_list_idb_store.dart', _outStoreDir, indexedDBCode, true);
       }
     });
   }
@@ -757,8 +765,11 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${pkName}IndexedDBStore extends IIndexedDBStore {
-  static const _objectStore = '${storeConfig['objectStore']}';
-  static const _key = '${storeConfig['key']}';
+  static const String OBJECT_STORE_PK_NAME = '_pk';
+  static const String OBJECT_STORE_VALUE_NAME = 'value';
+
+  static const String _objectStore = '${storeConfig['objectStore']}';
+  static const String _key = '${storeConfig['key']}';
 
   static const Map store = const ${JSON.encode(storeConfig)};
 
@@ -775,7 +786,7 @@ class ${pkName}IndexedDBStore extends IIndexedDBStore {
     if (value is! num) throw new IStoreException(22012);
 
     ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
-    return handler.put({'_pk':_key, 'value':value})
+    return handler.put({ OBJECT_STORE_PK_NAME: _key, OBJECT_STORE_VALUE_NAME: value })
     .then((setKey) {
       return pk..setUpdated(false);
     }).catchError(_handleErr);
@@ -789,7 +800,7 @@ class ${pkName}IndexedDBStore extends IIndexedDBStore {
     return handler.getObject(_key)
     .then((result) {
       if (result == null) return pk;
-      return pk..set(result['value'])..setUpdated(false);
+      return pk..set(result[OBJECT_STORE_VALUE_NAME])..setUpdated(false);
     }).catchError(_handleErr);
   }
 
@@ -798,8 +809,8 @@ class ${pkName}IndexedDBStore extends IIndexedDBStore {
     return handler.delete(_key).catchError(_handleErr);
   }
 
-  static _handleErr(e) {
-    if (e is Event)  throw e.target.error;
+  static void _handleErr(e) {
+    if (e is Event) throw e.target.error;
     throw e;
   }
 }
@@ -872,6 +883,145 @@ class ${pkName}Store {
 }
 ''');
     return codeSB.toString();
+  }
+
+  String makeIndexedDBListStore(String name, Map orm, Map listOrm, Map storeOrm) {
+    String listName = listOrm['className'];
+    Map storeConfig = _getStoreConfig('indexedDB', storeOrm);
+
+    List pkColumnName = [];
+
+    listOrm['pk'].forEach((index) {
+      pkColumnName.add(orm['column'][index]);
+    });
+
+    String code = '''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${listName}IndexedDBStore extends IIndexedDBStore {
+  static const String OBJECT_STORE_PK_NAME = '_pk';
+  static const String OBJECT_STORE_INDEX_NAME = '_index';
+
+  static const Map store = const ${JSON.encode(storeConfig)};
+
+  static Future<${listName}> set(${listName} list) {
+    if (list is! ${listName}) throw new IStoreException(22013);
+
+    if (!list.isUpdated()) {
+      new IStoreException(27003);
+      Completer completer = new Completer();
+      completer.complete(list);
+      return completer.future;
+    }
+
+    ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
+
+    List waitList = [];
+    list.getToAddList().forEach((String childId, ${name} model) {
+      waitList.add(_addChild(model, handler));
+    });
+
+    list.getToSetList().forEach((String childId, ${name} model) {
+      waitList.add(_setChild(model, handler));
+    });
+
+    list.getToDelList().forEach((String childId, ${name} model) {
+      waitList.add(_delChild(model, handler));
+    });
+
+    return Future.wait(waitList)
+    .then((_) => list..resetAllToList())
+    .catchError(_handleErr);
+  }
+
+  static Future<${listName}> get(${pkColumnName.join(', ')}) {
+    Completer completer = new Completer();
+    ObjectStore handler = new IIndexedDBHandlerPool().getReaderHandler(store);
+
+    ${listName} list = new ${listName}(${pkColumnName.join(', ')});
+
+    handler.index(OBJECT_STORE_INDEX_NAME)
+    .openCursor(key: list.getUnitedPK(), autoAdvance: true)
+    .listen((CursorWithValue cursor) {
+      list._set(new ${name}()..fromAbb(cursor.value));
+    }, onDone: () {
+      completer.complete(list);
+    });
+
+    return completer.future;
+  }
+
+  static Future del(${listName} list) {
+    ObjectStore handler = new IIndexedDBHandlerPool().getReaderHandler(store);
+
+    List waitList = [];
+    list.getList().forEach((String childId, ${name} model) {
+      waitList.add(_delChild(model, handler));
+    });
+
+    return Future.wait(waitList);
+  }
+
+  static Future _addChild(${name} model, ObjectStore handler) {
+    Map toAddAbb = model.toAddAbb(true);
+    if (toAddAbb.length == 0) {
+      new IStoreException(27005);
+      Completer completer = new Completer();
+      completer.complete();
+      return completer.future;
+    }
+
+    toAddAbb
+      ..[OBJECT_STORE_PK_NAME] = model.getUnitedWholePK()
+      ..[OBJECT_STORE_INDEX_NAME] = model.getUnitedListPK();
+
+    return handler.add(toAddAbb)
+    .then((setKey) => model..setUpdatedList(false))
+    .catchError((e) {
+      if (e is Event) {
+        if (e.target.error.message == 'Key already exists in the object store.') {
+          new IStoreException(27004);
+          return;
+        }
+        throw e.target.error;
+      }
+      throw e;
+    });
+  }
+
+  static Future _setChild(${name} model, ObjectStore handler) {
+    // indexedDB do not like redis, put(set) will overwrite the whole key
+    // so we use toSet filter the whole _args
+    Map toSetAbb = {};
+    ${name}._mapAbb.forEach((abb, i) {
+      if (${name}._columns[i]['toSet']) return;
+      toSetAbb[abb] = model._args[i];
+    });
+
+    if (toSetAbb.length == 0) new IStoreException(27006);
+
+    toSetAbb
+      ..[OBJECT_STORE_PK_NAME] = model.getUnitedWholePK()
+      ..[OBJECT_STORE_INDEX_NAME] = model.getUnitedListPK();
+
+    return handler.put(toSetAbb)
+    .then((setKey) => model..setUpdatedList(false))
+    .catchError(_handleErr);
+  }
+
+  static Future _delChild(${name} model, ObjectStore handler) {
+    return handler.delete(model.getUnitedWholePK())
+    .catchError(_handleErr);
+  }
+
+  static void _handleErr(e) {
+    if (e is Event) throw e.target.error;
+    throw e;
+  }
+}
+''';
+    return code;
   }
 
   void makeSubDir() {

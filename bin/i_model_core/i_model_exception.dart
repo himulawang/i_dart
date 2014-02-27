@@ -25,6 +25,9 @@ class IModelException {
     '10016': 'Multiple PK is not set.',
     //'10017': 'ChildPK is not set.',
     '10018': 'Multiple ChildPK is not set.',
+    '10019': 'Multiple WholePK is not set.',
+    '10020': 'Multiple ListPK is not set.',
+    '10021': 'List pk is not set.',
   };
   IModelException(int inputCode, [List inputParameters]) {
     code = inputCode;

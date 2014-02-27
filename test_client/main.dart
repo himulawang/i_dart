@@ -257,6 +257,11 @@ startTest() {
         .then(expectAsync1((UserSinglePK pkNew) {
           expect(pkNew.isUpdated(), isFalse);
           expect(identical(pk, pkNew), isTrue);
+          return UserSinglePKIndexedDBStore.get();
+        }))
+        .then(expectAsync1((UserSinglePK pkCheck) {
+          expect(pkCheck.isUpdated(), isFalse);
+          expect(pkCheck.get(), equals(1));
         }));
       });
 
@@ -284,13 +289,132 @@ startTest() {
     group('del', () {
 
       test('del successfully', () {
+
         UserSinglePKIndexedDBStore.del()
-        .then(expectAsync1((_) {
-          return UserSinglePKIndexedDBStore.get();
-        }))
+        .then(expectAsync1((_) => UserSinglePKIndexedDBStore.get()))
         .then(expectAsync1((UserSinglePK pk) {
           expect(pk.get(), isZero);
         }));
+
+      });
+
+    });
+
+  });
+
+  group('idb list store', () {
+
+    group('set', () {
+
+      test('invalid list should throw exception', () {
+        UserMultiList list = new UserMultiList(1, 1);
+        expect(
+            () => SingleListIndexedDBStore.set(list),
+            throwsA(predicate((e) => e is IStoreException && e.code == 22013))
+        );
+      });
+
+      test('set not changed list should get warning', () {
+        SingleList list = new SingleList(1);
+        Future ft = SingleListIndexedDBStore.set(list);
+
+        expect(ft is Future, isTrue);
+      });
+
+      test('add 2 children successfully', () {
+        Single s1 = new Single(new List.filled(orm['Single']['Model']['column'].length, 1));
+        Single s2 = new Single(new List.filled(orm['Single']['Model']['column'].length, 2));
+        s2.id = 1;
+        SingleList list = new SingleList(1);
+        list..add(s1)..add(s2);
+
+        SingleListIndexedDBStore.set(list)
+        .then(expectAsync1((SingleList newList) {
+          expect(newList.getToAddList().length, isZero);
+        }));
+      });
+
+      test('set successfully', () {
+        Single s1 = new Single(new List.filled(orm['Single']['Model']['column'].length, 1));
+        SingleList list = new SingleList.filledList(1, [s1]);
+
+        s1.uniqueName = 'a';
+        list.set(s1);
+
+        SingleListIndexedDBStore.set(list)
+        .then(expectAsync1((SingleList newList) {
+          expect(newList.getToSetList().length, isZero);
+        }));
+      });
+
+      test('del successfully', () {
+        Single s1 = new Single(new List.filled(orm['Single']['Model']['column'].length, 1));
+        SingleList list = new SingleList.filledList(1, [s1]);
+
+        list.del(s1);
+
+        SingleListIndexedDBStore.set(list)
+        .then(expectAsync1((SingleList newList) {
+          expect(newList.getToDelList().length, isZero);
+        }));
+      });
+
+      test('multiple pk: add 2 children successfully', () {
+        Multiple m1 = new Multiple();
+        m1..id = 1
+          ..name = 'a'
+          ..gender = 1
+          ..uniqueName = 1;
+        Multiple m2 = new Multiple();
+        m2..id = 1
+          ..name = 'a'
+          ..gender = 2
+          ..uniqueName = 2;
+
+        MultipleList list = new MultipleList(1, 'a');
+        list..add(m1)..add(m2);
+
+        MultipleListIndexedDBStore.set(list)
+        .then(expectAsync1((MultipleList newList) {
+          expect(newList.getToAddList().length, isZero);
+        }));
+      });
+    });
+
+    group('get', () {
+
+      test('get successfully', () {
+        SingleListIndexedDBStore.get(1)
+        .then(expectAsync1((SingleList list) {
+          expect(list.length, equals(1));
+          Single s2 = list.get(2);
+          expect(s2.name, equals(2));
+        }));
+      });
+
+      test('get not exist list should return empty list', () {
+        SingleListIndexedDBStore.get(2)
+        .then(expectAsync1((SingleList list) {
+          expect(list.length, equals(0));
+        }));
+      });
+
+    });
+
+    group('del', () {
+
+      test('del successfully', () {
+        SingleListIndexedDBStore.get(1)
+        .then(expectAsync1((SingleList list) {
+          return SingleListIndexedDBStore.del(list);
+        }))
+        .then(expectAsync1((SingleList list) {
+          return SingleListIndexedDBStore.get(1);
+        }))
+        .then(expectAsync1((SingleList list) {
+          expect(list.length, equals(0));
+        }));
+
       });
 
     });
@@ -303,6 +427,8 @@ Future flushdb() {
   Database db = IIndexedDBHandlerPool.dbs['GameIDB'];
 
   waitList
+    ..add(clearTable(db, 'SingleList'))
+    ..add(clearTable(db, 'MultipleList'))
     ..add(clearTable(db, 'UserMultiple'))
     ..add(clearTable(db, 'UserSingle'))
     ..add(clearTable(db, 'PK'));
