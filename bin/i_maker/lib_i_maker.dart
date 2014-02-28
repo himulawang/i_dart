@@ -24,5 +24,10 @@ import 'dart:convert';
 part 'i_maker.dart';
 part 'i_model_maker.dart';
 part 'i_store_maker.dart';
+part 'i_rdb_store_maker.dart';
+part 'i_mdb_store_maker.dart';
+part 'i_idb_store_maker.dart';
+part 'i_srv_combined_store_maker.dart';
+
 part 'i_util_maker.dart';
 part 'i_lib_maker.dart';
