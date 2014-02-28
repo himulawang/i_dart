@@ -175,6 +175,7 @@ Map orm = {
                 'name',
                 'gender',
                 'uniqueName',
+                'value',
             ],
             'toAddFilter': [],
             'toSetFilter': [],

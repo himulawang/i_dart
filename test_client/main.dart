@@ -182,7 +182,7 @@ startTest() {
         }));
       });
 
-      test('multiple pk: get successfully', () {
+      test('multiple pk: get child successfully', () {
         UserMultiIndexedDBStore.get(1, 'a', 'b')
         .then(expectAsync1((UserMulti user) {
           expect(user.isExist(), isTrue);
@@ -364,12 +364,14 @@ startTest() {
         m1..id = 1
           ..name = 'a'
           ..gender = 1
-          ..uniqueName = 1;
+          ..uniqueName = 1
+          ..value = 'c';
         Multiple m2 = new Multiple();
         m2..id = 1
           ..name = 'a'
           ..gender = 2
-          ..uniqueName = 2;
+          ..uniqueName = 2
+          ..value = 'c';
 
         MultipleList list = new MultipleList(1, 'a');
         list..add(m1)..add(m2);
@@ -377,6 +379,32 @@ startTest() {
         MultipleListIndexedDBStore.set(list)
         .then(expectAsync1((MultipleList newList) {
           expect(newList.getToAddList().length, isZero);
+        }));
+      });
+
+      test('multiple pk: set children successfully', () {
+        MultipleListIndexedDBStore.get(1, 'a')
+        .then(expectAsync1((MultipleList list) {
+          Multiple m = list.get(2, 2);
+          m.value = 'changed';
+          list.set(m);
+          return MultipleListIndexedDBStore.set(list);
+        }))
+        .then(expectAsync1((MultipleList list) {
+          Multiple m = list.get(2, 2);
+          expect(m.value, equals('changed'));
+        }));
+      });
+
+      test('multiple pk: del children successfully', () {
+        MultipleListIndexedDBStore.get(1, 'a')
+        .then(expectAsync1((MultipleList list) {
+          Multiple m = list.get(2, 2);
+          list.del(m);
+          return MultipleListIndexedDBStore.set(list);
+        }))
+        .then(expectAsync1((MultipleList list) {
+          expect(list.length, equals(1));
         }));
       });
     });
@@ -399,6 +427,13 @@ startTest() {
         }));
       });
 
+      test('multiple pk: get successfully', () {
+        MultipleListIndexedDBStore.get(1, 'a')
+        .then(expectAsync1((MultipleList list) {
+          expect(list.length, equals(1));
+        }));
+      });
+
     });
 
     group('del', () {
@@ -412,9 +447,21 @@ startTest() {
           return SingleListIndexedDBStore.get(1);
         }))
         .then(expectAsync1((SingleList list) {
-          expect(list.length, equals(0));
+          expect(list.length, isZero);
         }));
+      });
 
+      test('multiple pk: del successfully', () {
+        MultipleListIndexedDBStore.get(1, 'a')
+        .then(expectAsync1((MultipleList list) {
+          return MultipleListIndexedDBStore.del(list);
+        }))
+        .then(expectAsync1((MultipleList list) {
+          return MultipleListIndexedDBStore.get(1, 'a');
+        }))
+        .then(expectAsync1((MultipleList list) {
+          expect(list.length, isZero);
+        }));
       });
 
     });
