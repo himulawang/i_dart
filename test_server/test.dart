@@ -28,6 +28,10 @@ class C extends R with A, B {
 
 }
 
+tt(cl) {
+  print(cl);
+}
+
 
 void main() {
   startTimestamp = new DateTime.now().millisecondsSinceEpoch;
@@ -37,10 +41,8 @@ void main() {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-  var c = new C();
-  c.a();
-  c.b();
-  c.root();
+
+  tt(A);
 
 
   /*

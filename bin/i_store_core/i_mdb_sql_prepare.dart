@@ -32,5 +32,17 @@ class IMariaDBSQLPrepare {
     return 'DELETE FROM `${table}` WHERE ${_makeWhere(model)};';
   }
 
+  static String makeAddByClass(String table, prototype) {
+    List columnList = [];
+    prototype._mapFull.forEach((full, i) {
+      if (prototype._columns[i]['toAdd']) return;
+      columnList.add(full);
+    });
+    if (columnList.length == 0) throw new IStoreException(21042);
+    List values = new List.filled(columnList.length, '?');
+
+    return 'INSERT INTO `${table}` (`${columnList.join("`, `")}`) VALUES (${values.join(", ")});';
+  }
+
   static String _makeWhere(IModel model) => '`${model.getPKColumns().join('` = ? AND `')}` = ?';
 }

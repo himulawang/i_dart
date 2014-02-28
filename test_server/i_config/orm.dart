@@ -358,4 +358,26 @@ Map orm = {
             ],
         },
     },
+    'Multiple': {
+        'Model': {
+            'pk': [0, 1, 3],
+            'column': [
+                'id',
+                'name',
+                'gender',
+                'uniqueName',
+                'value',
+            ],
+            'toAddFilter': [],
+            'toSetFilter': [],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [0],
+        },
+        'List': {
+            'className': 'MultipleList',
+            'pk': [0, 1],
+            'childPK': [2, 3],
+        },
+    },
 };

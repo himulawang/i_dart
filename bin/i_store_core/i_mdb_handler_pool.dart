@@ -87,10 +87,18 @@ class IMariaDBHandlerPool {
         shardIndex = 0;
         break;
       case 'CRC32':
-        shardIndex = CRC32.compute(model.getPK().toString()) % modValue;
+        String src;
+        if (model is IModel) {
+          src = model.getPK().toString();
+        } else if (model is IList) {
+          src = model.getUnitedPK();
+        } else {
+          throw new IStoreException(21041);
+        }
+        shardIndex = CRC32.compute(src) % modValue;
         break;
       default:
-        throw new IStoreException(20008);
+        throw new IStoreException(21040);
     }
     return shardIndex;
   }

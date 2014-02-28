@@ -15,7 +15,7 @@ class IStoreException {
       '20005': 'Cannot find config key [db] in redis store.',
       '20006': 'Invalid config value [host] in redis store.',
       '20007': 'Model PK is null when get redis handler.',
-      '20008': 'Invalid shardMethod.',
+      '20008': 'Invalid shardMethod when use redis.',
       '20009': 'Invalid input when get redis handler.',
       //'20021': 'Invalid pk when get model from redis.',
       '20022': 'Invalid model when add model to redis.',
@@ -65,6 +65,10 @@ class IStoreException {
       '21036': 'PK invalid when set to mariaDB.',
       '21037': 'PK value invalid when set to mariaDB.',
       '21038': 'Set pk to mariaDB failed.',
+      '21039': 'Invalid list when set list to mariaDB.',
+      '21040': 'Invalid shardMethod when use mariaDB.',
+      '21041': 'Invalid CRC32 source when get shard index from mariaDB.',
+      '21042': 'No column to use when making add list SQL for mariaDB.',
       // indexedDB
       '22001': 'Browser do not support IndexedDB.',
       '22002': 'Cannot find upgrade script when init IndexedDB.',
@@ -98,6 +102,8 @@ class IStoreException {
       '26005': 'Multiple records affected when del model from mariaDB.',
       '26006': 'PK has not changed when set to mariaDB.',
       '26007': 'PK not exist when del it from mariaDB.',
+      '26008': 'List is not changed when set to mariaDB.',
+      '26009': 'Model has no attribute to add when set list to mariaDB.',
       // indexedDB warning
       '27001': 'Model has no attribute to set to indexedDB.',
       '27002': 'PK has not changed when set to indexedDB.',
