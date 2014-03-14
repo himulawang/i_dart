@@ -104,6 +104,10 @@ class IStoreException {
       '26007': 'PK not exist when del it from mariaDB.',
       '26008': 'List is not changed when set to mariaDB.',
       '26009': 'Model has no attribute to add when set list to mariaDB.',
+      '26010': 'No record affected when update list & set model to mariaDB.',
+      '26011': 'Multiple records affected when update list & set model to mariaDB.',
+      '26012': 'No record affected when update list & del model to mariaDB.',
+      '26013': 'Multiple records affected when update list & del model to mariaDB.',
       // indexedDB warning
       '27001': 'Model has no attribute to set to indexedDB.',
       '27002': 'PK has not changed when set to indexedDB.',

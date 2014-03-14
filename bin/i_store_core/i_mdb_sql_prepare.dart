@@ -4,12 +4,16 @@
  */
 
 class IMariaDBSQLPrepare {
-  static String makeAdd(String table, IModel model) {
-    Map toAddMap = model.toAddFull(true);
-    if (toAddMap.length == 0) throw new IStoreException(21030);
-    List values = new List.filled(toAddMap.length, '?');
+  static String makeAdd(String table, Map mapFull, List columns) {
+    List columnList = [];
+    mapFull.forEach((full, i) {
+      if (columns[i]['toAdd']) return;
+      columnList.add(full);
+    });
+    if (columnList.length == 0) throw new IStoreException(21030);
+    List values = new List.filled(columnList.length, '?');
 
-    return 'INSERT INTO `${table}` (`${toAddMap.keys.join("`, `")}`) VALUES (${values.join(", ")});';
+    return 'INSERT INTO `${table}` (`${columnList.join("`, `")}`) VALUES (${values.join(", ")});';
   }
 
   static String makeSet(String table, IModel model) {
@@ -32,16 +36,16 @@ class IMariaDBSQLPrepare {
     return 'DELETE FROM `${table}` WHERE ${_makeWhere(model)};';
   }
 
-  static String makeAddByClass(String table, prototype) {
-    List columnList = [];
-    prototype._mapFull.forEach((full, i) {
-      if (prototype._columns[i]['toAdd']) return;
-      columnList.add(full);
-    });
-    if (columnList.length == 0) throw new IStoreException(21042);
-    List values = new List.filled(columnList.length, '?');
-
-    return 'INSERT INTO `${table}` (`${columnList.join("`, `")}`) VALUES (${values.join(", ")});';
+  static List makeWhereValues(IModel model, List list) {
+    var pk = model.getPK();
+    if (pk is List) {
+      if (pk.contains(null)) throw new IStoreException(21027);
+      list.addAll(pk);
+    } else {
+      if (pk == null) throw new IStoreException(21027);
+      list.add(pk);
+    }
+    return list;
   }
 
   static String _makeWhere(IModel model) => '`${model.getPKColumns().join('` = ? AND `')}` = ?';

@@ -30,7 +30,7 @@ class ${name}MariaDBStore extends IMariaDBStore {
 
     ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
 
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeAdd(table, model), toAddList)
+    return handler.prepareExecute(IMariaDBSQLPrepare.makeAdd(table, ${name}._mapFull, ${name}._columns), toAddList)
     .then((Results results) {
       if (results.affectedRows != 1) throw new IStoreException(21025);
       return model;
@@ -56,8 +56,10 @@ class ${name}MariaDBStore extends IMariaDBStore {
 
     ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
 
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeSet(table, model), _makeWhereValues(model, toSetList))
-    .then((Results results) {
+    return handler.prepareExecute(
+        IMariaDBSQLPrepare.makeSet(table, model),
+        IMariaDBSQLPrepare.makeWhereValues(model, toSetList)
+    ).then((Results results) {
       if (results.affectedRows == 0) new IStoreException(26002);
       if (results.affectedRows > 1) new IStoreException(26003);
       return model;
@@ -68,8 +70,10 @@ class ${name}MariaDBStore extends IMariaDBStore {
     ${name} model = new ${name}()..setPK(${pkColumnName.join(', ')});
     ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model);
 
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeGet(table, model), _makeWhereValues(model, []))
-    .then((Results results) => results.toList())
+    return handler.prepareExecute(
+        IMariaDBSQLPrepare.makeGet(table, model),
+        IMariaDBSQLPrepare.makeWhereValues(model, [])
+    ).then((Results results) => results.toList())
     .then((List result) {
       if (result.length == 0) return model;
       if (result.length != 1) throw new IStoreException(21022);
@@ -82,8 +86,10 @@ class ${name}MariaDBStore extends IMariaDBStore {
     if (model is! ${name}) throw new IStoreException(21034);
 
     ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model);
-    return handler.prepareExecute(IMariaDBSQLPrepare.makeDel(table, model), _makeWhereValues(model, []))
-    .then((Results results) {
+    return handler.prepareExecute(
+        IMariaDBSQLPrepare.makeDel(table, model),
+        IMariaDBSQLPrepare.makeWhereValues(model, [])
+    ).then((Results results) {
       if (results.affectedRows == 0) new IStoreException(26004);
       if (results.affectedRows != 1) new IStoreException(26005);
       return results.affectedRows;
@@ -91,18 +97,6 @@ class ${name}MariaDBStore extends IMariaDBStore {
   }
 
   static void _handleErr(e) => throw e;
-
-  static List _makeWhereValues(${name} model, List list) {
-    var pk = model.getPK();
-    if (pk is List) {
-      if (pk.contains(null)) throw new IStoreException(21027);
-      list.addAll(pk);
-    } else {
-      if (pk == null) throw new IStoreException(21027);
-      list.add(pk);
-    }
-    return list;
-  }
 }
     ''';
     return code;

@@ -14,24 +14,15 @@ import 'i_config/orm.dart';
 num startTimestamp;
 num endTimestamp;
 
-class R {
-  void root() => print('Root');
-}
+
 class A {
-  void a() => print('A');
-}
-class B {
-  void b() => print('B');
+  static const AA = 'aa';
 }
 
-class C extends R with A, B {
-
+void B(prototype) {
+  var b = new prototype();
+  print(b.AA);
 }
-
-tt(cl) {
-  print(cl);
-}
-
 
 void main() {
   startTimestamp = new DateTime.now().millisecondsSinceEpoch;
@@ -41,11 +32,10 @@ void main() {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-
-  tt(A);
-
+  B(A);
 
   /*
+  tt(A);
   Map test = {};
   test..['a'] = 1..['b'] = 2;
   print(test);
