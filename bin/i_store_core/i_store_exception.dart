@@ -69,6 +69,7 @@ class IStoreException {
       '21040': 'Invalid shardMethod when use mariaDB.',
       '21041': 'Invalid CRC32 source when get shard index from mariaDB.',
       '21042': 'No column to use when making add list SQL for mariaDB.',
+      '21043': 'No column to use when making list get SQL for mariaDB.',
       // indexedDB
       '22001': 'Browser do not support IndexedDB.',
       '22002': 'Cannot find upgrade script when init IndexedDB.',

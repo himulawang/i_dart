@@ -129,6 +129,19 @@ Map orm = {
             'pk': [0],
             'childPK': [1],
         },
+        'ListStore': {
+            'storeOrder': [
+                {
+                    'type': 'mariaDB',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32',
+                    'master': 'GameDB',
+                    'slave': 'GameDBSlave',
+                    'table': 'UserSingle',
+                },
+            ],
+        },
     },
     'UserMulti': {
         'Model': {
@@ -378,6 +391,19 @@ Map orm = {
             'className': 'MultipleList',
             'pk': [0, 1],
             'childPK': [2, 3],
+        },
+        'ListStore': {
+            'storeOrder': [
+                {
+                    'type': 'mariaDB',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32',
+                    'master': 'GameDB',
+                    'slave': 'GameDBSlave',
+                    'table': 'Multiple',
+                },
+            ],
         },
     },
 };

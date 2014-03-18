@@ -75,6 +75,11 @@ class IModelMaker extends IMaker {
       pkColumnRawName.add('${orm['column'][orm['pk'][i]]}Raw');
     }
 
+    List listPKColumnName = [];
+    if (listOrm != null) {
+      listOrm['pk'].forEach((index) => listPKColumnName.add(orm['column'][index]));
+    }
+
     codeSB.write('''
 ${_DECLARATION}
 
@@ -87,6 +92,16 @@ class ${name} extends IModel {
 
   static const List _pk = const ${JSON.encode(orm['pk'])};
   static const List _pkColumns = const ${JSON.encode(pkColumnName)};
+''');
+
+    if (listOrm != null) {
+      codeSB.write('''
+  static const List _listPKColumns = const ${JSON.encode(listPKColumnName)};
+''');
+    }
+
+
+    codeSB.write('''
   static const num _length = ${length};
   static const List _columns = const ${makeConstJSON(columns)};
   static const Map _mapAbb = const ${JSON.encode(mapAbb)};
@@ -160,10 +175,8 @@ class ${name} extends IModel {
 
     if (listOrm != null) {
       // united list pk
-      List listPKColumnName = [];
-      listOrm['pk'].forEach((index) => listPKColumnName.add(orm['column'][index]));
-
       codeSB.writeln('  List getListPK() => [${listPKColumnName.join(', ')}];');
+      codeSB.writeln('  List getListPKColumns() => ${JSON.encode(listPKColumnName)};');
       codeSB.write('''
   String getUnitedListPK() {
     List listPK = getListPK();

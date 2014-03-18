@@ -59,6 +59,11 @@ class IStoreMaker extends IMaker with
         String combinedCode = makeServerCombinedStore(name, orm['Model'], orm['ModelStore']);
         if (!combinedCode.isEmpty) writeFile('${lowerName}_store.dart', _outStoreDir, combinedCode, true);
       }
+      if (orm.containsKey('List') && orm.containsKey('ListStore')) {
+        // mariaDB
+        String mariaDBCode = makeMaraiaDBListStore(name, orm['Model'], orm['List'], orm['ListStore']);
+        if (!mariaDBCode.isEmpty) writeFile('${lowerName}_list_mdb_store.dart', _outStoreDir, mariaDBCode, true);
+      }
     });
 
   }

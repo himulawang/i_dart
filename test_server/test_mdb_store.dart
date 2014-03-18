@@ -48,6 +48,25 @@ CREATE TABLE IF NOT EXISTS `UserMulti` (
   PRIMARY KEY (`id`, `name`, `uniquename`)
 ) ENGINE=InnoDB;
 
+DROP TABLE IF EXISTS `UserSingle`;
+CREATE TABLE IF NOT EXISTS `UserSingle` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(16) NOT NULL,
+  `userName` varchar(32) NOT NULL,
+  `uniqueName` varchar(32) NOT NULL,
+  PRIMARY KEY (`id`, `name`)
+) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS `Multiple`;
+CREATE TABLE IF NOT EXISTS `Multiple` (
+  `id` bigint(20) NOT NULL,
+  `name` varchar(16) NOT NULL,
+  `gender` int(11) NOT NULL,
+  `uniqueName` varchar(32) NOT NULL,
+  `value` int(11) NOT NULL,
+  PRIMARY KEY (`id`, `name`, `gender`, `uniqueName`)
+) ENGINE=InnoDB;
+
  */
 import 'dart:async';
 import 'dart:convert';

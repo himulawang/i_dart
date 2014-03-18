@@ -36,6 +36,17 @@ class IMariaDBSQLPrepare {
     return 'DELETE FROM `${table}` WHERE ${_makeWhere(model)};';
   }
 
+  // list
+  static String makeListGet(String table, IModel model) {
+    Map toGetMap = model.getMapFull();
+    if (toGetMap.length == 0) throw new IStoreException(21032);
+
+    List listPKColumns = model.getListPKColumns();
+    if (listPKColumns.length == 0) throw new IStoreException(21043);
+
+    return 'SELECT `${toGetMap.keys.join("`, `")}` FROM `${table}` WHERE `${listPKColumns.join('` = ? AND `')}` = ?';
+  }
+
   static List makeWhereValues(IModel model, List list) {
     var pk = model.getPK();
     if (pk is List) {
