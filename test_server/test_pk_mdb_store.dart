@@ -40,19 +40,9 @@ Future flushdb() {
 startTest() {
   group('Test pk mdb store', () {
 
-    group('pk', () {
+    group('set', () {
 
       setUp(() => flushdb());
-
-      test('pk not exist should get pk with value 0', () {
-        UserPKMariaDBStore.get()
-        .then(expectAsync1((UserPK pk) {
-          expect(pk.isUpdated(), isFalse);
-          expect(pk.get(), equals(0));
-        }));
-      });
-
-      setUp(() {});
 
       test('set successfully', () {
         UserPK pk = new UserPK();
@@ -65,6 +55,8 @@ startTest() {
         }));
       });
 
+      setUp(() {});
+
       test('set unchanged pk should do nothing', () {
         UserPK pk = new UserPK();
         UserPKMariaDBStore.set(pk)
@@ -73,6 +65,10 @@ startTest() {
         }));
       });
 
+    });
+
+    group('get', () {
+
       test('get successfully', () {
         UserPKMariaDBStore.get()
         .then(expectAsync1((UserPK pk) {
@@ -80,6 +76,18 @@ startTest() {
           expect(pk.get(), equals(3));
         }));
       });
+
+      test('pk not exist should get pk with value 0', () {
+        RoomPKMariaDBStore.get()
+        .then(expectAsync1((RoomPK pk) {
+          expect(pk.isUpdated(), isFalse);
+          expect(pk.get(), equals(0));
+        }));
+      });
+
+    });
+
+    group('del', () {
 
       test('del successfully', () {
         UserPK pk = new UserPK();
