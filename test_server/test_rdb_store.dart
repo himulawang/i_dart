@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:redis_client/redis_client.dart';
+import 'package:i_redis/i_redis.dart';
 
 import 'lib_test.dart';
 import 'i_config/store.dart';
@@ -28,7 +28,7 @@ Future flushdb() {
   // flushdb
   List waitList = [];
   IRedisHandlerPool.dbs.forEach((groupName, List group) {
-    group.forEach((RedisClient redisClient) => waitList.add(redisClient.flushdb()));
+    group.forEach((IRedis redisClient) => waitList.add(redisClient.flushdb()));
   });
   return Future.wait(waitList);
 }
@@ -81,7 +81,7 @@ startTest() {
       test('add expire model successfully', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.underworldName = '2';
-        UserRedisStore.add(user).then(expectAsync1((User user) {
+        UserRedisStore.add(user).then(expectAsync((User user) {
           expect(user is User, isTrue);
         }));
       });
@@ -89,14 +89,14 @@ startTest() {
       test('add no expire model successfully', () {
         UserForever user = new UserForever(new List.filled(orm['UserForever']['Model']['column'].length, 1));
         user.name = '2';
-        UserForeverRedisStore.add(user).then(expectAsync1((UserForever user) {
+        UserForeverRedisStore.add(user).then(expectAsync((UserForever user) {
           expect(user is UserForever, isTrue);
         }));
       });
 
       test('model exist should throw exception', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
-        UserRedisStore.add(user).catchError(expectAsync1((e) {
+        UserRedisStore.add(user).catchError(expectAsync((e) {
           expect(e is IStoreException, equals(true));
           expect(e.code, equals(20024));
         }));
@@ -120,7 +120,7 @@ startTest() {
           ..uniqueName = 'bb'
         ;
 
-        UserMultiRedisStore.add(um).then(expectAsync1((UserMulti userMulti) {
+        UserMultiRedisStore.add(um).then(expectAsync((UserMulti userMulti) {
           expect(userMulti is UserMulti, isTrue);
         }));
       });
@@ -148,11 +148,11 @@ startTest() {
       test('toSetAbb return list length is 0 should get warning', () {
         UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm['UserToSetLengthZero']['Model']['column'].length, 1));
         UserToSetLengthZeroRedisStore.add(user)
-        .then(expectAsync1((UserToSetLengthZero user) {
+        .then(expectAsync((UserToSetLengthZero user) {
           user.name = '2';
           return UserToSetLengthZeroRedisStore.set(user);
         }))
-        .then(expectAsync1((UserToSetLengthZero user) {
+        .then(expectAsync((UserToSetLengthZero user) {
           expect(user is UserToSetLengthZero, isTrue);
         }));
       });
@@ -160,7 +160,7 @@ startTest() {
       test('set expire model successfully', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = '2';
-        UserRedisStore.set(user).then(expectAsync1((User user) {
+        UserRedisStore.set(user).then(expectAsync((User user) {
           expect(user is User, isTrue);
         }));
       });
@@ -168,7 +168,7 @@ startTest() {
       test('set expire model successfully', () {
         UserForever user = new UserForever(new List.filled(orm['UserForever']['Model']['column'].length, 1));
         user.name = '2';
-        UserForeverRedisStore.set(user).then(expectAsync1((UserForever user) {
+        UserForeverRedisStore.set(user).then(expectAsync((UserForever user) {
           expect(user is UserForever, isTrue);
         }));
       });
@@ -187,7 +187,7 @@ startTest() {
         UserMulti um = new UserMulti([10, 'aa', 1, 'bb'])
           ..gender = 200
         ;
-        UserMultiRedisStore.set(um).then(expectAsync1((UserMulti userMulti) {
+        UserMultiRedisStore.set(um).then(expectAsync((UserMulti userMulti) {
           expect(userMulti is UserMulti, isTrue);
         }));
       });
@@ -197,7 +197,7 @@ startTest() {
       test('model not exist should throw exception', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = '2';
-        UserRedisStore.set(user).catchError(expectAsync1((e) {
+        UserRedisStore.set(user).catchError(expectAsync((e) {
           expect(e is IStoreException, equals(true));
           expect(e.code, equals(20028));
         }));
@@ -210,7 +210,7 @@ startTest() {
     group('get', () {
 
       test('model does not exist in redis return model', () {
-        UserRedisStore.get(22).then(expectAsync1((User user) {
+        UserRedisStore.get(22).then(expectAsync((User user) {
           expect(user.isExist(), equals(false));
         }));
       });
@@ -220,9 +220,9 @@ startTest() {
         UserRedisStore
         .add(user)
         .then((_) => UserRedisStore.get(1))
-        .then(expectAsync1((User gotUser) {
-          expect(gotUser.getPK(), equals(1));
-          expect(gotUser.name, equals(1));
+        .then(expectAsync((User gotUser) {
+          expect(gotUser.getPK(), '1');
+          expect(gotUser.name, '1');
         }));
       });
 
@@ -231,9 +231,9 @@ startTest() {
         UserMultiRedisStore
         .add(um)
         .then((_) => UserMultiRedisStore.get(2, 'aa', 'bb'))
-        .then(expectAsync1((UserMulti gotUM) {
+        .then(expectAsync((UserMulti gotUM) {
           expect(gotUM.isExist(), isTrue);
-          expect(gotUM.getPK(), equals([2, 'aa', 'bb']));
+          expect(gotUM.getPK(), equals(['2', 'aa', 'bb']));
           expect(gotUM.name, equals('aa'));
         }));
       });
@@ -253,15 +253,15 @@ startTest() {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserRedisStore
         .del(user)
-        .then(expectAsync1((result) {
-          expect(result, equals(true));
+        .then(expectAsync((result) {
+          expect(result, 1);
         }));
       });
 
       test('del model not exist return normally', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
-        UserRedisStore.del(user).then(expectAsync1((result) {
-          expect(result, isFalse);
+        UserRedisStore.del(user).then(expectAsync((result) {
+          expect(result, 0);
         }));
       });
 
@@ -273,8 +273,8 @@ startTest() {
       test('multiple pk: del success', () {
         UserMulti um = new UserMulti([2, 'aa', 200, 'bb']);
         UserMultiRedisStore.del(um)
-        .then(expectAsync1((result) {
-          expect(result, isTrue);
+        .then(expectAsync((result) {
+          expect(result, 1);
         }));
       });
 

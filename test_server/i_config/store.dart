@@ -3,18 +3,18 @@ library store;
 Map store = {
     'redis': {
         'GameCache': [
-            {'no': 0, 'host': 'sha-vila-001', 'port': 6379, 'pwd': null, 'db': '0'},
-            {'no': 1, 'host': 'sha-vila-001', 'port': 6380, 'pwd': null, 'db': '0'},
+            {'no': 0, 'host': 'localhost', 'port': 6379, 'pwd': null, 'db': '0'},
+            {'no': 1, 'host': 'localhost', 'port': 6380, 'pwd': null, 'db': '0'},
         ],
         'GameCacheSlave': [
-            {'no': 0, 'host': 'sha-vila-001', 'port': 6381, 'pwd': null, 'db': '0'},
-            {'no': 1, 'host': 'sha-vila-001', 'port': 6382, 'pwd': null, 'db': '0'},
+            {'no': 0, 'host': 'localhost', 'port': 6381, 'pwd': null, 'db': '0'},
+            {'no': 1, 'host': 'localhost', 'port': 6382, 'pwd': null, 'db': '0'},
         ],
         'SingleCache': [
-            {'no': 0, 'host': 'sha-vila-001', 'port': 6383, 'pwd': null, 'db': '0'},
+            {'no': 0, 'host': 'localhost', 'port': 6383, 'pwd': null, 'db': '0'},
         ],
         'SingleCacheSlave': [
-            {'no': 0, 'host': 'sha-vila-001', 'port': 6384, 'pwd': null, 'db': '0'},
+            {'no': 0, 'host': 'localhost', 'port': 6384, 'pwd': null, 'db': '0'},
         ],
     },
     'mariaDB': {

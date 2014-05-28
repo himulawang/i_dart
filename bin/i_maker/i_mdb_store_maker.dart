@@ -85,7 +85,7 @@ class ${name}MariaDBStore extends IMariaDBStore {
   static Future del(model) {
     if (model is! ${name}) throw new IStoreException(21034);
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
     return handler.prepareExecute(
         IMariaDBSQLPrepare.makeDel(table, model),
         IMariaDBSQLPrepare.makeWhereValues(model, [])

@@ -69,7 +69,7 @@ class ${pkName}RedisStore extends IRedisStore {
     num value = pk.get();
     if (value is! num) throw new IStoreException(20035);
 
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, pk);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, pk);
     return handler.set(_key, value.toString())
     .then((String result) {
       if (result != 'OK') throw new IStoreException(20036);
@@ -81,11 +81,11 @@ class ${pkName}RedisStore extends IRedisStore {
   static Future get() {
     ${pkName} pk = new ${pkName}();
 
-    RedisClient handler = new IRedisHandlerPool().getReaderHandler(store, pk);
+    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, pk);
 
     return handler.exists(_key)
-    .then((bool exist) {
-      if (!exist) throw new IStoreException(25006);
+    .then((int exists) {
+      if (exists == 0) throw new IStoreException(25006);
       return handler.get(_key);
     })
     .then((String value) => pk..set(int.parse(value))..setUpdated(false))
@@ -96,19 +96,19 @@ class ${pkName}RedisStore extends IRedisStore {
   }
 
   static Future del(pk) {
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, pk);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, pk);
 
     return handler.del(_key)
-    .then((bool result) {
-      if (!result) new IStoreException(25007);
-      return result;
+    .then((num deletedNum) {
+      if (deletedNum == 0) new IStoreException(25007);
+      return deletedNum;
     })
     .catchError(_handleErr);
   }
 
   static Future incr() {
     ${pkName} pk = new ${pkName}();
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, pk);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, pk);
 
     return handler.incr(_key)
     .then((num value) => pk..set(value)..setUpdated(false))
@@ -121,6 +121,10 @@ class ${pkName}RedisStore extends IRedisStore {
     return code;
   }
 
+  String makeRedisListStore(String name, Map orm, Map storeOrm) {
+
+  }
+
   String _makeRedisAdd(String name, Map orm, Map storeConfig) {
     String codeHeader = '''
   static Future add(${name} model) {
@@ -131,11 +135,11 @@ class ${pkName}RedisStore extends IRedisStore {
     Map toAddAbb = model.toAddAbb(true);
     if (toAddAbb.length == 0) throw new IStoreException(20032);
 
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
 
     return handler.exists(key)
-    .then((bool exist) {
-      if (exist) throw new IStoreException(20024);
+    .then((int exists) {
+      if (exists == 1) throw new IStoreException(20024);
       return handler.hmset(key, toAddAbb);
     })
 ''';
@@ -145,8 +149,8 @@ class ${pkName}RedisStore extends IRedisStore {
       if (result != 'OK') throw new IStoreException(20025);
       return handler.expire(key, ${storeConfig['expire']});
     })
-    .then((bool result) {
-      if (result) return model;
+    .then((int result) {
+      if (result == 1) return model;
       new IStoreException(25004);
       return model;
     })
@@ -186,11 +190,11 @@ class ${pkName}RedisStore extends IRedisStore {
 
     Map toSetAbb = model.toSetAbb(true);
 
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
 
     return handler.exists(key)
-    .then((bool exist) {
-      if (!exist) throw new IStoreException(20028);
+    .then((int exists) {
+      if (exists == 0) throw new IStoreException(20028);
       if (toSetAbb.length == 0)  throw new IStoreException(25001);
 
       return handler.hmset(key, toSetAbb);
@@ -202,9 +206,9 @@ class ${pkName}RedisStore extends IRedisStore {
       if (result != 'OK') throw new IStoreException(20029);
       return handler.expire(key, ${storeConfig['expire']});
     })
-    .then((bool result) {
-      if (result) return model;
-      new IStoreException(25005);
+    .then((int result) {
+      if (result == 1) return model;
+      new IStoreException(25010);
       return model;
     })
 ''';
@@ -249,12 +253,12 @@ class ${pkName}RedisStore extends IRedisStore {
 
     String key = _makeKey(model);
 
-    RedisClient handler = new IRedisHandlerPool().getReaderHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, model);
 
     return handler.exists(key)
-    .then((bool exist) {
-      if (!exist) throw new IStoreException(25003);
-      return handler.hmget(key, model.getMapAbb().keys);
+    .then((int exists) {
+      if (exists == 0) throw new IStoreException(25003);
+      return handler.hmget(key, new List.from(model.getMapAbb().keys));
     })
     .then((List data) => model..fromList(data)..setExist())
     .catchError((e) {
@@ -277,13 +281,13 @@ class ${pkName}RedisStore extends IRedisStore {
   static Future del(${name} model) {
     if (model is! ${name}) throw new IStoreException(20030);
 
-    RedisClient handler = new IRedisHandlerPool().getReaderHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
 
     String key = _makeKey(model);
 
     return handler.del(key)
-    .then((bool result) {
-      if (!result) new IStoreException(25002);
+    .then((int result) {
+      if (result == 0) new IStoreException(25002);
       return result;
     })
     .catchError(_handleErr);

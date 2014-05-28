@@ -68,7 +68,7 @@ startTest() {
       test('model exists should throw exception', () {
         UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
         UserSingleIndexedDBStore.add(user)
-        .catchError(expectAsync1((e) {
+        .catchError(expectAsync((e) {
           expect(e is IStoreException, isTrue);
           expect(e.code == 22007, isTrue);
         }));
@@ -166,7 +166,7 @@ startTest() {
 
       test('get successfully', () {
         UserSingleIndexedDBStore.get(1)
-        .then(expectAsync1((UserSingle user) {
+        .then(expectAsync((UserSingle user) {
           expect(user.isExist(), isTrue);
           expect(user.id, equals(1));
           expect(user.name, equals('a'));
@@ -176,7 +176,7 @@ startTest() {
 
       test('model does not exist in indexedDB return model', () {
         UserSingleIndexedDBStore.get(2)
-        .then(expectAsync1((UserSingle user) {
+        .then(expectAsync((UserSingle user) {
           expect(user.isExist(), isFalse);
           expect(user.id, equals(2));
         }));
@@ -184,7 +184,7 @@ startTest() {
 
       test('multiple pk: get child successfully', () {
         UserMultiIndexedDBStore.get(1, 'a', 'b')
-        .then(expectAsync1((UserMulti user) {
+        .then(expectAsync((UserMulti user) {
           expect(user.isExist(), isTrue);
           expect(user.id, equals(1));
           expect(user.name, equals('a'));
@@ -208,7 +208,7 @@ startTest() {
         UserSingle user = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
         UserSingleIndexedDBStore.del(user).then((_) {
           return UserSingleIndexedDBStore.get(1);
-        }).then(expectAsync1((UserSingle u) {
+        }).then(expectAsync((UserSingle u) {
           expect(u.isExist(), isFalse);
         }));
       });
@@ -217,7 +217,7 @@ startTest() {
         UserMulti user = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
         UserMultiIndexedDBStore.del(user).then((_) {
           return UserSingleIndexedDBStore.get(1);
-        }).then(expectAsync1((UserMulti u) {
+        }).then(expectAsync((UserMulti u) {
           expect(u.isExist(), isFalse);
         }));
       });
@@ -254,12 +254,12 @@ startTest() {
         pk.incr();
 
         UserSinglePKIndexedDBStore.set(pk)
-        .then(expectAsync1((UserSinglePK pkNew) {
+        .then(expectAsync((UserSinglePK pkNew) {
           expect(pkNew.isUpdated(), isFalse);
           expect(identical(pk, pkNew), isTrue);
           return UserSinglePKIndexedDBStore.get();
         }))
-        .then(expectAsync1((UserSinglePK pkCheck) {
+        .then(expectAsync((UserSinglePK pkCheck) {
           expect(pkCheck.isUpdated(), isFalse);
           expect(pkCheck.get(), equals(1));
         }));
@@ -271,14 +271,14 @@ startTest() {
 
       test('pk not exist should get pk with value 0', () {
         UserMultiPKIndexedDBStore.get()
-        .then(expectAsync1((UserMultiPK pk) {
+        .then(expectAsync((UserMultiPK pk) {
           expect(pk.get(), isZero);
         }));
       });
 
       test('get successfully', () {
         UserSinglePKIndexedDBStore.get()
-        .then(expectAsync1((UserSinglePK pk) {
+        .then(expectAsync((UserSinglePK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(1));
         }));
@@ -291,8 +291,8 @@ startTest() {
       test('del successfully', () {
 
         UserSinglePKIndexedDBStore.del()
-        .then(expectAsync1((_) => UserSinglePKIndexedDBStore.get()))
-        .then(expectAsync1((UserSinglePK pk) {
+        .then(expectAsync((_) => UserSinglePKIndexedDBStore.get()))
+        .then(expectAsync((UserSinglePK pk) {
           expect(pk.get(), isZero);
         }));
 
@@ -329,7 +329,7 @@ startTest() {
         list..add(s1)..add(s2);
 
         SingleListIndexedDBStore.set(list)
-        .then(expectAsync1((SingleList newList) {
+        .then(expectAsync((SingleList newList) {
           expect(newList.getToAddList().length, isZero);
         }));
       });
@@ -342,7 +342,7 @@ startTest() {
         list.set(s1);
 
         SingleListIndexedDBStore.set(list)
-        .then(expectAsync1((SingleList newList) {
+        .then(expectAsync((SingleList newList) {
           expect(newList.getToSetList().length, isZero);
         }));
       });
@@ -354,7 +354,7 @@ startTest() {
         list.del(s1);
 
         SingleListIndexedDBStore.set(list)
-        .then(expectAsync1((SingleList newList) {
+        .then(expectAsync((SingleList newList) {
           expect(newList.getToDelList().length, isZero);
         }));
       });
@@ -377,20 +377,20 @@ startTest() {
         list..add(m1)..add(m2);
 
         MultipleListIndexedDBStore.set(list)
-        .then(expectAsync1((MultipleList newList) {
+        .then(expectAsync((MultipleList newList) {
           expect(newList.getToAddList().length, isZero);
         }));
       });
 
       test('multiple pk: set children successfully', () {
         MultipleListIndexedDBStore.get(1, 'a')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           Multiple m = list.get(2, 2);
           m.value = 'changed';
           list.set(m);
           return MultipleListIndexedDBStore.set(list);
         }))
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           Multiple m = list.get(2, 2);
           expect(m.value, equals('changed'));
         }));
@@ -398,12 +398,12 @@ startTest() {
 
       test('multiple pk: del children successfully', () {
         MultipleListIndexedDBStore.get(1, 'a')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           Multiple m = list.get(2, 2);
           list.del(m);
           return MultipleListIndexedDBStore.set(list);
         }))
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           expect(list.length, equals(1));
         }));
       });
@@ -413,7 +413,7 @@ startTest() {
 
       test('get successfully', () {
         SingleListIndexedDBStore.get(1)
-        .then(expectAsync1((SingleList list) {
+        .then(expectAsync((SingleList list) {
           expect(list.length, equals(1));
           Single s2 = list.get(2);
           expect(s2.name, equals(2));
@@ -422,14 +422,14 @@ startTest() {
 
       test('get not exist list should return empty list', () {
         SingleListIndexedDBStore.get(2)
-        .then(expectAsync1((SingleList list) {
+        .then(expectAsync((SingleList list) {
           expect(list.length, equals(0));
         }));
       });
 
       test('multiple pk: get successfully', () {
         MultipleListIndexedDBStore.get(1, 'a')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           expect(list.length, equals(1));
         }));
       });
@@ -440,26 +440,26 @@ startTest() {
 
       test('del successfully', () {
         SingleListIndexedDBStore.get(1)
-        .then(expectAsync1((SingleList list) {
+        .then(expectAsync((SingleList list) {
           return SingleListIndexedDBStore.del(list);
         }))
-        .then(expectAsync1((SingleList list) {
+        .then(expectAsync((SingleList list) {
           return SingleListIndexedDBStore.get(1);
         }))
-        .then(expectAsync1((SingleList list) {
+        .then(expectAsync((SingleList list) {
           expect(list.length, isZero);
         }));
       });
 
       test('multiple pk: del successfully', () {
         MultipleListIndexedDBStore.get(1, 'a')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           return MultipleListIndexedDBStore.del(list);
         }))
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           return MultipleListIndexedDBStore.get(1, 'a');
         }))
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           expect(list.length, isZero);
         }));
       });

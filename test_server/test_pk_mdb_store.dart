@@ -50,7 +50,7 @@ startTest() {
         pk.incr();
         pk.incr();
         UserPKMariaDBStore.set(pk)
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
         }));
       });
@@ -60,7 +60,7 @@ startTest() {
       test('set unchanged pk should do nothing', () {
         UserPK pk = new UserPK();
         UserPKMariaDBStore.set(pk)
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
         }));
       });
@@ -71,7 +71,7 @@ startTest() {
 
       test('get successfully', () {
         UserPKMariaDBStore.get()
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(3));
         }));
@@ -79,7 +79,7 @@ startTest() {
 
       test('pk not exist should get pk with value 0', () {
         RoomPKMariaDBStore.get()
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(0));
         }));
@@ -93,7 +93,7 @@ startTest() {
         UserPK pk = new UserPK();
         UserPKMariaDBStore.del(pk)
         .then((_) => UserPKMariaDBStore.get())
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(0));
         }));
@@ -102,7 +102,7 @@ startTest() {
       test('del pk not exist should get warning', () {
         UserPK pk = new UserPK();
         UserPKMariaDBStore.del(pk)
-        .then(expectAsync1((bool result) {
+        .then(expectAsync((bool result) {
           expect(result, isFalse);
         }));
       });

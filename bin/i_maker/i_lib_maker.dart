@@ -5,7 +5,7 @@ class ILibraryMaker extends IMaker {
 import 'dart:async';
 import 'dart:convert';
 
-import 'package:redis_client/redis_client.dart';
+import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
 import 'package:logging/logging.dart';
 

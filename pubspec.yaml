@@ -1,11 +1,12 @@
 name: i_dart
 description: ParaNoidz I Framework for Dart
 dependencies:
+  unittest: any
   sqljocky: any
   redis_client: any
-  unittest: any
   lawndart: any
   http: any
   logging: any
   http_server: any
   route: any
+  i_redis: any

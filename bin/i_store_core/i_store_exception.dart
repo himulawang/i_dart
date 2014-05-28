@@ -8,12 +8,12 @@ class IStoreException {
   List parameters;
   static final Map _CODES = {
       // redis exception
-      '20001': 'Cannot find config key [no] in redis store.',
-      '20002': 'Cannot find config key [host] in redis store.',
-      '20003': 'Cannot find config key [port] in redis store.',
-      '20004': 'Cannot find config key [pwd] in redis store.',
-      '20005': 'Cannot find config key [db] in redis store.',
-      '20006': 'Invalid config value [host] in redis store.',
+      //'20001': 'Cannot find config key [no] in redis store.',
+      //'20002': 'Cannot find config key [host] in redis store.',
+      //'20003': 'Cannot find config key [port] in redis store.',
+      //'20004': 'Cannot find config key [pwd] in redis store.',
+      //'20005': 'Cannot find config key [db] in redis store.',
+      //'20006': 'Invalid config value [host] in redis store.',
       '20007': 'Model PK is null when get redis handler.',
       '20008': 'Invalid shardMethod when use redis.',
       '20009': 'Invalid input when get redis handler.',
@@ -33,7 +33,7 @@ class IStoreException {
       '20034': 'PK invalid when set to redis.',
       '20035': 'PK value invalid when set to redis.',
       '20036': 'Set PK to redis failed.',
-      '20037': 'Invalid id when get list from redis.',
+      //'20037': 'Invalid id when get list from redis.',
       '20038': 'Invalid list when del list from redis.',
       '20039': 'Invalid id when del list from redis.',
       '20040': 'Invalid list when set list to redis.',
@@ -95,6 +95,7 @@ class IStoreException {
       '25007': 'PK not exist when del it from redis.',
       '25008': 'List not exist when get it from redis.',
       '25009': 'List is not changed when set to redis.',
+      '25010': 'Set expire failed when set model to redis.',
       // mariaDB warning
       '26001': 'Model has no attribute to set to mariaDB.',
       '26002': 'No record affected when set model to mariaDB.',

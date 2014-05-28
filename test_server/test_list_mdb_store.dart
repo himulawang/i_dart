@@ -62,7 +62,7 @@ startTest() {
         UserSingleList list = new UserSingleList(1);
 
         UserSingleListMariaDBStore.set(list)
-        .then(expectAsync1((UserSingleList newList) {
+        .then(expectAsync((UserSingleList newList) {
           expect(identical(list, newList), isTrue);
         }));
       });
@@ -83,11 +83,11 @@ startTest() {
         list..add(u1)..add(u2);
 
         UserSingleListMariaDBStore.set(list)
-        .then(expectAsync1((UserSingleList newList) {
+        .then(expectAsync((UserSingleList newList) {
           expect(identical(list, newList), isTrue);
           return UserSingleListMariaDBStore.get(1);
         }))
-        .then(expectAsync1((UserSingleList checkList) {
+        .then(expectAsync((UserSingleList checkList) {
           UserSingle u1 = checkList.get('ila');
           expect(u1.id, equals(1));
           expect(u1.name, equals('ila'));
@@ -102,7 +102,7 @@ startTest() {
 
       test('set child successfully', () {
         UserSingleListMariaDBStore.get(1)
-        .then(expectAsync1((UserSingleList list) {
+        .then(expectAsync((UserSingleList list) {
           UserSingle u1 = list.get('ila');
           u1.uniqueName = 'ParaNoidz';
           u1.userName = 'bb';
@@ -110,10 +110,10 @@ startTest() {
           list.set(u1);
 
           return UserSingleListMariaDBStore.set(list);
-        })).then(expectAsync1((UserSingleList checkList) {
+        })).then(expectAsync((UserSingleList checkList) {
           return UserSingleListMariaDBStore.get(1);
         }))
-        .then(expectAsync1((UserSingleList list) {
+        .then(expectAsync((UserSingleList list) {
           UserSingle u1 = list.get('ila');
           expect(u1.id, equals(1));
           expect(u1.name, equals('ila'));
@@ -129,16 +129,16 @@ startTest() {
 
       test('del child successfully', () {
         UserSingleListMariaDBStore.get(1)
-        .then(expectAsync1((UserSingleList list) {
+        .then(expectAsync((UserSingleList list) {
           UserSingle u1 = list.get('ila');
 
           list.del(u1);
 
           return UserSingleListMariaDBStore.set(list);
-        })).then(expectAsync1((UserSingleList checkList) {
+        })).then(expectAsync((UserSingleList checkList) {
           return UserSingleListMariaDBStore.get(1);
         }))
-        .then(expectAsync1((UserSingleList list) {
+        .then(expectAsync((UserSingleList list) {
           UserSingle u1 = list.get('ila');
           expect(u1, isNull);
 
@@ -167,11 +167,11 @@ startTest() {
         list..add(m1)..add(m2);
 
         MultipleListMariaDBStore.set(list)
-        .then(expectAsync1((MultipleList newList) {
+        .then(expectAsync((MultipleList newList) {
           expect(identical(list, newList), isTrue);
           return MultipleListMariaDBStore.get(1, 'ila');
         }))
-        .then(expectAsync1((MultipleList checkList) {
+        .then(expectAsync((MultipleList checkList) {
           Multiple m1 = checkList.get(0, 'Empire');
           expect(m1.id, equals(1));
           expect(m1.name, equals('ila'));
@@ -190,17 +190,17 @@ startTest() {
 
       test('multiple pk: set child successfully', () {
         MultipleListMariaDBStore.get(1, 'ila')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           Multiple m1 = list.get(0, 'Empire');
           m1.value = 300;
 
           list.set(m1);
 
           return MultipleListMariaDBStore.set(list);
-        })).then(expectAsync1((MultipleList checkList) {
+        })).then(expectAsync((MultipleList checkList) {
           return MultipleListMariaDBStore.get(1, 'ila');
         }))
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           Multiple m1 = list.get(0, 'Empire');
           expect(m1.id, equals(1));
           expect(m1.name, equals('ila'));
@@ -219,16 +219,16 @@ startTest() {
 
       test('multiple pk: del child successfully', () {
         MultipleListMariaDBStore.get(1, 'ila')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           Multiple m1 = list.get(0, 'Empire');
 
           list.del(m1);
 
           return MultipleListMariaDBStore.set(list);
-        })).then(expectAsync1((MultipleList checkList) {
+        })).then(expectAsync((MultipleList checkList) {
           return MultipleListMariaDBStore.get(1, 'ila');
         }))
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           Multiple m1 = list.get(0, 'Empire');
           expect(m1, isNull);
 
@@ -247,7 +247,7 @@ startTest() {
 
       test('get successfully', () {
         UserSingleListMariaDBStore.get(1)
-        .then(expectAsync1((UserSingleList list) {
+        .then(expectAsync((UserSingleList list) {
           UserSingle u1 = list.get('Dya');
           expect(u1.id, equals(1));
           expect(u1.name, 'Dya');
@@ -258,14 +258,14 @@ startTest() {
 
       test('get not exist list should return empty list', () {
         MultipleListMariaDBStore.get(2, 'ila')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           expect(list.length, isZero);
         }));
       });
 
       test('multiple pk: get successfully', () {
         MultipleListMariaDBStore.get(1, 'ila')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           Multiple m2 = list.get(1, 'ParaNoidz');
           expect(m2.id, equals(1));
           expect(m2.name, equals('ila'));
@@ -281,26 +281,26 @@ startTest() {
 
       test('del successfully', () {
         UserSingleListMariaDBStore.get(1)
-        .then(expectAsync1((UserSingleList list) {
+        .then(expectAsync((UserSingleList list) {
           return UserSingleListMariaDBStore.del(list);
         }))
-        .then(expectAsync1((UserSingleList list) {
+        .then(expectAsync((UserSingleList list) {
           return UserSingleListMariaDBStore.get(1);
         }))
-        .then(expectAsync1((UserSingleList list) {
+        .then(expectAsync((UserSingleList list) {
           expect(list.length, isZero);
         }));
       });
 
       test('multiple pk: del successfully', () {
         MultipleListMariaDBStore.get(1, 'ila')
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           return MultipleListMariaDBStore.del(list);
         }))
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           return MultipleListMariaDBStore.get(1, 'ila');
         }))
-        .then(expectAsync1((MultipleList list) {
+        .then(expectAsync((MultipleList list) {
           expect(list.length, isZero);
         }));
       });

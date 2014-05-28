@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:redis_client/redis_client.dart';
+import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
 
 import 'lib_test.dart';
@@ -30,7 +30,7 @@ Future flushdb() {
   // flushdb
   List waitList = [];
   IRedisHandlerPool.dbs.forEach((groupName, List group) {
-    group.forEach((RedisClient redisClient) => waitList.add(redisClient.flushdb()));
+    group.forEach((IRedis redisClient) => waitList.add(redisClient.flushdb()));
   });
   return Future.wait(waitList);
 }
@@ -48,7 +48,7 @@ startTest() {
         pk.incr();
         pk.incr();
         UserPKRedisStore.set(pk)
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
         }));
       });
@@ -58,7 +58,7 @@ startTest() {
       test('set unchanged pk should do nothing', () {
         UserPK pk = new UserPK();
         UserPKRedisStore.set(pk)
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
         }));
       });
@@ -69,7 +69,7 @@ startTest() {
 
       test('get successfully', () {
         UserPKRedisStore.get()
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(3));
         }));
@@ -77,7 +77,7 @@ startTest() {
 
       test('pk not exist should get pk with value 0', () {
         RoomPKRedisStore.get()
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(0));
         }));
@@ -91,7 +91,7 @@ startTest() {
         UserPK pk = new UserPK();
         UserPKRedisStore.del(pk)
         .then((_) => UserPKRedisStore.get())
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(0));
         }));
@@ -100,8 +100,8 @@ startTest() {
       test('del pk not exist should get warning', () {
         UserPK pk = new UserPK();
         UserPKRedisStore.del(pk)
-        .then(expectAsync1((bool result) {
-          expect(result, isFalse);
+        .then(expectAsync((int result) {
+          expect(result, 0);
         }));
       });
 
@@ -111,15 +111,15 @@ startTest() {
 
       test('incr successfully', () {
         UserPKRedisStore.incr()
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(1));
           return UserPKRedisStore.incr();
         }))
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(2));
           return UserPKRedisStore.incr();
         }))
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(3));
           return UserPKRedisStore.incr();
         }));

@@ -10,6 +10,7 @@ class IList {
   Map _toDelList = {};
   Map _toSetList = {};
   bool _updated = false;
+  bool _exist = false;
 
   bool _set(IModel model) => _list[model.getUnitedChildPK()] = model;
 
@@ -32,6 +33,9 @@ class IList {
     resetToSetList();
     _updated = false;
   }
+
+  void setExist([bool exist = true]) { _exist = exist; }
+  bool isExist() => _exist;
 
   void add(IModel model) {
     String index = model.getUnitedChildPK();

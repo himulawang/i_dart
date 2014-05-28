@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:redis_client/redis_client.dart';
+import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
 
 import 'lib_test.dart';
@@ -30,7 +30,7 @@ Future flushdb() {
   // flushdb
   List waitList = [];
   IRedisHandlerPool.dbs.forEach((groupName, List group) {
-    group.forEach((RedisClient redisClient) => waitList.add(redisClient.flushdb()));
+    group.forEach((IRedis redisClient) => waitList.add(redisClient.flushdb()));
   });
   return Future.wait(waitList);
 }
@@ -46,7 +46,7 @@ startTest() {
         RoomList roomList = new RoomList(1);
 
         expect(
-            () => UserListRedisStore.set(roomList),
+            () => UserSingleListRedisStore.set(roomList),
             throwsA(predicate((e) => e is IStoreException && e.code == 20040))
         );
       });
@@ -54,35 +54,53 @@ startTest() {
       setUp(() {});
 
       test('first add 2 child successfully', () {
-        User user1 = new User(new List.filled(orm[0]['column'].length, 1));
-        User user2 = new User(new List.filled(orm[0]['column'].length, 2));
+        UserSingle us1 = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
+        UserSingle us2 = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 2));
 
-        UserList userList = new UserList(1);
-        userList..add(user1)..add(user2);
+        UserSingleList userSingleList = new UserSingleList(1);
+        userSingleList..add(us1)..add(us2);
 
-        UserListRedisStore.set(userList)
-        .then(expectAsync1((UserList userList) {
-          expect(userList.length, equals(2));
-          expect(userList.getToAddList().length, equals(0));
+        UserSingleListRedisStore.set(userSingleList)
+        .then(expectAsync((UserSingleList userSingleList) {
+          expect(userSingleList.length, equals(2));
+          expect(userSingleList.getToAddList().length, equals(0));
         }));
       });
 
+      test('get success', () {
+        UserSingleListRedisStore.get(1)
+        .then(expectAsync((UserSingleList list) {
+          var us1 = list.get(1);
+          var us2 = list.get(2);
+
+          expect(us1 is UserSingle, true);
+          expect(us2 is UserSingle, true);
+        }));
+
+      });
+
+
+      /*
+      test('set not changed list should get warning', () {
+
+      });
       test('set child successfully', () {
-        UserListRedisStore.get(1)
+        UserMultiListRedisStore.get(1)
         .then((UserList userList) {
           User user1 = userList.get(1);
           user1.name = 'a';
 
           userList.set(user1);
 
-          return UserListRedisStore.set(userList);
+          return UserMultiListRedisStore.set(userList);
         })
-        .then((_) => UserListRedisStore.get(1))
-        .then(expectAsync1((UserList userList) {
+        .then((_) => UserMultiListRedisStore.get(1))
+        .then(expectAsync((UserList userList) {
           User user1 = userList.get(1);
           expect(user1.name, equals('a'));
         }));
       });
+      */
 
     });
 

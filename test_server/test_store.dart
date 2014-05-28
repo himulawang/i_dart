@@ -56,7 +56,7 @@ startTest() {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = 'c';
         UserStore.add(user)
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user.isUpdated(), isFalse);
         }));
       });
@@ -71,7 +71,7 @@ startTest() {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         user.name = 'a';
         UserStore.set(user)
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user.isUpdated(), isFalse);
         }));
       });
@@ -83,7 +83,7 @@ startTest() {
           user.name = 'c';
           return UserToSetLengthZeroStore.set(user);
         })
-        .then(expectAsync1((UserToSetLengthZero user) {
+        .then(expectAsync((UserToSetLengthZero user) {
           expect(user.isUpdated(), isFalse);
         }));
       });
@@ -94,7 +94,7 @@ startTest() {
 
       test('get rdb model if model exists in rdb', () {
         UserStore.get(1)
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user.name, equals('a'));
         }));
       });
@@ -103,7 +103,7 @@ startTest() {
         User u = new User()..setPK(1);
         UserRedisStore.del(u)
         .then((_) => UserStore.get(1))
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user.name, equals('a'));
         }));
       });
@@ -112,7 +112,7 @@ startTest() {
         User u = new User()..setPK(1);
         UserStore.del(u)
         .then((_) => UserStore.get(1))
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user.isExist(), isFalse);
         }));
       });
@@ -130,7 +130,7 @@ startTest() {
         UserToSetLengthZero u = new UserToSetLengthZero()..setPK(1);
         UserToSetLengthZeroStore.del(u)
         .then((_) => UserToSetLengthZeroStore.get(1))
-        .then(expectAsync1((UserToSetLengthZero user) {
+        .then(expectAsync((UserToSetLengthZero user) {
           expect(user.isExist(), isFalse);
         }));
       });

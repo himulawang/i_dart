@@ -7,7 +7,7 @@ class IRedisHandlerPool {
   static bool _initialized = false;
   static IRedisHandlerPool _instance;
 
-  static final Map dbs = <String, List<RedisClient>>{};
+  static final Map dbs = <String, List<IRedis>>{};
   static final Map nodesLength = <String, int>{};
 
   Future init(Map config) {
@@ -20,11 +20,17 @@ class IRedisHandlerPool {
 
       // for nodes
       group.forEach((Map node) {
-        String connectionString = _makeConnectionString(node);
+        //String connectionString = _makeConnectionString(node);
+        IRedis handler = new IRedis(
+            host: node['host'],
+            port: node['port'],
+            db: node['db'],
+            password: node['pwd']
+        );
         waitList.add(
-            RedisClient
-            .connect(connectionString)
-            .then((RedisClient client) => dbs[groupName][node['no']] = client)
+            handler
+            .connect()
+            .then((_) => dbs[groupName][node['no']] = handler)
             .catchError(_handleErr)
         );
       });
@@ -43,40 +49,9 @@ class IRedisHandlerPool {
 
   IRedisHandlerPool._internal();
 
-  static String _makeConnectionString(Map node) {
-    // check node config
-    if (!node.containsKey('no')) throw new IStoreException(20001);
-    if (!node.containsKey('host')) throw new IStoreException(20002);
-    if (!node.containsKey('port')) throw new IStoreException(20003);
-    if (!node.containsKey('pwd')) throw new IStoreException(20004);
-    if (!node.containsKey('db')) throw new IStoreException(20005);
-
-    StringBuffer connectionSB = new StringBuffer();
-
-    if (node['pwd'] is String) {
-      connectionSB.writeAll([node['pwd'], '@']);
-    }
-
-    if (node['host'] is! String) throw new IStoreException(20006);
-    connectionSB.write(node['host']);
-
-    connectionSB.write(':');
-    if (node['port'] is int) {
-      connectionSB.write(node['port'].toString());
-    } else {
-      connectionSB.write('6379');
-    }
-
-    if (node['db'] is String) {
-      connectionSB.writeAll(['/', node['db']]);
-    }
-
-    return connectionSB.toString();
-  }
-
   static void _handleErr(err) => throw err;
 
-  RedisClient getWriteHandler(Map store, model) {
+  IRedis getWriteHandler(Map store, model) {
     _checkInitialized();
 
     String groupType = 'master';
@@ -88,7 +63,7 @@ class IRedisHandlerPool {
     return dbs[groupName][shardIndex];
   }
 
-  RedisClient getReaderHandler(Map store, model) {
+  IRedis getReaderHandler(Map store, model) {
     _checkInitialized();
 
     String groupType = store['readWriteSeparate'] ? 'slave' : 'master';
@@ -119,4 +94,3 @@ class IRedisHandlerPool {
     return shardIndex;
   }
 }
-

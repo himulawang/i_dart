@@ -53,7 +53,7 @@ startTest() {
 
       test('pk not exist should get pk with value 0', () {
         UserPKStore.get()
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), isZero);
         }));
       });
@@ -65,11 +65,11 @@ startTest() {
         pk.incr();
         UserPKStore.set(pk)
         .then((_) => UserPKMariaDBStore.get())
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), 5);
         }))
         .then((_) => UserPKRedisStore.get())
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), 1);
         }));
       });
@@ -97,7 +97,7 @@ startTest() {
           expect(pk.get(), 6);
           return UserPKMariaDBStore.get();
         })
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), 10);
         }));
       });
@@ -106,7 +106,7 @@ startTest() {
         UserPK pk = new UserPK();
         UserPKRedisStore.del(pk)
         .then((_) => UserPKStore.get())
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), 10);
         }));
       });
@@ -114,7 +114,7 @@ startTest() {
       test('del successfully', () {
         UserPK pk = new UserPK();
         UserPKStore.del(pk)
-        .then(expectAsync1((_) {
+        .then(expectAsync((_) {
           expect(true, isTrue);
         }));
       });
@@ -122,45 +122,45 @@ startTest() {
       test('del pk not exist should get warning', () {
         UserPK pk = new UserPK();
         UserPKStore.del(pk)
-        .then(expectAsync1((_) {
+        .then(expectAsync((_) {
           expect(true, isTrue);
         }));
       });
 
       test('incr not reach step', () {
         UserPKStore.incr()
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(1));
           return UserPKStore.incr();
         }))
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(2));
           return UserPKMariaDBStore.get();
         }))
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(5));
         }));
       });
 
       test('incr reach step', () {
         UserPKStore.incr()
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(3));
           return UserPKStore.incr();
         }))
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(4));
           return UserPKStore.incr();
         }))
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(5));
           return UserPKStore.incr();
         }))
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(6));
           return UserPKMariaDBStore.get();
         }))
-        .then(expectAsync1((UserPK pk) {
+        .then(expectAsync((UserPK pk) {
           expect(pk.get(), equals(10));
         }));
       });
@@ -171,7 +171,7 @@ startTest() {
 
       test('pk not exist should get pk with value 0', () {
         RoomPKStore.get()
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.get(), isZero);
         }));
       });
@@ -181,11 +181,11 @@ startTest() {
         pk.incr();
         RoomPKStore.set(pk)
         .then((_) => RoomPKMariaDBStore.get())
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.get(), 0);
         }))
         .then((_) => RoomPKRedisStore.get())
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.get(), 1);
         }));
       });
@@ -200,7 +200,7 @@ startTest() {
           return RoomPKStore.set(pk);
         })
         .then((_) => RoomPKMariaDBStore.get())
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.get(), 0);
         }));
       });
@@ -208,7 +208,7 @@ startTest() {
       test('del successfully', () {
         RoomPK pk = new RoomPK();
         RoomPKStore.del(pk)
-        .then(expectAsync1((_) {
+        .then(expectAsync((_) {
           expect(true, isTrue);
         }));
       });
@@ -216,22 +216,22 @@ startTest() {
       test('del pk not exist should get warning', () {
         RoomPK pk = new RoomPK();
         RoomPKStore.del(pk)
-        .then(expectAsync1((_) {
+        .then(expectAsync((_) {
           expect(true, isTrue);
         }));
       });
 
       test('incr should not backup to mdb', () {
         RoomPKStore.incr()
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.get(), equals(1));
           return RoomPKStore.incr();
         }))
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.get(), equals(2));
           return RoomPKMariaDBStore.get();
         }))
-        .then(expectAsync1((RoomPK pk) {
+        .then(expectAsync((RoomPK pk) {
           expect(pk.get(), equals(0));
         }));
       });

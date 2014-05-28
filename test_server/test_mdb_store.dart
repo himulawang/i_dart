@@ -154,7 +154,7 @@ startTest() {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1))
         ..name = '2';
         UserMariaDBStore.add(user)
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user is User, isTrue);
         }));
       });
@@ -162,7 +162,7 @@ startTest() {
       test('add duplicated pk model should throw exception', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserMariaDBStore.add(user)
-        .catchError(expectAsync1((e) {
+        .catchError(expectAsync((e) {
           expect(e is IStoreException, isTrue);
           expect(e.code, equals(21028));
         }));
@@ -184,7 +184,7 @@ startTest() {
           ..uniqueName = 'aaa'
           ;
         UserMultiMariaDBStore.add(um)
-        .then(expectAsync1((UserMulti userMulti) {
+        .then(expectAsync((UserMulti userMulti) {
           expect(userMulti is UserMulti, isTrue);
         }));
       });
@@ -213,7 +213,7 @@ startTest() {
         UserToSetLengthZero user = new UserToSetLengthZero(new List.filled(orm['UserToSetLengthZero']['Model']['column'].length, 1));
         user.name = '3';
         UserToSetLengthZeroMariaDBStore.set(user)
-        .then(expectAsync1((UserToSetLengthZero user) {
+        .then(expectAsync((UserToSetLengthZero user) {
           expect(user is UserToSetLengthZero, isTrue);
         }));
       });
@@ -223,7 +223,7 @@ startTest() {
         user..name = 'b'
             ..underworldName = 'c';
         UserMariaDBStore.set(user)
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user is User, isTrue);
         }));
       });
@@ -233,7 +233,7 @@ startTest() {
         user..name = 'b'
             ..underworldName = 'c';
         UserMariaDBStore.set(user)
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user is User, isTrue);
         }));
       });
@@ -255,7 +255,7 @@ startTest() {
           ..uniqueName = 'aaa'
         ;
         UserMultiMariaDBStore.set(um)
-        .then(expectAsync1((UserMulti userMulti) {
+        .then(expectAsync((UserMulti userMulti) {
           expect(userMulti is UserMulti, isTrue);
         }));
       });
@@ -266,14 +266,14 @@ startTest() {
 
       test('model not exist in mdb should return model with !isExist', () {
         UserMariaDBStore.get(9)
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user.isExist(), equals(false));
         }));
       });
 
       test('get model successfully', () {
         UserMariaDBStore.get(1)
-        .then(expectAsync1((User user) {
+        .then(expectAsync((User user) {
           expect(user.isExist(), equals(true));
           expect(user.name, equals('b'));
         }));
@@ -281,7 +281,7 @@ startTest() {
 
       test('multiple pk: get model successfully', () {
         UserMultiMariaDBStore.get(1, '2', 'aaa')
-        .then(expectAsync1((UserMulti um) {
+        .then(expectAsync((UserMulti um) {
           expect(um.isExist(), equals(true));
           expect(um.name, equals('2'));
         }));
@@ -307,7 +307,7 @@ startTest() {
       test('del successfully', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
         UserMariaDBStore.del(user)
-        .then(expectAsync1((affectedRows) {
+        .then(expectAsync((affectedRows) {
           expect(affectedRows, equals(1));
         }));
       });
@@ -325,7 +325,7 @@ startTest() {
           ..uniqueName = 'aaa'
         ;
         UserMultiMariaDBStore.del(um)
-        .then(expectAsync1((affectedRows) {
+        .then(expectAsync((affectedRows) {
           expect(affectedRows, equals(1));
         }));
       });

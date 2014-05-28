@@ -19,7 +19,7 @@ class UserMultiListRedisStore extends IRedisStore {
       return completer.future;
     }
 
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, list);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, list);
     String listKey = _makeListKey(list);
 
     List waitList = [];
@@ -50,7 +50,7 @@ class UserMultiListRedisStore extends IRedisStore {
     if (id is! num) throw new IStoreException(20037);
     UserMultiList list = new UserMultiList(id);
 
-    RedisClient handler = new IRedisHandlerPool().getReaderHandler(store, list);
+    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, list);
     String abbListKey = _makeListKey(id);
 
     return handler.exists(abbListKey)
@@ -81,7 +81,7 @@ class UserMultiListRedisStore extends IRedisStore {
     num id = list.getPK();
     if (id is! num) throw new IStoreException(20039);
 
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, list);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, list);
     String abbListKey = _makeListKey(list);
 
     List waitList = [];
@@ -95,13 +95,13 @@ class UserMultiListRedisStore extends IRedisStore {
     .catchError(_handleErr);
   }
 
-  static Future _addChild(UserMulti model, RedisClient handler) {
+  static Future _addChild(UserMulti model, IRedis handler) {
     String key = _makeKey(model);
 
     Map toAddAbb = model.toAddAbb(true);
     if (toAddAbb.length == 0) throw new IStoreException(20032);
 
-    RedisClient handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
 
     return handler.exists(key)
     .then((bool exist) {
