@@ -86,7 +86,7 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${name} extends IModel {
-  static String _delimiter = ASCII.decode([0x1D]);
+  static String _delimiter = ':';
 
   static const String _name = '${name}';
 
@@ -399,7 +399,7 @@ ${_DECLARATION}
 part of lib_${_app};
 
 class ${listName} extends IList {
-  static String _delimiter = ASCII.decode([0x1D]);
+  static String _delimiter = ':';
   ${listName}(${pkColumnName.join(', ')}) { _initPK([${pkColumnName.join(', ')}]); }
 
   ${listName}.filledMap(${pkColumnName.join(', ')}, Map dataList) {

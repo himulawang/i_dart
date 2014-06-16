@@ -51,26 +51,26 @@ class IRedisHandlerPool {
 
   static void _handleErr(err) => throw err;
 
-  IRedis getWriteHandler(Map store, model) {
+  IRedis getWriteHandler(Map store, String shardKey) {
     _checkInitialized();
 
     String groupType = 'master';
     String groupName = store[groupType];
 
     int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
+    int shardIndex = _getShardIndex(store['shardMethod'], shardKey, modValue);
 
     return dbs[groupName][shardIndex];
   }
 
-  IRedis getReaderHandler(Map store, model) {
+  IRedis getReaderHandler(Map store, shardKey) {
     _checkInitialized();
 
     String groupType = store['readWriteSeparate'] ? 'slave' : 'master';
     String groupName = store[groupType];
 
     int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
+    int shardIndex = _getShardIndex(store['shardMethod'], shardKey, modValue);
 
     return dbs[groupName][shardIndex];
   }
@@ -79,14 +79,14 @@ class IRedisHandlerPool {
     if (!_initialized) throw new IStoreException(20033);
   }
 
-  int _getShardIndex(String shardMethod, model, num modValue) {
+  int _getShardIndex(String shardMethod, shardKey, num modValue) {
     int shardIndex;
     switch (shardMethod) {
       case 'NONE':
         shardIndex = 0;
         break;
       case 'CRC32':
-        shardIndex = CRC32.compute(model.getPK().toString()) % modValue;
+        shardIndex = CRC32.compute(shardKey.toString()) % modValue;
         break;
       default:
         throw new IStoreException(20008);

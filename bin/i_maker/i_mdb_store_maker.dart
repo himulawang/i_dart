@@ -3,6 +3,7 @@ part of i_maker;
 abstract class IMariaDBStoreMaker {
   String makeMariaDBStore(String name, Map orm, Map storeOrm) {
     Map store = _getStoreConfig('mariaDB', storeOrm);
+    if (store == null) return '';
 
     List pkColumnName = [];
     for (int i = 0; i < orm['pk'].length; ++i) {
@@ -20,15 +21,10 @@ class ${name}MariaDBStore extends IMariaDBStore {
   static Future add(${name} model) {
     if (model is! ${name}) throw new IStoreException(21023);
 
-    var pk = model.getPK();
-    if (pk is List && pk.contains(null)
-      || pk == null
-    ) throw new IStoreException(21024);
-
     Map toAddList = model.toAddList(true);
     if (toAddList.length == 0) throw new IStoreException(21035);
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model.getUnitedPK());
 
     return handler.prepareExecute(IMariaDBSQLPrepare.makeAdd(table, ${name}._mapFull, ${name}._columns), toAddList)
     .then((Results results) {
@@ -54,7 +50,7 @@ class ${name}MariaDBStore extends IMariaDBStore {
       return completer.future;
     }
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model.getUnitedPK());
 
     return handler.prepareExecute(
         IMariaDBSQLPrepare.makeSet(table, model),
@@ -68,7 +64,7 @@ class ${name}MariaDBStore extends IMariaDBStore {
 
   static Future get(${pkColumnName.join(', ')}) {
     ${name} model = new ${name}()..setPK(${pkColumnName.join(', ')});
-    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model);
+    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, model.getUnitedPK());
 
     return handler.prepareExecute(
         IMariaDBSQLPrepare.makeGet(table, model),
@@ -85,7 +81,7 @@ class ${name}MariaDBStore extends IMariaDBStore {
   static Future del(model) {
     if (model is! ${name}) throw new IStoreException(21034);
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model.getUnitedPK());
     return handler.prepareExecute(
         IMariaDBSQLPrepare.makeDel(table, model),
         IMariaDBSQLPrepare.makeWhereValues(model, [])
@@ -103,8 +99,11 @@ class ${name}MariaDBStore extends IMariaDBStore {
   }
 
   String makeMariaDBPKStore(String name, Map orm, Map storeOrm) {
-    String pkName = orm['className'];
     Map storeConfig = _getStoreConfig('mariaDB', storeOrm);
+    if (storeConfig == null) return '';
+
+    String pkName = orm['className'];
+
     String code = '''
 ${_DECLARATION}
 part of lib_${_app};
@@ -126,7 +125,7 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
     num value = pk.get();
     if (value is! num) throw new IStoreException(21037);
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, pk);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, _key);
     return handler.prepareExecute('INSERT INTO `\${_table}` (`key`, `pk`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `pk` = ?;', [_key, value, value])
     .then((Results results) {
       if (results.affectedRows == 0) throw new IStoreException(21038);
@@ -138,7 +137,7 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
   static Future get() {
     ${pkName} pk = new ${pkName}();
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, pk);
+    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, _key);
 
     return handler.prepareExecute('SELECT `pk` FROM `\${_table}` WHERE `key` = ?', [_key])
     .then((Results results) => results.toList())
@@ -150,7 +149,7 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
   }
 
   static Future del(pk) {
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, pk);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, _key);
 
     return handler.prepareExecute('DELETE FROM `\${_table}` WHERE `key` = ?', [_key])
     .then((Results results) {
@@ -168,8 +167,10 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
   }
 
   String makeMaraiaDBListStore(String name, Map orm, Map listOrm, Map storeOrm) {
-    String listName = listOrm['className'];
     Map storeConfig = _getStoreConfig('mariaDB', storeOrm);
+    if (storeConfig == null) return '';
+
+    String listName = listOrm['className'];
 
     List pkColumnName = [];
 
@@ -196,7 +197,7 @@ class ${listName}MariaDBStore extends IMariaDBStore {
       return completer.future;
     }
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, list);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, list.getUnitedPK());
 
     List waitList = [];
     Map toAddList = list.getToAddList();
@@ -218,7 +219,7 @@ class ${listName}MariaDBStore extends IMariaDBStore {
 
     Completer c = new Completer();
 
-    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, list);
+    ConnectionPool handler = new IMariaDBHandlerPool().getReaderHandler(store, list.getUnitedPK());
 
     return handler.prepareExecute(
         IMariaDBSQLPrepare.makeListGet(table, model),
@@ -236,7 +237,7 @@ class ${listName}MariaDBStore extends IMariaDBStore {
   }
 
   static Future del(${listName} list) {
-    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, list);
+    ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, list.getUnitedPK());
 
     return _delChildren(list.getList(), handler)
     .catchError(_handleErr);

@@ -136,9 +136,10 @@ startTest() {
 
       test('pk is null should throw exception', () {
         User user = new User();
+        user.name = 'aa';
         expect(
             () => UserMariaDBStore.add(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21024))
+            throwsA(predicate((e) => e is IModelException && e.code == 10015))
         );
       });
 
@@ -172,7 +173,7 @@ startTest() {
         UserMulti um = new UserMulti();
         expect(
             () => UserMultiMariaDBStore.add(um),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21024))
+            throwsA(predicate((e) => e is IModelException && e.code == 10016))
         );
       });
 
@@ -205,7 +206,7 @@ startTest() {
         User user = new User()..name = 2;
         expect(
             () => UserMariaDBStore.set(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21027))
+            throwsA(predicate((e) => e is IModelException && e.code == 10015))
         );
       });
 
@@ -243,7 +244,7 @@ startTest() {
         um.id = 1;
         expect(
             () => UserMultiMariaDBStore.set(um),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21027))
+            throwsA(predicate((e) => e is IModelException && e.code == 10016))
         );
       });
 

@@ -33,35 +33,40 @@ class IStoreMaker extends IMaker with
 
     _orm.forEach((String name, Map orm) {
       String lowerName = makeLowerUnderline(name);
+      String redisCode, mariaDBCode, combinedCode;
       if (orm.containsKey('PK') && orm.containsKey('PKStore')) {
         // redis
-        String redisCode = makeRedisPKStore(name, orm['PK'], orm['PKStore']);
+        redisCode = makeRedisPKStore(name, orm['PK'], orm['PKStore']);
         if (!redisCode.isEmpty) writeFile('${lowerName}_pk_rdb_store.dart', _outStoreDir, redisCode, true);
 
         // mariaDB
-        String mariaDBCode = makeMariaDBPKStore(name, orm['PK'], orm['PKStore']);
+        mariaDBCode = makeMariaDBPKStore(name, orm['PK'], orm['PKStore']);
         if (!mariaDBCode.isEmpty) writeFile('${lowerName}_pk_mdb_store.dart', _outStoreDir, mariaDBCode, true);
 
         // combined
-        String combinedCode = makeServerCombinedPKStore(name, orm['PK'], orm['PKStore']);
+        combinedCode = makeServerCombinedPKStore(name, orm['PK'], orm['PKStore']);
         if (!combinedCode.isEmpty) writeFile('${lowerName}_pk_store.dart', _outStoreDir, combinedCode, true);
       }
       if (orm.containsKey('Model') && orm.containsKey('ModelStore')) {
         // redis
-        String redisCode = makeRedisStore(name, orm['Model'], orm['ModelStore']);
+        redisCode = makeRedisStore(name, orm['Model'], orm['ModelStore']);
         if (!redisCode.isEmpty) writeFile('${lowerName}_rdb_store.dart', _outStoreDir, redisCode, true);
 
         // mariaDB
-        String mariaDBCode = makeMariaDBStore(name, orm['Model'], orm['ModelStore']);
+        mariaDBCode = makeMariaDBStore(name, orm['Model'], orm['ModelStore']);
         if (!mariaDBCode.isEmpty) writeFile('${lowerName}_mdb_store.dart', _outStoreDir, mariaDBCode, true);
 
         // combined
-        String combinedCode = makeServerCombinedStore(name, orm['Model'], orm['ModelStore']);
+        combinedCode = makeServerCombinedStore(name, orm['Model'], orm['ModelStore']);
         if (!combinedCode.isEmpty) writeFile('${lowerName}_store.dart', _outStoreDir, combinedCode, true);
       }
       if (orm.containsKey('List') && orm.containsKey('ListStore')) {
+        // redis
+        redisCode = makeRedisListStore(name, orm['Model'], orm['List'], orm['ListStore']);
+        if (!redisCode.isEmpty) writeFile('${lowerName}_list_rdb_store.dart', _outStoreDir, redisCode, true);
+
         // mariaDB
-        String mariaDBCode = makeMaraiaDBListStore(name, orm['Model'], orm['List'], orm['ListStore']);
+        mariaDBCode = makeMaraiaDBListStore(name, orm['Model'], orm['List'], orm['ListStore']);
         if (!mariaDBCode.isEmpty) writeFile('${lowerName}_list_mdb_store.dart', _outStoreDir, mariaDBCode, true);
       }
     });

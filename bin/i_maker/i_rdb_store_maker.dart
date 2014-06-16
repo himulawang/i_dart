@@ -46,14 +46,17 @@ class ${name}RedisStore extends IRedisStore {
   }
 
   String makeRedisPKStore(String name, Map orm, Map storeOrm) {
-    String pkName = orm['className'];
     Map storeConfig = _getStoreConfig('redis', storeOrm);
+    if (storeConfig == null) return '';
+
+    String pkName = orm['className'];
+
     String code = '''
 ${_DECLARATION}
 part of lib_${_app};
 
 class ${pkName}RedisStore extends IRedisStore {
-  static const _key = '${storeConfig['abb']}-pk';
+  static const String _key = '${storeConfig['abb']}-pk';
 
   static const Map store = const ${JSON.encode(storeConfig)};
 
@@ -69,7 +72,7 @@ class ${pkName}RedisStore extends IRedisStore {
     num value = pk.get();
     if (value is! num) throw new IStoreException(20035);
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, pk);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, _key);
     return handler.set(_key, value.toString())
     .then((String result) {
       if (result != 'OK') throw new IStoreException(20036);
@@ -81,7 +84,7 @@ class ${pkName}RedisStore extends IRedisStore {
   static Future get() {
     ${pkName} pk = new ${pkName}();
 
-    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, pk);
+    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, _key);
 
     return handler.exists(_key)
     .then((int exists) {
@@ -96,7 +99,7 @@ class ${pkName}RedisStore extends IRedisStore {
   }
 
   static Future del(pk) {
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, pk);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, _key);
 
     return handler.del(_key)
     .then((num deletedNum) {
@@ -108,7 +111,7 @@ class ${pkName}RedisStore extends IRedisStore {
 
   static Future incr() {
     ${pkName} pk = new ${pkName}();
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, pk);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, _key);
 
     return handler.incr(_key)
     .then((num value) => pk..set(value)..setUpdated(false))
@@ -121,8 +124,242 @@ class ${pkName}RedisStore extends IRedisStore {
     return code;
   }
 
-  String makeRedisListStore(String name, Map orm, Map storeOrm) {
+  String makeRedisListStore(String name, Map orm, Map listOrm, Map storeOrm) {
+    Map storeConfig = _getStoreConfig('redis', storeOrm);
+    if (storeConfig == null) return '';
 
+    String listName = listOrm['className'];
+
+    List pkColumnName = [];
+
+    listOrm['pk'].forEach((index) {
+      pkColumnName.add(orm['column'][index]);
+    });
+
+    StringBuffer codeSB = new StringBuffer();
+
+    codeSB.write('''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${listName}RedisStore extends IRedisStore {
+  static const Map store = const ${JSON.encode(storeConfig)};
+  static const String abb = '${storeConfig['abb']}';
+  static const num expire = ${storeConfig['expire']};
+
+  static const String _typeDelimiter = '_';
+  static const String _fieldDelimiter = '-';
+  static const String _keyDelimiter = ':';
+
+  static Future<${listName}> set(${listName} list) {
+    if (list is! ${listName}) throw new IStoreException(20040);
+
+    if (!list.isUpdated()) {
+      new IStoreException(25009);
+      Completer completer = new Completer();
+      completer.complete(list);
+      return completer.future;
+    }
+
+    String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
+
+    List waitList = [];
+
+    list.getToAddList().forEach((String childId, ${name} model) {
+      String childKey = _makeChildKey(list, model);
+      waitList..add(_addChild(listKey, childKey, model))
+        ..add(handler.sadd(listKey, childKey));
+    });
+
+    list.getToSetList().forEach((String childId, ${name} model) {
+      String childKey = _makeChildKey(list, model);
+      waitList.add(_setChild(listKey, childKey, model));
+    });
+
+    list.getToDelList().forEach((String childId, ${name} model) {
+      String childKey = _makeChildKey(list, model);
+      waitList..add(_delChild(listKey, childKey, model))
+        ..add(handler.srem(listKey, childId.toString()));
+    });
+''');
+
+    if (storeConfig['expire'] != 0) {
+      codeSB.write('''
+
+    // if this list is not in redis, we set expireTime
+    // otherwise, we use get function to set expireTime
+    if (!list.isExist()) waitList.add(handler.expire(listKey, expire));
+''');
+    }
+
+    codeSB.write('''
+
+    return Future.wait(waitList)
+    .then((_) => list..resetAllToList())
+    .catchError(_handleErr);
+  }
+
+  static Future<${listName}> get(${pkColumnName.join(', ')}) {
+    ${listName} list = new ${listName}(${pkColumnName.join(', ')});
+
+    String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, listKey);
+
+    return handler.smembers(listKey)
+    .then((List result) {
+      if (result.length == 0) throw new IStoreException(25008);
+
+      List waitList = [];
+      result.forEach((String childKey) {
+        ${name} model = new ${name}();
+
+        waitList.add(
+          handler.exists(childKey)
+          .then((int exists) {
+            if (exists == 0) throw new IStoreException(25003);
+            return handler.hmget(childKey, new List.from(model.getMapAbb().keys));
+          })
+          .then((List data) {
+            model..fromList(data)..setExist();
+            list._set(model);
+          })
+          .catchError((e) {
+            if (e is IStoreException && e.code == 25003) return model;
+            throw e;
+          })
+        );
+      });
+
+      return Future.wait(waitList).then((_) => list..setExist());
+    })
+    .catchError((e) {
+      if (e is IStoreException && e.code == 25008) return list;
+      throw e;
+    });
+  }
+
+  static Future del(${listName} list) {
+    if (list is! ${listName}) throw new IStoreException(20038);
+
+    String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
+
+    List waitList = [];
+    list.getList().forEach((String childId, ${name} model) {
+      String childKey = _makeChildKey(list, model);
+      waitList.add(_delChild(listKey, childKey, model));
+    });
+
+    waitList.add(handler.del(listKey));
+
+    return Future.wait(waitList)
+    .catchError(_handleErr);
+  }
+
+  static Future _addChild(String listKey, String key, ${name} model) {
+    Map toAddAbb = model.toAddAbb(true);
+    if (toAddAbb.length == 0) throw new IStoreException(20032);
+
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
+
+    return handler.exists(key)
+    .then((int exists) {
+      if (exists == 1) throw new IStoreException(20024);
+      return handler.hmset(key, toAddAbb);
+    })
+''');
+
+    if (storeConfig['expire'] != 0) {
+      codeSB.write('''
+    .then((String result) {
+      if (result != 'OK') throw new IStoreException(20025);
+      return handler.expire(key, expire);
+    })
+    .then((int result) {
+      if (result == 1) return model;
+      new IStoreException(25004);
+      return model;
+    })
+''');
+    } else {
+      codeSB.write('''
+    .then((String result) {
+      if (result != 'OK') throw new IStoreException(20025);
+      return model;
+    })
+''');
+    }
+
+    codeSB.write('''
+    .catchError(_handleErr);
+  }
+
+  static Future _setChild(String listKey, String key, ${name} model) {
+    Map toSetAbb = model.toSetAbb(true);
+    if (toSetAbb.length == 0) {
+      new IStoreException(25001);
+      Completer completer = new Completer();
+      completer.complete(model);
+      return completer.future;
+    }
+
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
+
+    return handler.exists(key)
+    .then((int exists) {
+      if (exists == 0) throw new IStoreException(20028);
+      return handler.hmset(key, toSetAbb);
+    })
+    ''');
+
+    if (storeConfig['expire'] != 0) {
+      codeSB.write('''
+    .then((String result) {
+      if (result != 'OK') throw new IStoreException(20029);
+      return handler.expire(key, expire);
+    })
+    .then((int result) {
+      if (result == 1) return model;
+      new IStoreException(25010);
+      return model;
+    })
+''');
+    } else {
+      codeSB.write('''
+    .then((String result) {
+      if (result != 'OK') throw new IStoreException(20029);
+      return model;
+    })
+''');
+    }
+
+    codeSB.write('''
+    .catchError(_handleErr);
+  }
+
+  static Future _delChild(String listKey, String key, ${name} model) {
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
+
+    return handler.del(key)
+    .then((num deletedNum) {
+      if (deletedNum == 0) new IStoreException(25002);
+      return deletedNum;
+    })
+    .catchError(_handleErr);
+  }
+
+  static String _makeListKey(${listName} list)
+    => '\${abb}\${_typeDelimiter}l\${_fieldDelimiter}\${list.getPK().join(_keyDelimiter)}';
+
+  static String _makeChildKey(${listName} list, ${name} model)
+    => '\${abb}\${_typeDelimiter}c\${_fieldDelimiter}\${list.getPK().join(_keyDelimiter)}\${_fieldDelimiter}\${model.getChildPK().join(_keyDelimiter)}';
+
+  static void _handleErr(e) => throw e;
+}
+''');
+
+    return codeSB.toString();
   }
 
   String _makeRedisAdd(String name, Map orm, Map storeConfig) {
@@ -135,7 +372,7 @@ class ${pkName}RedisStore extends IRedisStore {
     Map toAddAbb = model.toAddAbb(true);
     if (toAddAbb.length == 0) throw new IStoreException(20032);
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model.getUnitedPK());
 
     return handler.exists(key)
     .then((int exists) {
@@ -190,7 +427,7 @@ class ${pkName}RedisStore extends IRedisStore {
 
     Map toSetAbb = model.toSetAbb(true);
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model.getUnitedPK());
 
     return handler.exists(key)
     .then((int exists) {
@@ -253,7 +490,7 @@ class ${pkName}RedisStore extends IRedisStore {
 
     String key = _makeKey(model);
 
-    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, model.getUnitedPK());
 
     return handler.exists(key)
     .then((int exists) {
@@ -281,7 +518,7 @@ class ${pkName}RedisStore extends IRedisStore {
   static Future del(${name} model) {
     if (model is! ${name}) throw new IStoreException(20030);
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model.getUnitedPK());
 
     String key = _makeKey(model);
 

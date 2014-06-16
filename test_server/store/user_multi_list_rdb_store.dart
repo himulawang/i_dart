@@ -6,10 +6,15 @@
 part of lib_test;
 
 class UserMultiListRedisStore extends IRedisStore {
-  static const Map store = const {"type":"redis","readWriteSeparate":false,"shardMethod":"CRC32","master":"GameCache","slave":"GameCacheSlave","expire":86400,"mode":"Atom"};
+  static const Map store = const {"type":"redis","readWriteSeparate":false,"sharding":true,"shardMethod":"CRC32","master":"GameCache","slave":"GameCacheSlave","expire":86400,"mode":"Atom","abb":"um"};
   static const String abb = 'um';
+  static const num expire = 86400;
 
-  static Future set(UserMultiList list) {
+  static const String _typeDelimiter = '_';
+  static const String _fieldDelimiter = '-';
+  static const String _keyDelimiter = ':';
+
+  static Future<UserMultiList> set(UserMultiList list) {
     if (list is! UserMultiList) throw new IStoreException(20040);
 
     if (!list.isUpdated()) {
@@ -19,56 +24,69 @@ class UserMultiListRedisStore extends IRedisStore {
       return completer.future;
     }
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, list);
     String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
 
     List waitList = [];
+
     list.getToAddList().forEach((String childId, UserMulti model) {
       String childKey = _makeChildKey(list, model);
-      waitList..add(_addChild(model, handler))
-              ..add(handler.sadd(listKey, childId.toString()).catchError(_handleErr));
+      waitList..add(_addChild(listKey, childKey, model))
+        ..add(handler.sadd(listKey, childKey));
     });
 
     list.getToSetList().forEach((String childId, UserMulti model) {
-      String childKey = _makeChildKey(id);
-      waitList.add(UserMultiRedisStore.set(model, childKey));
+      String childKey = _makeChildKey(list, model);
+      waitList.add(_setChild(listKey, childKey, model));
     });
 
     list.getToDelList().forEach((String childId, UserMulti model) {
-      String childKey = _makeChildKey(id);
-      waitList..add(UserMultiRedisStore.del(model, childKey))
-              ..add(handler.srem(listKey, id.toString()).catchError(_handleErr));
+      String childKey = _makeChildKey(list, model);
+      waitList..add(_delChild(listKey, childKey, model))
+        ..add(handler.srem(listKey, childId.toString()));
     });
 
+    // if this list is not in redis, we set expireTime
+    // otherwise, we use get function to set expireTime
+    if (!list.isExist()) waitList.add(handler.expire(listKey, expire));
+
     return Future.wait(waitList)
-    .then((_) => handler.expire(listKey, 86400).catchError(_handleErr))
     .then((_) => list..resetAllToList())
     .catchError(_handleErr);
   }
 
-  static Future get(num id) {
-    if (id is! num) throw new IStoreException(20037);
-    UserMultiList list = new UserMultiList(id);
+  static Future<UserMultiList> get(id, name) {
+    UserMultiList list = new UserMultiList(id, name);
 
-    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, list);
-    String abbListKey = _makeListKey(id);
+    String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, listKey);
 
-    return handler.exists(abbListKey)
-    .then((bool exist) {
-      if (!exist) throw new IStoreException(25008);
-      return handler.smembers(abbListKey);
-    })
-    .then((Set result) {
-      if (result.length == 0) return list;
+    return handler.smembers(listKey)
+    .then((List result) {
+      if (result.length == 0) throw new IStoreException(25008);
 
       List waitList = [];
-      String childKey = _makeChildKey(id);
-      result.forEach((String childId) {
-        waitList.add(UserMultiRedisStore.get(childId, childKey));
+      result.forEach((String childKey) {
+        UserMulti model = new UserMulti();
+
+        waitList.add(
+          handler.exists(childKey)
+          .then((int exists) {
+            if (exists == 0) throw new IStoreException(25003);
+            return handler.hmget(childKey, new List.from(model.getMapAbb().keys));
+          })
+          .then((List data) {
+            model..fromList(data)..setExist();
+            list._set(model);
+          })
+          .catchError((e) {
+            if (e is IStoreException && e.code == 25003) return model;
+            throw e;
+          })
+        );
       });
 
-      return Future.wait(waitList)
-      .then((List dataList) => list..fromList(dataList));
+      return Future.wait(waitList).then((_) => list..setExist());
     })
     .catchError((e) {
       if (e is IStoreException && e.code == 25008) return list;
@@ -78,51 +96,89 @@ class UserMultiListRedisStore extends IRedisStore {
 
   static Future del(UserMultiList list) {
     if (list is! UserMultiList) throw new IStoreException(20038);
-    num id = list.getPK();
-    if (id is! num) throw new IStoreException(20039);
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, list);
-    String abbListKey = _makeListKey(list);
+    String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
 
     List waitList = [];
-    list.getList().forEach((num childId, UserMulti model) {
-      waitList.add(UserMultiRedisStore.del(model));
+    list.getList().forEach((String childId, UserMulti model) {
+      String childKey = _makeChildKey(list, model);
+      waitList.add(_delChild(listKey, childKey, model));
     });
 
-    waitList.add(handler.del(abbListKey));
+    waitList.add(handler.del(listKey));
 
     return Future.wait(waitList)
     .catchError(_handleErr);
   }
 
-  static Future _addChild(UserMulti model, IRedis handler) {
-    String key = _makeKey(model);
-
+  static Future _addChild(String listKey, String key, UserMulti model) {
     Map toAddAbb = model.toAddAbb(true);
     if (toAddAbb.length == 0) throw new IStoreException(20032);
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
 
     return handler.exists(key)
-    .then((bool exist) {
-      if (exist) throw new IStoreException(20024);
+    .then((int exists) {
+      if (exists == 1) throw new IStoreException(20024);
       return handler.hmset(key, toAddAbb);
     })
     .then((String result) {
       if (result != 'OK') throw new IStoreException(20025);
-      return handler.expire(key, 86400);
+      return handler.expire(key, expire);
     })
-    .then((bool result) {
-      if (result) return model;
+    .then((int result) {
+      if (result == 1) return model;
       new IStoreException(25004);
       return model;
     })
     .catchError(_handleErr);
   }
 
-  static String _makeListKey(UserMultiList list) => '${abb}-l:${list.getPK().join(':')}';
+  static Future _setChild(String listKey, String key, UserMulti model) {
+    Map toSetAbb = model.toSetAbb(true);
+    if (toSetAbb.length == 0) {
+      new IStoreException(25001);
+      Completer completer = new Completer();
+      completer.complete(model);
+      return completer.future;
+    }
 
-  static String _makeChildKey(UserMultiList list, UserMulti model) => '${abb}:${list.getPK().join(':')}:${model.getChildPK().join(':')}';
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
+
+    return handler.exists(key)
+    .then((int exists) {
+      if (exists == 0) throw new IStoreException(20028);
+      return handler.hmset(key, toSetAbb);
+    })
+        .then((String result) {
+      if (result != 'OK') throw new IStoreException(20029);
+      return handler.expire(key, expire);
+    })
+    .then((int result) {
+      if (result == 1) return model;
+      new IStoreException(25010);
+      return model;
+    })
+    .catchError(_handleErr);
+  }
+
+  static Future _delChild(String listKey, String key, UserMulti model) {
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
+
+    return handler.del(key)
+    .then((num deletedNum) {
+      if (deletedNum == 0) new IStoreException(25002);
+      return deletedNum;
+    })
+    .catchError(_handleErr);
+  }
+
+  static String _makeListKey(UserMultiList list)
+    => '${abb}${_typeDelimiter}l${_fieldDelimiter}${list.getPK().join(_keyDelimiter)}';
+
+  static String _makeChildKey(UserMultiList list, UserMulti model)
+    => '${abb}${_typeDelimiter}c${_fieldDelimiter}${list.getPK().join(_keyDelimiter)}${_fieldDelimiter}${model.getChildPK().join(_keyDelimiter)}';
 
   static void _handleErr(e) => throw e;
 }

@@ -52,26 +52,26 @@ class IMariaDBHandlerPool {
     if (!node.containsKey('maxHandler')) throw new IStoreException(21007);
   }
 
-  ConnectionPool getWriteHandler(Map store, model) {
+  ConnectionPool getWriteHandler(Map store, shardKey) {
     _checkInitialized();
 
     String groupType = 'master';
     String groupName = store[groupType];
 
     int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
+    int shardIndex = _getShardIndex(store['shardMethod'], shardKey, modValue);
 
     return dbs[groupName][shardIndex];
   }
 
-  ConnectionPool getReaderHandler(Map store, model) {
+  ConnectionPool getReaderHandler(Map store, shardKey) {
     _checkInitialized();
 
     String groupType = store['readWriteSeparate'] ? 'slave' : 'master';
     String groupName = store[groupType];
 
     int modValue = nodesLength[groupName];
-    int shardIndex = _getShardIndex(store['shardMethod'], model, modValue);
+    int shardIndex = _getShardIndex(store['shardMethod'], shardKey, modValue);
 
     return dbs[groupName][shardIndex];
   }
@@ -80,22 +80,14 @@ class IMariaDBHandlerPool {
     if (!_initialized) throw new IStoreException(21029);
   }
 
-  int _getShardIndex(String shardMethod, model, num modValue) {
+  int _getShardIndex(String shardMethod, shardKey, num modValue) {
     int shardIndex;
     switch (shardMethod) {
       case 'NONE':
         shardIndex = 0;
         break;
       case 'CRC32':
-        String src;
-        if (model is IModel) {
-          src = model.getPK().toString();
-        } else if (model is IList) {
-          src = model.getUnitedPK();
-        } else {
-          throw new IStoreException(21041);
-        }
-        shardIndex = CRC32.compute(src) % modValue;
+        shardIndex = CRC32.compute(shardKey.toString()) % modValue;
         break;
       default:
         throw new IStoreException(21040);

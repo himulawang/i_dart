@@ -132,6 +132,17 @@ Map orm = {
         'ListStore': {
             'storeOrder': [
                 {
+                    'type': 'redis',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
+                    'master': 'GameCache',
+                    'slave': 'GameCacheSlave',
+                    'expire': 86400,
+                    'mode': 'Atom', // TODO 'Atom' mode use hash type store model, 'Block' mode compress model to string type
+                    'abb': 'us',
+                },
+                {
                     'type': 'mariaDB',
                     'readWriteSeparate': false,
                     'sharding': true,
@@ -151,6 +162,7 @@ Map orm = {
                 'name',
                 'gender',
                 'uniqueName',
+                'value'
             ],
             'toAddFilter': [],
             'toSetFilter': [],
@@ -186,6 +198,30 @@ Map orm = {
             'className': 'UserMultiList',
             'pk': [0, 1],
             'childPK': [2, 3],
+        },
+        'ListStore': {
+            'storeOrder': [
+                {
+                    'type': 'redis',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
+                    'master': 'GameCache',
+                    'slave': 'GameCacheSlave',
+                    'expire': 86400,
+                    'mode': 'Atom', // TODO 'Atom' mode use hash type store model, 'Block' mode compress model to string type
+                    'abb': 'um',
+                },
+                {
+                    'type': 'mariaDB',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32',
+                    'master': 'GameDB',
+                    'slave': 'GameDBSlave',
+                    'table': 'UserMulti',
+                },
+            ],
         },
     },
     'Room': {
@@ -402,6 +438,51 @@ Map orm = {
                     'master': 'GameDB',
                     'slave': 'GameDBSlave',
                     'table': 'Multiple',
+                },
+            ],
+        },
+    },
+    'UserSingleNoExpire': {
+        'Model': {
+            'pk': [0, 1],
+            'column': [
+                'id',
+                'name',
+                'userName',
+                'uniqueName',
+            ],
+            'toAddFilter': [],
+            'toSetFilter': [],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [],
+        },
+        'List': {
+            'className': 'UserSingleNoExpireList',
+            'pk': [0],
+            'childPK': [1],
+        },
+        'ListStore': {
+            'storeOrder': [
+                {
+                    'type': 'redis',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
+                    'master': 'GameCache',
+                    'slave': 'GameCacheSlave',
+                    'expire': 0,
+                    'mode': 'Atom', // TODO 'Atom' mode use hash type store model, 'Block' mode compress model to string type
+                    'abb': 'usne',
+                },
+                {
+                    'type': 'mariaDB',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32',
+                    'master': 'GameDB',
+                    'slave': 'GameDBSlave',
+                    'table': 'UserSingle',
                 },
             ],
         },

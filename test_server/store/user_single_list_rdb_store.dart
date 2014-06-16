@@ -6,14 +6,15 @@
 part of lib_test;
 
 class UserSingleListRedisStore extends IRedisStore {
-  static const Map store = const {"type":"redis","readWriteSeparate":false,"shardMethod":"CRC32","master":"GameCache","slave":"GameCacheSlave","expire":86400,"mode":"Atom"};
+  static const Map store = const {"type":"redis","readWriteSeparate":false,"sharding":true,"shardMethod":"CRC32","master":"GameCache","slave":"GameCacheSlave","expire":86400,"mode":"Atom","abb":"us"};
   static const String abb = 'us';
+  static const num expire = 86400;
 
   static const String _typeDelimiter = '_';
   static const String _fieldDelimiter = '-';
   static const String _keyDelimiter = ':';
 
-  static Future set(UserSingleList list) {
+  static Future<UserSingleList> set(UserSingleList list) {
     if (list is! UserSingleList) throw new IStoreException(20040);
 
     if (!list.isUpdated()) {
@@ -23,43 +24,42 @@ class UserSingleListRedisStore extends IRedisStore {
       return completer.future;
     }
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, list);
     String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
 
     List waitList = [];
 
     list.getToAddList().forEach((String childId, UserSingle model) {
       String childKey = _makeChildKey(list, model);
-      waitList..add(_addChild(childKey, model))
-        ..add(handler.sadd(listKey, childKey).catchError(_handleErr));
+      waitList..add(_addChild(listKey, childKey, model))
+        ..add(handler.sadd(listKey, childKey));
     });
 
     list.getToSetList().forEach((String childId, UserSingle model) {
       String childKey = _makeChildKey(list, model);
-      waitList.add(_setChild(childKey, model));
+      waitList.add(_setChild(listKey, childKey, model));
     });
 
     list.getToDelList().forEach((String childId, UserSingle model) {
       String childKey = _makeChildKey(list, model);
-      waitList..add(_delChild(childKey, model))
-        ..add(handler.srem(listKey, childId.toString()).catchError(_handleErr));
+      waitList..add(_delChild(listKey, childKey, model))
+        ..add(handler.srem(listKey, childId.toString()));
     });
 
-    // TODO judge if list has expireTime in ListStoreMaker
-    // if this list is new, we set expireTime
+    // if this list is not in redis, we set expireTime
     // otherwise, we use get function to set expireTime
-    if (!list.isExist())  waitList.add(handler.expire(listKey, 86400));
+    if (!list.isExist()) waitList.add(handler.expire(listKey, expire));
 
     return Future.wait(waitList)
     .then((_) => list..resetAllToList())
     .catchError(_handleErr);
   }
 
-  static Future get(id) {
+  static Future<UserSingleList> get(id) {
     UserSingleList list = new UserSingleList(id);
 
-    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, list);
     String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getReaderHandler(store, listKey);
 
     return handler.smembers(listKey)
     .then((List result) {
@@ -68,7 +68,6 @@ class UserSingleListRedisStore extends IRedisStore {
       List waitList = [];
       result.forEach((String childKey) {
         UserSingle model = new UserSingle();
-        IRedis childHandler = new IRedisHandlerPool().getReaderHandler(store, model);
 
         waitList.add(
           handler.exists(childKey)
@@ -97,28 +96,27 @@ class UserSingleListRedisStore extends IRedisStore {
 
   static Future del(UserSingleList list) {
     if (list is! UserSingleList) throw new IStoreException(20038);
-    num id = list.getPK();
-    if (id is! num) throw new IStoreException(20039);
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, list);
-    String abbListKey = _makeListKey(list);
+    String listKey = _makeListKey(list);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
 
     List waitList = [];
-    list.getList().forEach((num childId, UserSingle model) {
-      waitList.add(UserSingleRedisStore.del(model));
+    list.getList().forEach((String childId, UserSingle model) {
+      String childKey = _makeChildKey(list, model);
+      waitList.add(_delChild(listKey, childKey, model));
     });
 
-    waitList.add(handler.del(abbListKey));
+    waitList.add(handler.del(listKey));
 
     return Future.wait(waitList)
     .catchError(_handleErr);
   }
 
-  static Future _addChild(String key, UserSingle model) {
+  static Future _addChild(String listKey, String key, UserSingle model) {
     Map toAddAbb = model.toAddAbb(true);
     if (toAddAbb.length == 0) throw new IStoreException(20032);
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
 
     return handler.exists(key)
     .then((int exists) {
@@ -127,7 +125,7 @@ class UserSingleListRedisStore extends IRedisStore {
     })
     .then((String result) {
       if (result != 'OK') throw new IStoreException(20025);
-      return handler.expire(key, 86400);
+      return handler.expire(key, expire);
     })
     .then((int result) {
       if (result == 1) return model;
@@ -137,7 +135,7 @@ class UserSingleListRedisStore extends IRedisStore {
     .catchError(_handleErr);
   }
 
-  static Future _setChild(String key, UserSingle model) {
+  static Future _setChild(String listKey, String key, UserSingle model) {
     Map toSetAbb = model.toSetAbb(true);
     if (toSetAbb.length == 0) {
       new IStoreException(25001);
@@ -146,16 +144,16 @@ class UserSingleListRedisStore extends IRedisStore {
       return completer.future;
     }
 
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
 
     return handler.exists(key)
     .then((int exists) {
       if (exists == 0) throw new IStoreException(20028);
       return handler.hmset(key, toSetAbb);
     })
-    .then((String result) {
+        .then((String result) {
       if (result != 'OK') throw new IStoreException(20029);
-      return handler.expire(key, 86400);
+      return handler.expire(key, expire);
     })
     .then((int result) {
       if (result == 1) return model;
@@ -165,8 +163,8 @@ class UserSingleListRedisStore extends IRedisStore {
     .catchError(_handleErr);
   }
 
-  static Future _delChild(String key, UserSingle model) {
-    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, model);
+  static Future _delChild(String listKey, String key, UserSingle model) {
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, listKey);
 
     return handler.del(key)
     .then((num deletedNum) {
