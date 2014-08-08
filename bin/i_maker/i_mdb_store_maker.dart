@@ -209,7 +209,7 @@ class ${listName}MariaDBStore extends IMariaDBStore {
     if (toDelList.length != 0) waitList.add(_delChildren(toDelList, handler));
 
     return Future.wait(waitList)
-    .then((_) => list..resetAllToList())
+    .then((_) => list)
     .catchError(_handleErr);
   }
 

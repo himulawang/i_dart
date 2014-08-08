@@ -68,6 +68,10 @@ class IStoreMaker extends IMaker with
         // mariaDB
         mariaDBCode = makeMaraiaDBListStore(name, orm['Model'], orm['List'], orm['ListStore']);
         if (!mariaDBCode.isEmpty) writeFile('${lowerName}_list_mdb_store.dart', _outStoreDir, mariaDBCode, true);
+
+        // combined
+        combinedCode = makeServerCombinedListStore(name, orm['Model'], orm['List'], orm['ListStore']);
+        if (!combinedCode.isEmpty) writeFile('${lowerName}_list_store.dart', _outStoreDir, combinedCode, true);
       }
     });
 

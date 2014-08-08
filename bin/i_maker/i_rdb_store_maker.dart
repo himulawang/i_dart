@@ -196,7 +196,7 @@ class ${listName}RedisStore extends IRedisStore {
     codeSB.write('''
 
     return Future.wait(waitList)
-    .then((_) => list..resetAllToList())
+    .then((_) => list)
     .catchError(_handleErr);
   }
 

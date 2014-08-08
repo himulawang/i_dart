@@ -72,13 +72,13 @@ class ${name}Store {
       ..writeln('');
 
     // del
-    codeSB.writeln('  static Future del(input) {');
+    codeSB.writeln('  static Future del(${name} model) {');
     for (int i = storeOrder.length - 1; i >= 0; --i) {
       String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
       if (i == storeOrder.length - 1) {
-        codeSB.writeln('    return ${name}${upperType}Store.del(input)');
+        codeSB.writeln('    return ${name}${upperType}Store.del(model)');
       } else {
-        codeSB.writeln('    .then((_) => ${name}${upperType}Store.del(input))');
+        codeSB.writeln('    .then((_) => ${name}${upperType}Store.del(model))');
       }
     }
     codeSB..writeln('    ;')
@@ -152,6 +152,79 @@ class ${pkName}Store {
   static void _handleErr(e) => throw e;
 }
 ''');
+    return codeSB.toString();
+  }
+
+  String makeServerCombinedListStore(String name, Map orm, Map listOrm, Map storeOrm) {
+    List storeOrder = storeOrm['storeOrder'];
+
+    List pkColumnName = [];
+    for (int i = 0; i < listOrm['pk'].length; ++i) {
+      pkColumnName.add(orm['column'][listOrm['pk'][i]]);
+    }
+
+    String codeHeader = '''
+${_DECLARATION}
+part of lib_${_app};
+
+class ${name}ListStore {
+''';
+
+    String codeFooter = '''
+}
+''';
+
+    StringBuffer codeSB = new StringBuffer();
+    codeSB.write(codeHeader);
+
+    // set
+    codeSB.writeln('  static Future set(${name}List list) {');
+    for (int i = storeOrder.length - 1; i >= 0; --i) {
+      String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
+      if (i == storeOrder.length - 1) {
+        codeSB.writeln('    return ${name}List${upperType}Store.set(list)');
+      } else {
+        codeSB.writeln('    .then((_) => ${name}List${upperType}Store.set(list))');
+      }
+    }
+    codeSB..writeln('    .then((${name}List list) => list..resetAllToList())')
+      ..writeln('    ;')
+      ..writeln('  }')
+      ..writeln('');
+
+    // get
+    codeSB.writeln('  static Future get(${pkColumnName.join(', ')}) {');
+    for (int i = 0; i < storeOrder.length; ++i) {
+      String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
+      if (i == 0) {
+        codeSB..writeln('    return ${name}List${upperType}Store.get(${pkColumnName.join(', ')})');
+      } else {
+        codeSB..writeln('    .then((${name}List list) {')
+          ..writeln('      if (list.isExist()) return list;')
+          ..writeln('      return ${name}List${upperType}Store.get(${pkColumnName.join(', ')});')
+          ..writeln('    })');
+      }
+    }
+
+    codeSB..writeln('    ;')
+      ..writeln('  }')
+      ..writeln('');
+
+    // del
+    codeSB.writeln('  static Future del(${name}List list) {');
+    for (int i = storeOrder.length - 1; i >= 0; --i) {
+      String upperType = makeUpperFirstLetter(storeOrder[i]['type']);
+      if (i == storeOrder.length - 1) {
+        codeSB.writeln('    return ${name}List${upperType}Store.del(list)');
+      } else {
+        codeSB.writeln('    .then((_) => ${name}List${upperType}Store.del(list))');
+      }
+    }
+    codeSB..writeln('    ;')
+      ..writeln('  }');
+
+    codeSB.write(codeFooter);
+
     return codeSB.toString();
   }
 }

@@ -10,3 +10,4 @@ dependencies:
   http_server: any
   route: any
   i_redis: any
+  paper_elements: any

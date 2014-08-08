@@ -63,9 +63,6 @@ startTest() {
 
         UserSingleListRedisStore.set(userSingleList)
         .then(expectAsync((UserSingleList userSingleList) {
-          expect(userSingleList.length, equals(2));
-          expect(userSingleList.getToAddList().length, equals(0));
-
           return UserSingleListRedisStore.get(1);
         }))
         .then(expectAsync((UserSingleList list) {
@@ -161,9 +158,6 @@ startTest() {
 
         UserMultiListRedisStore.set(userMultiList)
         .then(expectAsync((UserMultiList userMultiList) {
-          expect(userMultiList.length, equals(2));
-          expect(userMultiList.getToAddList().length, equals(0));
-
           return UserMultiListRedisStore.get(1, 1);
         }))
         .then(expectAsync((UserMultiList list) {
@@ -241,9 +235,6 @@ startTest() {
 
         UserSingleNoExpireListRedisStore.set(list)
         .then(expectAsync((UserSingleNoExpireList usneList) {
-          expect(usneList.length, equals(2));
-          expect(usneList.getToAddList().length, equals(0));
-
           return UserSingleNoExpireListRedisStore.get(1);
         }))
         .then(expectAsync((UserSingleNoExpireList list) {

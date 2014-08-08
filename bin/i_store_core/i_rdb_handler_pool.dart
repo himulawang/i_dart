@@ -20,7 +20,6 @@ class IRedisHandlerPool {
 
       // for nodes
       group.forEach((Map node) {
-        //String connectionString = _makeConnectionString(node);
         IRedis handler = new IRedis(
             host: node['host'],
             port: node['port'],
@@ -63,7 +62,7 @@ class IRedisHandlerPool {
     return dbs[groupName][shardIndex];
   }
 
-  IRedis getReaderHandler(Map store, shardKey) {
+  IRedis getReaderHandler(Map store, String shardKey) {
     _checkInitialized();
 
     String groupType = store['readWriteSeparate'] ? 'slave' : 'master';

@@ -150,7 +150,7 @@ startTest() {
       });
 
       test('multiple pk: add 2 children successfully', () {
-        MultipleList list = new MultipleList(1, 1);
+        MultipleList list = new MultipleList(1, 'ila');
         Multiple m1 = new Multiple()
           ..id = 1
           ..name = 'ila'
@@ -306,5 +306,6 @@ startTest() {
       });
 
     });
+
   });
 }

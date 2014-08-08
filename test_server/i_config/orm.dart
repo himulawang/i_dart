@@ -431,6 +431,17 @@ Map orm = {
         'ListStore': {
             'storeOrder': [
                 {
+                    'type': 'redis',
+                    'readWriteSeparate': false,
+                    'sharding': true,
+                    'shardMethod': 'CRC32', // CRC32 & Consistent Hashing
+                    'master': 'GameCache',
+                    'slave': 'GameCacheSlave',
+                    'expire': 0,
+                    'mode': 'Atom', // TODO 'Atom' mode use hash type store model, 'Block' mode compress model to string type
+                    'abb': 'm',
+                },
+                {
                     'type': 'mariaDB',
                     'readWriteSeparate': false,
                     'sharding': true,
