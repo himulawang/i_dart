@@ -9,6 +9,11 @@ import 'i_config/store.dart';
 import 'i_config/orm.dart';
 
 void main() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('${rec.level.name}: ${rec.time}: ${rec.message}');
+  });
+
   num startTimestamp;
   num endTimestamp;
   startTimestamp = new DateTime.now().millisecondsSinceEpoch;

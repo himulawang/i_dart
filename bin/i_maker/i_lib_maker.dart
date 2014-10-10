@@ -9,6 +9,8 @@ import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
 import 'package:logging/logging.dart';
 
+part './i_config/route.dart';
+
 ''';
 
   final String _clientHeader = '''
@@ -47,6 +49,7 @@ import 'package:logging/logging.dart';
         path == '${_appPath}/i_config' ||
         path == '${_appPath}/packages'
       ) return;
+
 
       Directory childDir = new Directory(path);
       List childLs = childDir.listSync(recursive: true);

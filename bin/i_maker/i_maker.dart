@@ -117,11 +117,11 @@ class IMaker {
 /**
  * Copy file from srcPath/srcFileName to targetPath/targetFileName with header
  */
-  void copyFileWithHeader(String srcPath, String srcFileName, String targetPath, String targetFileName, String header) {
+  void copyFileWithHeader(String srcPath, String srcFileName, String targetPath, String targetFileName, String header, [bool overwrite = true]) {
     File file = new File('${srcPath}/${srcFileName}');
     file.readAsString().then((String content) {
       StringBuffer allContentSB = new StringBuffer(header)..write('\n\n')..write(content);
-      writeFile(targetFileName, targetPath, allContentSB.toString(), true);
+      writeFile(targetFileName, targetPath, allContentSB.toString(), overwrite);
     });
   }
 

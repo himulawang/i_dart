@@ -3,7 +3,6 @@ description: ParaNoidz I Framework for Dart
 dependencies:
   unittest: any
   sqljocky: any
-  redis_client: any
   lawndart: any
   http: any
   logging: any
@@ -11,3 +10,4 @@ dependencies:
   route: any
   i_redis: any
   paper_elements: any
+  stream: any

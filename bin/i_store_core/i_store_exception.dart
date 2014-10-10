@@ -3,9 +3,7 @@
  * DO NOT MODIFY!
  */
 
-class IStoreException {
-  int code;
-  List parameters;
+class IStoreException extends IException {
   static final Map _CODES = {
       // redis exception
       //'20001': 'Cannot find config key [no] in redis store.',
@@ -119,13 +117,8 @@ class IStoreException {
       '27006': 'Model has no attribute to set when set list to indexedDB.',
 
   };
+
   IStoreException(int inputCode, [List inputParameters]) {
-    code = inputCode;
-    parameters = inputParameters;
-    if (code > 25000) {
-      ILog.warning('IStoreWarning ${code}: ${_CODES[code.toString()]}');
-    } else {
-      ILog.severe('IStoreException ${code}: ${_CODES[code.toString()]}');
-    }
+    super.shout(inputCode, inputParameters, _CODES);
   }
 }

@@ -30,4 +30,5 @@ part 'i_idb_store_maker.dart';
 part 'i_srv_combined_store_maker.dart';
 
 part 'i_util_maker.dart';
+part 'i_route_maker.dart';
 part 'i_lib_maker.dart';

@@ -11,19 +11,16 @@ import 'lib_test.dart';
 import 'i_config/store.dart';
 import 'i_config/orm.dart';
 
-num startTimestamp;
-num endTimestamp;
-
 void main() {
-  startTimestamp = new DateTime.now().millisecondsSinceEpoch;
-
-  Logger.root.level = Level.WARNING;
+  Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord rec) {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
+  int port = 8080;
+
   var buildPath = Platform.script.resolve('/home/ila/project/i_dart/test_client').toFilePath();
-  HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, 8080).then((server) {
+  HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((server) {
     var router = new Router(server);
 
     var virDir = new VirtualDirectory(buildPath);
@@ -39,20 +36,10 @@ void main() {
 
     router.serve('/ws')
     .transform(new WebSocketTransformer())
-    .listen(handleWebSocket);
+    .listen(IWebSocketHandler.handle);
 
     virDir.serve(router.defaultStream);
-  });
-}
 
-void handleWebSocket(WebSocket webSocket) {
-  webSocket
-  .map((string) => JSON.decode(string))
-  .listen((json) {
-    var request = json['request'];
-    switch (request) {
-      case 'search':
-        break;
-    }
-  }, onError: (error) => print(error));
+    ILog.info('Server is running on http://${server.address.address}:${port}');
+  });
 }

@@ -3,9 +3,7 @@
  * DO NOT MODIFY!
  */
 
-class IModelException {
-  int code;
-  List parameters;
+class IModelException extends IException {
   static final Map _CODES = {
     //'10001': 'Model has no pk when set to list.',
     //'10002': 'Invalid index when check model pk from list.',
@@ -29,9 +27,8 @@ class IModelException {
     '10020': 'Multiple ListPK is not set.',
     '10021': 'List pk is not set.',
   };
+
   IModelException(int inputCode, [List inputParameters]) {
-    code = inputCode;
-    parameters = inputParameters;
-    ILog.severe('IStoreException ${code}: ${_CODES[code.toString()]}');
+    super.shout(inputCode, inputParameters, _CODES);
   }
 }

@@ -105,6 +105,10 @@ packages:
     description: redis_client
     source: hosted
     version: "0.1.13"
+  rikulo_commons:
+    description: rikulo_commons
+    source: hosted
+    version: "1.1.1"
   route:
     description: route
     source: hosted
@@ -125,6 +129,10 @@ packages:
     description: stack_trace
     source: hosted
     version: "0.9.3+2"
+  stream:
+    description: stream
+    source: hosted
+    version: "1.2.2"
   string_scanner:
     description: string_scanner
     source: hosted
