@@ -4,12 +4,13 @@ class ILibraryMaker extends IMaker {
   final String _serverHeader = '''
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
 import 'package:logging/logging.dart';
 
-part './i_config/route.dart';
+part './i_config/server_route.dart';
 
 ''';
 

@@ -1,6 +1,8 @@
-Map route = {
+part of lib_test;
+
+Map serverRoute = {
     "V101": { // create group
-        "handler": GroupLogic.createGroup,
+        "handler": TestRouteLogic.createGroup,
         "params": {
             "n": "rs",
         },
@@ -8,5 +10,5 @@ Map route = {
         "encryptType": null,
         "reqEncrypt": false,
         "resEncrypt": false,
-    }
+    },
 };

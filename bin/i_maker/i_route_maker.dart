@@ -20,12 +20,12 @@ class IRouteMaker extends IMaker {
     makeSubDir();
 
     // copy route config
-    copyFileWithHeader(_srcConfigDir, 'route.dart', _outConfigDir, 'route.dart', 'part of lib_${_app};', false);
+    copyFileWithHeader(_srcConfigDir, 'server_route.dart', _outConfigDir, 'server_route.dart', 'part of lib_${_app};', false);
 
     // copy core route
-    copyFileWithHeader(_srcRouteCoreDir, 'i_route_exception.dart', _outRouteCoreDir, 'i_route_exception.dart', 'part of lib_${_app};');
     copyFileWithHeader(_srcRouteCoreDir, 'i_route_validator.dart', _outRouteCoreDir, 'i_route_validator.dart', 'part of lib_${_app};');
-    copyFileWithHeader(_srcRouteCoreDir, 'i_websocket_handler.dart', _outRouteCoreDir, 'i_websocket_handler.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcRouteCoreDir, 'i_route_srv_exception.dart', _outRouteCoreDir, 'i_route_srv_exception.dart', 'part of lib_${_app};');
+    copyFileWithHeader(_srcRouteCoreDir, 'i_websocket_srv_handler.dart', _outRouteCoreDir, 'i_websocket_srv_handler.dart', 'part of lib_${_app};');
   }
 
   void makeSubDir() {

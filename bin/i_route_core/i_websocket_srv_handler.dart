@@ -1,4 +1,4 @@
-class IWebSocketHandler {
+class IWebSocketServerHandler {
   static handle(WebSocket ws) {
     ws.map((body) => JSON.decode(body))
     .listen((Map json) {
@@ -6,7 +6,7 @@ class IWebSocketHandler {
       // check valid framework request
       if (json is! Map || !json.containsKey('a') || !json.containsKey('p')) {
         // invalid request parameters
-        new IRouteException(30102, [JSON.encode(json)]);
+        new IRouteServerException(30102, [JSON.encode(json)]);
         return;
       }
 
@@ -15,17 +15,17 @@ class IWebSocketHandler {
 
       // check api & params type
       if (api is! String) {
-        new IRouteException(30103, [api]);
+        new IRouteServerException(30103, [api]);
         return;
       }
       if (params is! Map) {
-        new IRouteException(30104, [api]);
+        new IRouteServerException(30104, [api]);
         return;
       }
 
       // check api is valid
-      if (!route.containsKey(api)) {
-        new IRouteException(30105, [api]);
+      if (!serverRoute.containsKey(api)) {
+        new IRouteServerException(30105, [api]);
         return;
       }
 
@@ -33,15 +33,15 @@ class IWebSocketHandler {
 
       // check params
       try {
-        IValidator.validateAll(params, route[api]['params'], api);
-        route[api]['handler'](ws, api, params);
+        IRouteValidator.validateAll(params, serverRoute[api]['params'], api);
+        serverRoute[api]['handler'](ws, api, params);
       } catch (e) {
         return;
       }
     }, onError: (error) {
       print('bad WS request');
       print(error);
-      new IRouteException(30101);
+      new IRouteServerException(30101);
     });
   }
 }

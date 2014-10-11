@@ -6,7 +6,7 @@ import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
 import 'package:unittest/html_enhanced_config.dart';
 
-import 'lib_test.dart';
+import 'lib_test_idb_store.dart';
 import './i_config/orm.dart';
 import './i_config/store.dart';
 

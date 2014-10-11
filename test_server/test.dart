@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:http/http.dart' as http;
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:redis_client/redis_client.dart';
 import 'package:sqljocky/sqljocky.dart';
 
 import 'lib_test.dart';

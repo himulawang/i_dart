@@ -36,7 +36,7 @@ void main() {
 
     router.serve('/ws')
     .transform(new WebSocketTransformer())
-    .listen(IWebSocketHandler.handle);
+    .listen(IWebSocketServerHandler.handle);
 
     virDir.serve(router.defaultStream);
 
