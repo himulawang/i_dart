@@ -3,7 +3,7 @@ class IRouteValidator {
   static const ALLOW_EMPTY = 'e';
   static const REQUIRED = 'r';
 
-  static const NUMBER = 'n';
+  static const INT = 'i';
   static const UNSIGNED_NUMBER = 'u';
   static const BOOL = 'b';
   static const STRING = 's';
@@ -31,27 +31,23 @@ class IRouteValidator {
 
       if (allowType == ALLOW_NONE) {
         if (params.containsKey(key)) {
-          validateEach(params[key], allowType, dataType, api, key);
+          validateEach(params[key], false, dataType, api, key);
           return;
         }
         return;
       }
 
       if (allowType == ALLOW_EMPTY) {
-        if (!params.containsKey(key)) throw new IRouteServerException(30001, [api, key]);
+        if (!params.containsKey(key)) throw new IRouteServerException(41001, [api, key]);
 
-        var value = params[key];
-        if (value is String && value.length == 0) return;
-        if ((value is List || value is Map) && value.length == 0) return;
-
-        validateEach(params[key], allowType, dataType, api, key);
+        validateEach(params[key], true, dataType, api, key);
         return;
       }
 
       if (allowType == REQUIRED) {
-        if (!params.containsKey(key)) throw new IRouteServerException(30002, [api, key]);
+        if (!params.containsKey(key)) throw new IRouteServerException(41002, [api, key]);
 
-        validateEach(params[key], allowType, dataType, api, key);
+        validateEach(params[key], false, dataType, api, key);
         return;
       }
 
@@ -59,37 +55,37 @@ class IRouteValidator {
 
   }
 
-  static validateEach(value, String allowType, String dataType, String api, String key) {
+  static validateEach(value, bool allowEmpty, String dataType, String api, String key) {
     switch (dataType) {
       case STRING:
-        if (value is! String) throw new IRouteServerException(30003, [api, key, 'String', value.runtimeType]);
-        if (value.length == 0) throw new IRouteServerException(30004, [api, key, 'String']);
+        if (value is! String) throw new IRouteServerException(41003, [api, key, 'String', value.runtimeType, value]);
+        if (!allowEmpty && value.length == 0) throw new IRouteServerException(41004, [api, key, 'String']);
         break;
-      case NUMBER:
-        if (value is! num) throw new IRouteServerException(30003, [api, key, 'Number', value.runtimeType]);
+      case INT:
+        if (value is! int) throw new IRouteServerException(41003, [api, key, 'Number', value.runtimeType, value]);
         break;
       case UNSIGNED_NUMBER:
-        if (value is! num || (value is num && value < 0)) {
-          throw new IRouteServerException(30003, [api, key, 'Unsigned Number', value.runtimeType]);
+        if (value is! int || (value is int && value < 0)) {
+          throw new IRouteServerException(41003, [api, key, 'Unsigned Number', value.runtimeType, value]);
         }
         break;
       case DOUBLE:
-        if (value is! double) throw new IRouteServerException(30003, [api, key, 'Double', value.runtimeType]);
+        if (value is! double) throw new IRouteServerException(41003, [api, key, 'Double', value.runtimeType, value]);
         break;
       case MAP:
-        if (value is! Map) throw new IRouteServerException(30003, [api, key, 'Map', value.runtimeType]);
-        if (value.length == 0) throw new IRouteServerException(30004, [api, key, 'Map']);
+        if (value is! Map) throw new IRouteServerException(41003, [api, key, 'Map', value.runtimeType, value]);
+        if (!allowEmpty && value.length == 0) throw new IRouteServerException(41004, [api, key, 'Map']);
         break;
       case LIST:
-        if (value is! List) throw new IRouteServerException(30003, [api, key, 'List', value.runtimeType]);
-        if (value.length == 0) throw new IRouteServerException(30004, [api, key, 'List']);
+        if (value is! List) throw new IRouteServerException(41003, [api, key, 'List', value.runtimeType, value]);
+        if (!allowEmpty && value.length == 0) throw new IRouteServerException(41004, [api, key, 'List']);
         break;
       case JSON:
-        if (value is! Map && value is! List) throw new IRouteServerException(30003, [api, key, 'Json', value.runtimeType]);
-        if (value.length == 0) throw new IRouteServerException(30004, [api, key, 'Json']);
+        if (value is! Map && value is! List) throw new IRouteServerException(41003, [api, key, 'Json', value.runtimeType, value]);
+        if (!allowEmpty && value.length == 0) throw new IRouteServerException(41004, [api, key, 'Json']);
         break;
       case BOOL:
-        if (value is! bool) throw new IRouteServerException(30003, [api, key, 'Boolean']);
+        if (value is! bool) throw new IRouteServerException(41003, [api, key, 'Boolean', value.runtimeType, value]);
         break;
     }
   }

@@ -21,15 +21,7 @@ void main() {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-  var a = [1,2].toString();
-  var b = {'a':1, 'b':2}.toString();
-
-  print(a);
-  print(a is String);
-
-  print(b);
-  print(b is String);
-
+  print(2233000000000000000000 is double);
 
 }
 

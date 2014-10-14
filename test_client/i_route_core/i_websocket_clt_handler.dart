@@ -12,8 +12,6 @@ class IWebSocketClientHandler {
 
     ws = new WebSocket(url);
 
-    print(ws.onOpen);
-
     var completer = new Completer();
 
     ws.onOpen.first.then((_) {
@@ -54,19 +52,30 @@ class IWebSocketClientHandler {
       throw new IRouteClientException(50001);
     }
 
-    if (json is! Map || !json.containsKey('r') || !json.containsKey('d')) {
+    if (json is! Map ||
+        !json.containsKey('a') ||
+        !json.containsKey('r') ||
+        !json.containsKey('d')
+    ) {
       throw new IRouteClientException(50002);
+    }
+
+    var api = json['a'];
+    var data = json['d'];
+    var resultCode = json['r'];
+
+    if (api is! String || !clientRoute.containsKey(api)) {
+      throw new IRouteClientException(50003, [api]);
     }
 
     if (json['r'] != 0) {
       // TODO exception handler
     }
 
-    Map data = json['d'];
-    if (data is! Map) throw new IRouteClientException(50003);
+    if (data is! Map) throw new IRouteClientException(50004);
 
-
-    print(json);
+    // invoke handler
+    clientRoute[api]['handler'](this, api, data);
   }
 
   void send(String api, Map reqParam) {
