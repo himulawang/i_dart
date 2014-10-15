@@ -1,15 +1,10 @@
-import 'dart:async';
 import 'dart:io';
-import 'dart:convert';
 
 import 'package:logging/logging.dart';
-import 'package:unittest/unittest.dart';
 import 'package:http_server/http_server.dart';
 import 'package:route/server.dart';
 
 import 'lib_test.dart';
-import 'i_config/store.dart';
-import 'i_config/orm.dart';
 
 void main() {
   Logger.root.level = Level.ALL;
@@ -34,12 +29,13 @@ void main() {
     };
     */
 
+    var handler = new IWebSocketServerHandler();
     router.serve('/ws')
     .transform(new WebSocketTransformer())
-    .listen(IWebSocketServerHandler.handle);
+    .listen(handler.onMessage);
 
     virDir.serve(router.defaultStream);
 
-    ILog.info('Server is running on http://${server.address.address}:${port}');
+    ILog.info('WebSocket Server is running on http://${server.address.address}:${port}');
   });
 }

@@ -1,5 +1,3 @@
-part of lib_test_route;
-
 class IRouteClientException extends IException {
   static final Map _CODES = {
       '50001': 'Invalid response json: %%.',

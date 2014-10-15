@@ -11,3 +11,4 @@ dependencies:
   i_redis: any
   paper_elements: any
   stream: any
+  uuid: any

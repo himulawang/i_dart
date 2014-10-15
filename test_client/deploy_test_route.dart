@@ -13,6 +13,9 @@ void main() {
   IUtilMaker utilMaker = new IUtilMaker(deploy);
   utilMaker.make();
 
+  IRouteMaker routeMaker = new IRouteMaker(deploy);
+  routeMaker.makeClient();
+
   ILibraryMaker libMaker = new ILibraryMaker(deploy);
   libMaker.makeClient();
 }

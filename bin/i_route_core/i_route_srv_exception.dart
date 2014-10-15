@@ -1,7 +1,7 @@
 class IRouteServerException extends IException {
   static final Map _CODES = {
       // WebSocket Handler
-      '40001': 'Invalid request json.',
+      '40001': 'Invalid request data type %%.',
       '40002': 'Invalid json format for framework: %%.',
       '40003': 'Invalid api type %%.',
       '40004': 'Api %% receive invalid params type.',

@@ -13,10 +13,18 @@ packages:
     description: barback
     source: hosted
     version: "0.15.0+1"
+  bignum:
+    description: bignum
+    source: hosted
+    version: "0.0.6"
   browser:
     description: browser
     source: hosted
     version: "0.10.0+2"
+  cipher:
+    description: cipher
+    source: hosted
+    version: "0.7.1"
   code_transformers:
     description: code_transformers
     source: hosted
@@ -28,7 +36,7 @@ packages:
   core_elements:
     description: core_elements
     source: hosted
-    version: "0.3.1+1"
+    version: "0.3.2"
   crypto:
     description: crypto
     source: hosted
@@ -40,7 +48,11 @@ packages:
   custom_element_apigen:
     description: custom_element_apigen
     source: hosted
-    version: "0.1.0"
+    version: "0.1.1"
+  fixnum:
+    description: fixnum
+    source: hosted
+    version: "0.9.0"
   html5lib:
     description: html5lib
     source: hosted
@@ -88,7 +100,7 @@ packages:
   paper_elements:
     description: paper_elements
     source: hosted
-    version: "0.4.1"
+    version: "0.4.2"
   path:
     description: path
     source: hosted
@@ -96,11 +108,11 @@ packages:
   polymer:
     description: polymer
     source: hosted
-    version: "0.15.0+1"
+    version: "0.15.1"
   polymer_expressions:
     description: polymer_expressions
     source: hosted
-    version: "0.13.0"
+    version: "0.12.0+1"
   pool:
     description: pool
     source: hosted
@@ -148,7 +160,7 @@ packages:
   template_binding:
     description: template_binding
     source: hosted
-    version: "0.13.0+1"
+    version: "0.12.1"
   unittest:
     description: unittest
     source: hosted
@@ -157,6 +169,10 @@ packages:
     description: utf
     source: hosted
     version: "0.9.0+1"
+  uuid:
+    description: uuid
+    source: hosted
+    version: "0.4.1"
   watcher:
     description: watcher
     source: hosted
@@ -164,7 +180,7 @@ packages:
   web_components:
     description: web_components
     source: hosted
-    version: "0.7.1+2"
+    version: "0.9.0"
   yaml:
     description: yaml
     source: hosted

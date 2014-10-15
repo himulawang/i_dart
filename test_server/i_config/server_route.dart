@@ -1,8 +1,8 @@
 part of lib_test;
 
 Map serverRoute = {
-    "V101": { // create group
-        "handler": TestRouteLogic.createGroup,
+    "V101": { // receive blob
+        "handler": TestRouteLogic.echo,
         "params": {
             "n": "rs",
         },

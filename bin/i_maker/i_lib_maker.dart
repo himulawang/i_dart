@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
 import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart';
 
 part './i_config/server_route.dart';
 
@@ -22,6 +23,9 @@ import 'dart:indexed_db';
 import 'dart:html';
 
 import 'package:logging/logging.dart';
+import 'package:uuid/uuid.dart';
+
+part './i_config/client_route.dart';
 
 ''';
 

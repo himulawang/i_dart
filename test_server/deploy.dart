@@ -14,7 +14,7 @@ void main() {
   utilMaker.make();
 
   IRouteMaker routeMaker = new IRouteMaker(deploy);
-  routeMaker.make();
+  routeMaker.makeServer();
 
   ILibraryMaker libMaker = new ILibraryMaker(deploy);
   libMaker.makeServer();

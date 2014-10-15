@@ -27,13 +27,22 @@ void main() {
 
 }
 
-startTest(ws) {
+startTest(IWebSocketClientHandler ws) {
 
   group('entrance', () {
 
     group('data integrity', () {
 
-      test('receive blob', () {
+      test('send blob', () {
+
+        //
+        // ws.ws.sendBlob(new Blob(['HelloWorld']));
+//        ws.ws.sendBlob(new Blob(['HelloWorld']));
+        ws.req('V101', {});
+
+
+        var complete = new Completer();
+
 
       });
 
@@ -42,4 +51,3 @@ startTest(ws) {
   });
 
 }
-
