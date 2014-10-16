@@ -1,7 +1,7 @@
 class IWebSocketClientHandler {
   String _url;
   int _retryDuration;
-  Map<Completer> _session;
+  Map<Completer> _session = {};
 
   // async
   int _messageId = 0;
@@ -70,26 +70,33 @@ class IWebSocketClientHandler {
     var resultCode = json['r'];
 
     if (resultCode != 0) {
-      if (messageId != -1 && _session.containsKey(messageId)) {
+      if (messageId != '-1' && _session.containsKey(messageId)) {
         var error = new IRouteClientException(50003, [api, resultCode, data]);
         _session[messageId].completeError(error);
         _session.remove(messageId);
+        return;
+      } else {
+        new IRouteClientException(50003, [api, resultCode, data]);
         return;
       }
     }
 
     // async complete
-    if (messageId != -1 && _session.containsKey(messageId)) {
+    if (messageId != '-1' && _session.containsKey(messageId)) {
       _session[messageId].complete(data);
       _session.remove(messageId);
       return;
     }
 
     if (api is! String || !clientRoute.containsKey(api)) {
-      throw new IRouteClientException(50004, [api]);
+      new IRouteClientException(50004, [api]);
+      return;
     }
 
-    if (data is! Map) throw new IRouteClientException(50005);
+    if (data is! Map) {
+      new IRouteClientException(50005);
+      return;
+    }
 
     // invoke 2 way bind handler
     clientRoute[api]['handler'](this, api, data);
@@ -105,10 +112,6 @@ class IWebSocketClientHandler {
     ws.send(JSON.encode(req));
   }
 
-  sendBlob(Blob b) {
-    ws.sendBlob(b);
-  }
-
   Future reqAsync(String api, Map reqParam) {
     var req = {
         'a': api,
@@ -118,10 +121,14 @@ class IWebSocketClientHandler {
 
     ws.send(JSON.encode(req));
 
+    return _makeCompleter().future;
+  }
+
+  Completer _makeCompleter() {
     var completer = new Completer();
     _session[_messageId.toString()] = completer;
     ++_messageId;
-    return completer.future;
+    return completer;
   }
 
 }

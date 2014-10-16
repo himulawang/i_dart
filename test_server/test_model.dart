@@ -950,10 +950,10 @@ void main() {
         expect(u.getUnitedPK(), equals('1'));
       });
 
-      test('multple pk get success', () {
+      test('multpile pk get success', () {
         UserMulti u = new UserMulti();
         u.setPK(1, 'aa', 'bb');
-        String delimiter = ASCII.decode([0x1D]);
+        String delimiter = ':';
         expect(u.getUnitedPK(), equals('1${delimiter}aa${delimiter}bb'));
       });
 
@@ -962,7 +962,7 @@ void main() {
         expect(() => u.getUnitedPK(), throwsA(predicate((e) => e is IModelException && e.code == 10015)));;
       });
 
-      test('multple pk not set should throw exception', () {
+      test('multiple pk not set should throw exception', () {
         UserMulti u = new UserMulti();
         expect(() => u.getUnitedPK(), throwsA(predicate((e) => e is IModelException && e.code == 10016)));;
       });
@@ -975,9 +975,9 @@ void main() {
         expect(u.getUnitedChildPK(), equals('ila'));
       });
 
-      test('multple child pk get success', () {
-        UserMulti u = new UserMulti([1, 2, 'aa', 'bb']);
-        String delimiter = ASCII.decode([0x1D]);
+      test('multiple child pk get success', () {
+        UserMulti u = new UserMulti([1, 2, 'aa', 'bb', 'cc']);
+        String delimiter = ':';
         expect(u.getUnitedChildPK(), equals('aa${delimiter}bb'));
       });
 
@@ -986,7 +986,7 @@ void main() {
         expect(() => u.getUnitedChildPK(), throwsA(predicate((e) => e is IModelException && e.code == 10018)));;
       });
 
-      test('multple child pk not set should throw exception', () {
+      test('multiple child pk not set should throw exception', () {
         UserMulti u = new UserMulti();
         expect(() => u.getUnitedChildPK(), throwsA(predicate((e) => e is IModelException && e.code == 10018)));;
       });

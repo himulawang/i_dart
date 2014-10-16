@@ -184,7 +184,7 @@ startTest() {
       });
 
       test('multiple pk: set model successfully', () {
-        UserMulti um = new UserMulti([10, 'aa', 1, 'bb'])
+        UserMulti um = new UserMulti([10, 'aa', 1, 'bb', 'cc'])
           ..gender = 200
         ;
         UserMultiRedisStore.set(um).then(expectAsync((UserMulti userMulti) {
@@ -227,7 +227,7 @@ startTest() {
       });
 
       test('multiple pk: get success', () {
-        UserMulti um = new UserMulti([2, 'aa', 3, 'bb']);
+        UserMulti um = new UserMulti([2, 'aa', 3, 'bb', 'cc']);
         UserMultiRedisStore
         .add(um)
         .then((_) => UserMultiRedisStore.get(2, 'aa', 'bb'))
@@ -271,7 +271,7 @@ startTest() {
       });
 
       test('multiple pk: del success', () {
-        UserMulti um = new UserMulti([2, 'aa', 200, 'bb']);
+        UserMulti um = new UserMulti([2, 'aa', 200, 'bb', 'cc']);
         UserMultiRedisStore.del(um)
         .then(expectAsync((result) {
           expect(result, 1);

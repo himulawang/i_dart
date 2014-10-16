@@ -118,8 +118,8 @@ class ${name} extends IModel {
     if (args == null) {
       _args = new List.filled(_length, null);
     } else {
-      if (args is! List) throw new IModelException(10010);
-      if (args.length != _length) throw new IModelException(10009);
+      if (args is! List) throw new IModelException(10010, [this.runtimeType, args]);
+      if (args.length != _length) throw new IModelException(10009, [this.runtimeType, args.length, _length]);
       _args = args;
     }
     _updatedList = new List.filled(_length, false);
@@ -166,7 +166,7 @@ class ${name} extends IModel {
       codeSB.write('''
   String getUnitedPK() {
     List pk = getPK();
-    if (pk.contains(null)) throw new IModelException(10016);
+    if (pk.contains(null)) throw new IModelException(10016, [pk]);
     return pk.join(_delimiter);
   }
 
@@ -180,7 +180,7 @@ class ${name} extends IModel {
       codeSB.write('''
   String getUnitedListPK() {
     List listPK = getListPK();
-    if (listPK.contains(null)) throw new IModelException(10020);
+    if (listPK.contains(null)) throw new IModelException(10020, [listPK]);
     return listPK.join(_delimiter);
   }
 
@@ -194,7 +194,7 @@ class ${name} extends IModel {
       codeSB.write('''
   String getUnitedChildPK() {
     List childPK = getChildPK();
-    if (childPK.contains(null)) throw new IModelException(10018);
+    if (childPK.contains(null)) throw new IModelException(10018, [childPK]);
     return childPK.join(_delimiter);
   }
 
@@ -207,7 +207,7 @@ class ${name} extends IModel {
       codeSB.write('''
   String getUnitedWholePK() {
     List wholePK = getWholePK();
-    if (wholePK.contains(null)) throw new IModelException(10019);
+    if (wholePK.contains(null)) throw new IModelException(10019, [wholePK]);
     return wholePK.join(_delimiter);
   }
 ''');
@@ -333,14 +333,14 @@ class ${name} extends IModel {
   }
 
   void fromList(List data, [bool changeUpdatedList = false]) {
-    if (data is! List || data.length != _length) throw new IModelException(10006);
+    if (data is! List || data.length != _length) throw new IModelException(10006, [this.runtimeType, data.length, _length]);
     for (num i = 0; i < _args.length; ++i) {
       _args[i] = data[i];
     }
     if (changeUpdatedList) setUpdatedList(true);
   }
   void fromFull(Map data, [bool changeUpdatedList = false]) {
-    if (data is! Map) throw new IModelException(10008);
+    if (data is! Map) throw new IModelException(10008, [this.runtimeType, data.length, _length]);
 
     _mapFull.forEach((String full, num i) {
       if (!data.containsKey(full)) return;
@@ -349,7 +349,7 @@ class ${name} extends IModel {
     });
   }
   void fromAbb(Map data, [bool changeUpdatedList = false]) {
-    if (data is! Map) throw new IModelException(10007);
+    if (data is! Map) throw new IModelException(10007, [this.runtimeType, data.length, _length]);
 
     _mapAbb.forEach((String abb, num i) {
       if (!data.containsKey(abb)) return;
@@ -431,7 +431,7 @@ class ${listName} extends IList {
   ${name} get(${childPKColumnName.join(', ')}) => _list["\${${childPKColumnName.join('}\$\{_delimiter}\${')}}"];
 
   void fromList(List dataList, [bool changeUpdatedList = false]) {
-    if (dataList is! List) throw new IModelException(10012);
+    if (dataList is! List) throw new IModelException(10012, [this.runtimeType]);
 
     dataList.forEach((Map data) {
       ${name} model = new ${name}();
@@ -448,7 +448,7 @@ class ${listName} extends IList {
     });
   }
   void fromFull(Map dataList, [bool changeUpdatedList = false]) {
-    if (dataList is! Map) throw new IModelException(10013);
+    if (dataList is! Map) throw new IModelException(10013, [this.runtimeType]);
 
     dataList.forEach((String i, Map data) {
       ${name} model = new ${name}();
@@ -465,7 +465,7 @@ class ${listName} extends IList {
     });
   }
   void fromAbb(Map dataList, [bool changeUpdatedList = false]) {
-    if (dataList is! Map) throw new IModelException(10014);
+    if (dataList is! Map) throw new IModelException(10014, [this.runtimeType]);
 
     dataList.forEach((String i, Map data) {
       ${name} model = new ${name}();

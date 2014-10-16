@@ -7,8 +7,12 @@ class IWebSocketServerHandler {
     ILog.info('A client connected, Online User: ${getConcurrentUser()}.');
 
     ws.map((body) {
-      if (body is String) return JSON.decode(body);
-      throw new IRouteServerException(40001, [body.runtimeType]);
+      if (body is! String) throw new IRouteServerException(40001, [body.runtimeType]);
+      try {
+        return JSON.decode(body);
+      } catch (e) {
+        throw new IRouteServerException(40002, [body]);
+      }
     })
     .listen((Map json) {
 
@@ -70,7 +74,7 @@ class IWebSocketServerHandler {
     var messageId = json.containsKey('mi') ? json['mi'] : -1;
 
     var res = {
-      'a': api,
+      'a': 'on${IString.makeUpperFirstLetter(api)}',
       'r': error.code,
       'd': error.message,
       'mi': messageId,

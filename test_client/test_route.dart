@@ -31,18 +31,49 @@ startTest(IWebSocketClientHandler ws) {
 
   group('entrance', () {
 
+    // i_dart don't have async sendBlobAsync & sendStringAsync, so if server not crash
+    // we consider this group of test is passed
     group('data integrity', () {
 
       test('send blob', () {
 
-        //
-        // ws.ws.sendBlob(new Blob(['HelloWorld']));
-//        ws.ws.sendBlob(new Blob(['HelloWorld']));
-        ws.req('V101', {});
+        ws.ws.sendBlob(new Blob(['HelloWorld']));
 
+      });
 
-        var complete = new Completer();
+      test('send non-json', () {
 
+        ws.ws.send('non-json');
+
+      });
+
+    });
+
+    group('data format', () {
+
+      test('json not satisify the rule of i_dart', () {
+
+        ws.ws.send('{"b":1}');
+
+      });
+
+      test('param is not map', () {
+
+        ws.reqAsync('V101', 'HelloWorld')
+        .catchError(expectAsync((e) {
+          expect(e.code, 50003);
+          expect(e.message, 'Server error, api: onV101, code: 40004, message: "Api V101 receive invalid params type.".');
+        }));
+
+      });
+
+      test('api is not server route config', () {
+
+        ws.reqAsync('NotExistAPI', {})
+        .catchError(expectAsync((e) {
+          expect(e.code, 50003);
+          expect(e.message, 'Server error, api: onNotExistAPI, code: 40005, message: "Api NotExistAPI is invalid.".');
+        }));
 
       });
 

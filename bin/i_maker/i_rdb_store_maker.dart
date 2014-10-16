@@ -19,10 +19,10 @@ class ${name}RedisStore extends IRedisStore {
   static String _makeKey(${name} model) {
     var pk = model.getPK();
     if (pk is List) {
-      if (pk.contains(null)) throw new IStoreException(20042);
+      if (pk.contains(null)) throw new IStoreException(20042, ['${name}']);
       return '\$\{abb}:\$\{pk.join(':')}';
     } else {
-      if (pk == null) throw new IStoreException(20042);
+      if (pk == null) throw new IStoreException(20042, ['${name}}']);
       return '\$\{abb}:\$\{pk}';
     }
   }

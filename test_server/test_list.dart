@@ -17,7 +17,7 @@ void main() {
   num startTimestamp;
   num endTimestamp;
   startTimestamp = new DateTime.now().millisecondsSinceEpoch;
-  String delimiter = ASCII.decode([0x1D]);
+  String delimiter = ':';
 
   group('Test List', () {
     group('constructor', () {
@@ -64,10 +64,9 @@ void main() {
       });
 
       test('multiple pk: some child of map data has no child pk should throw exception', () {
-        var u = new UserMulti([2, null, 'male', 'Empire']);
         Map dataList = {
-            '1': new UserMulti([1, 'ila', 'male', 'Empire']),
-            '2': new UserMulti([2, null, null, 'Empire']),
+            '1': new UserMulti([1, 'ila', 'male', 'Empire', 'cc']),
+            '2': new UserMulti([2, null, null, 'Empire', 'cc']),
         };
 
         expect(() => new UserMultiList.filledMap(1, 2, dataList), throwsA(predicate((e) => e is IModelException && e.code == 10018)));
@@ -100,10 +99,9 @@ void main() {
       });
 
       test('multiple pk: some child of list data has no child pk should throw exception', () {
-        var u = new UserMulti([2, null, 'male', 'Empire']);
         List dataList = [
-            new UserMulti([1, 'ila', 'male', 'Empire']),
-            new UserMulti([2, null, null, 'Empire']),
+            new UserMulti([1, 'ila', 'male', 'Empire', 'cc']),
+            new UserMulti([2, null, null, 'Empire', 'cc']),
         ];
 
         expect(() => new UserMultiList.filledList(1, 2, dataList), throwsA(predicate((e) => e is IModelException && e.code == 10018)));
@@ -148,8 +146,8 @@ void main() {
       });
 
       test('multiple pk: get the right list', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'aa', 'Empire']);
-        UserMulti u2 = new UserMulti([1, 'ila', 'bb', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'aa', 'Empire', 'cc']);
+        UserMulti u2 = new UserMulti([1, 'ila', 'bb', 'Empire', 'cc']);
         List dataList = [u1, u2];
         UserMultiList uList = new UserMultiList.filledList(1, 2, dataList);
         Map list = uList.getList();
@@ -171,7 +169,7 @@ void main() {
       });
 
       test('multiple pk: get the right list', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList(1, 2);
         uList.add(u1);
         Map toAddList = uList.getToAddList();
@@ -195,7 +193,7 @@ void main() {
       });
 
       test('multiple pk: get the right list', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList(1, 2);
         uList.add(u1);
         uList.del(u1);
@@ -220,7 +218,7 @@ void main() {
       });
 
       test('multiple pk: get the right list', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList.filledList(1, 2, [u1]);
         u1.id = 2;
         uList.set(u1);
@@ -247,7 +245,7 @@ void main() {
       });
 
       test('multiple pk: get the right model', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList.filledList(1, 2, [u1]);
         UserMulti u2 = uList.get('male', 'Empire');
         expect(identical(u2, u1), isTrue);
@@ -277,14 +275,14 @@ void main() {
       });
 
       test('multiple pk: add model exists should throw exception', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
-        UserMulti u2 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
+        UserMulti u2 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList.filledList(1, 2, [u1]);
         expect(() => uList.add(u2), throwsA(predicate((e) => e is IModelException && e.code == 10003)));
       });
 
       test('multiple pk: add success', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList(1, 2);
         uList.add(u1);
         expect(uList.getToAddList(), equals({'male${delimiter}Empire': u1}));
@@ -323,13 +321,13 @@ void main() {
 
       test('multiple pk: set model not exist should throw exception', () {
         UserMultiList uList = new UserMultiList(1, 2);
-        UserMulti u = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         expect(() => uList.set(u), throwsA(predicate((e) => e is IModelException && e.code == 10005)));
       });
 
       test('multiple pk: model exists in toAddList should refresh the model', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
-        UserMulti u2 = new UserMulti([1, 'bb', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
+        UserMulti u2 = new UserMulti([1, 'bb', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList(1, 2);
         uList.add(u1);
         uList.set(u2);
@@ -338,9 +336,9 @@ void main() {
       });
 
       test('multiple pk: model exists in toSetList should refresh the model', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
-        UserMulti u2 = new UserMulti([1, 'bb', 'male', 'Empire']);
-        UserMulti u3 = new UserMulti([1, 'Dya', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
+        UserMulti u2 = new UserMulti([1, 'bb', 'male', 'Empire', 'cc']);
+        UserMulti u3 = new UserMulti([1, 'Dya', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList(1, 2);
         uList.add(u1);
         uList.set(u2);
@@ -386,7 +384,7 @@ void main() {
       });
 
       test('multiple pk: del by model', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList.filledList(1, 2, [u1]);
         uList.del(u1);
         expect(uList.getToDelList()['male${delimiter}Empire'], equals(u1));
@@ -394,13 +392,13 @@ void main() {
       });
 
       test('multiple pk: del model not exists in list should throw exception', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList(1, 2);
         expect(() => uList.del(u1), throwsA(predicate((e) => e is IModelException && e.code == 10004)));
       });
 
       test('multiple pk: model exists in toAddList should remove the model', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList(1, 2);
         uList.add(u1);
         uList.del(u1);
@@ -410,7 +408,7 @@ void main() {
       });
 
       test('multiple pk: model exists in toSetList should remove the model', () {
-        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire']);
+        UserMulti u1 = new UserMulti([1, 'ila', 'male', 'Empire', 'cc']);
         UserMultiList uList = new UserMultiList.filledList(1, 2, [u1]);
         uList.set(u1);
         uList.del(u1);
