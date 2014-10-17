@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:redis_client/redis_client.dart';
 import 'package:sqljocky/sqljocky.dart';
+import 'package:i_redis/i_redis.dart';
 
 import 'lib_test.dart';
 import 'i_config/store.dart';
@@ -40,7 +40,7 @@ Future flushdb() {
   });
 
   IRedisHandlerPool.dbs.forEach((groupName, List group) {
-    group.forEach((RedisClient redisClient) => waitList.add(redisClient.flushdb()));
+    group.forEach((IRedis redisClient) => waitList.add(redisClient.flushdb()));
   });
   return Future.wait(waitList);
 }

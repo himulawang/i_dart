@@ -10,12 +10,12 @@ class IIndexedDBHandlerPool {
   static final Map dbs = <String, Database>{};
 
   Future init(Map config, Map upgradeScripts) {
-    if (!IdbFactory.supported) throw new IStoreException(22001);
+    if (!IdbFactory.supported) throw new IStoreException(30001);
 
     List waitList = [];
     config.forEach((String dbName, Map config) {
       String name = config['db'];
-      if (!upgradeScripts.containsKey(name)) throw new IStoreException(22002);
+      if (!upgradeScripts.containsKey(name)) throw new IStoreException(30002);
 
       Map upgradeScript = upgradeScripts[name];
       // find max db version
@@ -80,6 +80,6 @@ class IIndexedDBHandlerPool {
   }
 
   void _checkInitialized() {
-    if (!_initialized) throw new IStoreException(22003);
+    if (!_initialized) throw new IStoreException(30003);
   }
 }

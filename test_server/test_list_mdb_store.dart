@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:redis_client/redis_client.dart';
+import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
 
 import 'lib_test.dart';

@@ -35,7 +35,7 @@ startTest() {
         UserMulti um = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
         expect(
             () => UserSingleIndexedDBStore.add(um),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22004))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30004))
         );
       });
 
@@ -45,7 +45,7 @@ startTest() {
         UserSingle us = new UserSingle();
         expect(
             () => UserSingleIndexedDBStore.add(us),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22006))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30006))
         );
       });
 
@@ -53,7 +53,7 @@ startTest() {
         UserSingleToAddLengthZero user = new UserSingleToAddLengthZero(new List.filled(orm['UserSingleToAddLengthZero']['Model']['column'].length, 1));
         expect(
             () => UserSingleToAddLengthZeroIndexedDBStore.add(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22005))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30005))
         );
       });
 
@@ -70,7 +70,7 @@ startTest() {
         UserSingleIndexedDBStore.add(user)
         .catchError(expectAsync((e) {
           expect(e is IStoreException, isTrue);
-          expect(e.code == 22007, isTrue);
+          expect(e.code == 30007, isTrue);
         }));
       });
 
@@ -78,7 +78,7 @@ startTest() {
         UserMulti um = new UserMulti();
         expect(
             () => UserMultiIndexedDBStore.add(um),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22006))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30006))
         );
       });
 
@@ -97,7 +97,7 @@ startTest() {
         UserMulti um = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
         expect(
             () => UserSingleIndexedDBStore.set(um),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22008))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30008))
         );
       });
 
@@ -106,7 +106,7 @@ startTest() {
         us.name = 'a';
         expect(
             () => UserSingleIndexedDBStore.set(us),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22006))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30006))
         );
       });
 
@@ -115,7 +115,7 @@ startTest() {
         user.uniqueName = 'a';
         expect(
             () => UserSingleToSetLengthZeroIndexedDBStore.set(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22009))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30009))
         );
       });
 
@@ -146,7 +146,7 @@ startTest() {
         um.name = 'a';
         expect(
             () => UserMultiIndexedDBStore.set(um),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22006))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30006))
         );
       });
 
@@ -200,7 +200,7 @@ startTest() {
         UserMulti um = new UserMulti(new List.filled(orm['UserMulti']['Model']['column'].length, 1));
         expect(
             () => UserSingleIndexedDBStore.del(um),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22010))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30010))
         );
       });
 
@@ -236,7 +236,7 @@ startTest() {
 
         expect(
             () => UserMultiPKIndexedDBStore.set(pk),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22011))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30011))
         );
       });
 
@@ -310,7 +310,7 @@ startTest() {
         UserMultiList list = new UserMultiList(1, 1);
         expect(
             () => SingleListIndexedDBStore.set(list),
-            throwsA(predicate((e) => e is IStoreException && e.code == 22013))
+            throwsA(predicate((e) => e is IStoreException && e.code == 30013))
         );
       });
 

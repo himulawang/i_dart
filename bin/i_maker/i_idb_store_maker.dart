@@ -14,11 +14,12 @@ part of lib_${_app};
 
 class ${name}IndexedDBStore extends IIndexedDBStore {
   static const Map store = const ${JSON.encode(store)};
+  static const String _modelName = '${name}';
 
   static Future add(${name} model) {
-    if (model is! ${name}) throw new IStoreException(22004);
+    if (model is! ${name}) throw new IStoreException(30004, [model.runtimeType, _modelName]);
     Map toAddAbb = model.toAddAbb(true);
-    if (toAddAbb.length == 0) throw new IStoreException(22005);
+    if (toAddAbb.length == 0) throw new IStoreException(30005, [_modelName]);
 
     toAddAbb['_pk'] = _makeKey(model);
 
@@ -30,7 +31,7 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
     }).catchError((e) {
       if (e is Event) {
         if (e.target.error.message == 'Key already exists in the object store.') {
-          throw new IStoreException(22007);
+          throw new IStoreException(30007, [_modelName]);
         }
         throw e.target.error;
       }
@@ -39,11 +40,11 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
   }
 
   static Future set(${name} model) {
-    if (model is! ${name}) throw new IStoreException(22008);
+    if (model is! ${name}) throw new IStoreException(30008, [model.runtimeType, _modelName]);
 
     // model has not been updated
     if (!model.isUpdated()) {
-      new IStoreException(27001);
+      new IStoreException(30501, [_modelName]);
       Completer completer = new Completer();
       completer.complete(model);
       return completer.future;
@@ -56,7 +57,7 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
       if (${name}._columns[i]['toSet']) return;
       toSetAbb[abb] = model._args[i];
     });
-    if (toSetAbb.length == 0) throw new IStoreException(22009);
+    if (toSetAbb.length == 0) throw new IStoreException(30009, [_modelName]);
 
     toSetAbb['_pk'] = _makeKey(model);
 
@@ -83,7 +84,7 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
   }
 
   static Future del(${name} model) {
-    if (model is! ${name}) throw new IStoreException(22010);
+    if (model is! ${name}) throw new IStoreException(30010, [model.runtimeType, _modelName]);
 
     var pk = _makeKey(model);
 
@@ -95,9 +96,9 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
   static _makeKey(${name} model) {
     var pk = model.getPK();
     if (pk is List) {
-      if (pk.contains(null)) throw new IStoreException(22006);
+      if (pk.contains(null)) throw new IStoreException(30006, [_modelName]);
     } else {
-      if (pk == null) throw new IStoreException(22006);
+      if (pk == null) throw new IStoreException(30006, [_modelName]);
     }
     return pk;
   }
@@ -125,20 +126,21 @@ class ${pkName}IndexedDBStore extends IIndexedDBStore {
 
   static const String _objectStore = '${storeConfig['objectStore']}';
   static const String _key = '${storeConfig['key']}';
+  static const String _modelName = '${pkName}';
 
   static const Map store = const ${JSON.encode(storeConfig)};
 
   static Future set(${pkName} pk) {
-    if (pk is! ${pkName}) throw new IStoreException(22011);
+    if (pk is! ${pkName}) throw new IStoreException(30011, [_modelName]);
     if (!pk.isUpdated()) {
-      new IStoreException(27002);
+      new IStoreException(30502, [_modelName]);
       Completer completer = new Completer();
       completer.complete(pk);
       return completer.future;
     }
 
     num value = pk.get();
-    if (value is! num) throw new IStoreException(22012);
+    if (value is! num) throw new IStoreException(30012);
 
     ObjectStore handler = new IIndexedDBHandlerPool().getWriteHandler(store);
     return handler.put({ OBJECT_STORE_PK_NAME: _key, OBJECT_STORE_VALUE_NAME: value })
@@ -190,14 +192,16 @@ part of lib_${_app};
 class ${listName}IndexedDBStore extends IIndexedDBStore {
   static const String OBJECT_STORE_PK_NAME = '_pk';
   static const String OBJECT_STORE_INDEX_NAME = '_index';
+  static const String _listName = '${listName}';
+  static const String _modelName = '${name}';
 
   static const Map store = const ${JSON.encode(storeConfig)};
 
   static Future<${listName}> set(${listName} list) {
-    if (list is! ${listName}) throw new IStoreException(22013);
+    if (list is! ${listName}) throw new IStoreException(30013, [list.runtimeType, _listName]);
 
     if (!list.isUpdated()) {
-      new IStoreException(27003);
+      new IStoreException(30503, [_listName]);
       Completer completer = new Completer();
       completer.complete(list);
       return completer.future;
@@ -254,7 +258,7 @@ class ${listName}IndexedDBStore extends IIndexedDBStore {
   static Future _addChild(${name} model, ObjectStore handler) {
     Map toAddAbb = model.toAddAbb(true);
     if (toAddAbb.length == 0) {
-      new IStoreException(27005);
+      new IStoreException(30505, [_modelName]);
       Completer completer = new Completer();
       completer.complete();
       return completer.future;
@@ -269,7 +273,7 @@ class ${listName}IndexedDBStore extends IIndexedDBStore {
     .catchError((e) {
       if (e is Event) {
         if (e.target.error.message == 'Key already exists in the object store.') {
-          new IStoreException(27004);
+          new IStoreException(30504, [_modelName]);
           return;
         }
         throw e.target.error;
@@ -287,7 +291,7 @@ class ${listName}IndexedDBStore extends IIndexedDBStore {
       toSetAbb[abb] = model._args[i];
     });
 
-    if (toSetAbb.length == 0) new IStoreException(27006);
+    if (toSetAbb.length == 0) new IStoreException(30506, [_modelName]);
 
     toSetAbb
       ..[OBJECT_STORE_PK_NAME] = model.getUnitedWholePK()

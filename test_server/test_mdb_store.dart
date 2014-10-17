@@ -45,6 +45,7 @@ CREATE TABLE IF NOT EXISTS `UserMulti` (
   `name` varchar(16) NOT NULL,
   `gender` int(11) NOT NULL,
   `uniqueName` varchar(12) NOT NULL,
+  `value` varchar(16) NOT NULL,
   PRIMARY KEY (`id`, `name`, `uniquename`)
 ) ENGINE=InnoDB;
 
@@ -183,6 +184,7 @@ startTest() {
           ..name = '2'
           ..gender = 2
           ..uniqueName = 'aaa'
+          ..value = 'aaa'
           ;
         UserMultiMariaDBStore.add(um)
         .then(expectAsync((UserMulti userMulti) {

@@ -17,22 +17,23 @@ part of lib_${_app};
 class ${name}MariaDBStore extends IMariaDBStore {
   static const Map store = const ${JSON.encode(store)};
   static const String table = '${store['table']}';
+  static const String _modelName = '${name}';
 
   static Future add(${name} model) {
-    if (model is! ${name}) throw new IStoreException(21023);
+    if (model is! ${name}) throw new IStoreException(21023, [model.runtimeType, _modelName]);
 
     Map toAddList = model.toAddList(true);
-    if (toAddList.length == 0) throw new IStoreException(21035);
+    if (toAddList.length == 0) throw new IStoreException(21035, [_modelName]);
 
     ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model.getUnitedPK());
 
     return handler.prepareExecute(IMariaDBSQLPrepare.makeAdd(table, ${name}._mapFull, ${name}._columns), toAddList)
     .then((Results results) {
-      if (results.affectedRows != 1) throw new IStoreException(21025);
+      if (results.affectedRows != 1) throw new IStoreException(21025, [_modelName]);
       return model;
     }).catchError((e) {
       if (e is MySqlException) {
-        if (e.errorNumber == 1062) throw new IStoreException(21028);
+        if (e.errorNumber == 1062) throw new IStoreException(21028, [_modelName]);
         throw e;
       }
       throw e;
@@ -40,11 +41,11 @@ class ${name}MariaDBStore extends IMariaDBStore {
   }
 
   static Future set(${name} model) {
-    if (model is! ${name}) throw new IStoreException(21026);
+    if (model is! ${name}) throw new IStoreException(21026, [model.runtimeType, _modelName]);
 
     Map toSetList = model.toSetList(true);
     if (toSetList.length == 0) {
-      new IStoreException(26001);
+      new IStoreException(21501, [_modelName]);
       Completer completer = new Completer();
       completer.complete(model);
       return completer.future;
@@ -56,8 +57,8 @@ class ${name}MariaDBStore extends IMariaDBStore {
         IMariaDBSQLPrepare.makeSet(table, model),
         IMariaDBSQLPrepare.makeWhereValues(model, toSetList)
     ).then((Results results) {
-      if (results.affectedRows == 0) new IStoreException(26002);
-      if (results.affectedRows > 1) new IStoreException(26003);
+      if (results.affectedRows == 0) new IStoreException(21502, [_modelName]);
+      if (results.affectedRows > 1) new IStoreException(21503, [_modelName]);
       return model;
     }).catchError(_handleErr);
   }
@@ -72,22 +73,22 @@ class ${name}MariaDBStore extends IMariaDBStore {
     ).then((Results results) => results.toList())
     .then((List result) {
       if (result.length == 0) return model;
-      if (result.length != 1) throw new IStoreException(21022);
+      if (result.length != 1) throw new IStoreException(21022, [_modelName]);
       return model..fromList(result[0])..setExist();
     })
     .catchError(_handleErr);
   }
 
   static Future del(model) {
-    if (model is! ${name}) throw new IStoreException(21034);
+    if (model is! ${name}) throw new IStoreException(21034, [model.runtimeType, _modelName]);
 
     ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model.getUnitedPK());
     return handler.prepareExecute(
         IMariaDBSQLPrepare.makeDel(table, model),
         IMariaDBSQLPrepare.makeWhereValues(model, [])
     ).then((Results results) {
-      if (results.affectedRows == 0) new IStoreException(26004);
-      if (results.affectedRows != 1) new IStoreException(26005);
+      if (results.affectedRows == 0) new IStoreException(21504, [_modelName]);
+      if (results.affectedRows != 1) new IStoreException(21505, [_modelName]);
       return results.affectedRows;
     }).catchError(_handleErr);
   }
@@ -112,23 +113,24 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
   static const _key = '${storeConfig['abb']}-pk';
   static const _table = '${storeConfig['table']}';
   static const Map store = const ${JSON.encode(storeConfig)};
+  static const _modelName = '${pkName}';
 
   static Future set(${pkName} pk) {
-    if (pk is! ${pkName}) throw new IStoreException(21036);
+    if (pk is! ${pkName}) throw new IStoreException(21036, [pk.runtimeType, _modelName]);
     if (!pk.isUpdated()) {
-      new IStoreException(26006);
+      new IStoreException(21506, [_modelName]);
       Completer completer = new Completer();
       completer.complete(pk);
       return completer.future;
     }
 
     num value = pk.get();
-    if (value is! num) throw new IStoreException(21037);
+    if (value is! num) throw new IStoreException(21037, [_modelName]);
 
     ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, _key);
     return handler.prepareExecute('INSERT INTO `\${_table}` (`key`, `pk`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `pk` = ?;', [_key, value, value])
     .then((Results results) {
-      if (results.affectedRows == 0) throw new IStoreException(21038);
+      if (results.affectedRows == 0) throw new IStoreException(21038, [_modelName]);
       return pk..setUpdated(false);
     })
     .catchError(_handleErr);
@@ -153,7 +155,7 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
 
     return handler.prepareExecute('DELETE FROM `\${_table}` WHERE `key` = ?', [_key])
     .then((Results results) {
-      if (results.affectedRows == 0) new IStoreException(26007);
+      if (results.affectedRows == 0) new IStoreException(21507, [_modelName]);
       if (results.affectedRows == 1) return true;
       return false;
     })
@@ -184,14 +186,16 @@ part of lib_${_app};
 
 class ${listName}MariaDBStore extends IMariaDBStore {
   static const String table = '${storeConfig['table']}';
+  static const String _listName = '${listName}';
+  static const String _modelName = '${name}';
 
   static const Map store = const ${JSON.encode(storeConfig)};
 
   static Future<${listName}> set(${listName} list) {
-    if (list is! ${listName}) throw new IStoreException(21039);
+    if (list is! ${listName}) throw new IStoreException(21039, [list.runtimeType, _listName]);
 
     if (!list.isUpdated()) {
-      new IStoreException(26008);
+      new IStoreException(21508, [_listName]);
       Completer completer = new Completer();
       completer.complete(list);
       return completer.future;
@@ -247,7 +251,11 @@ class ${listName}MariaDBStore extends IMariaDBStore {
     List params = [];
     toAddList.forEach((String childId, ${name} model) {
       List toAdd = model.toAddList(true);
-      if (toAdd.length != 0) params.add(toAdd);
+      if (toAdd.length != 0) {
+        params.add(toAdd);
+      } else {
+        new IStoreException(21509, [_modelName]);
+      }
     });
 
     return handler
@@ -266,8 +274,8 @@ class ${listName}MariaDBStore extends IMariaDBStore {
             IMariaDBSQLPrepare.makeSet(table, model),
             IMariaDBSQLPrepare.makeWhereValues(model, toSet)
         ).then((Results results) {
-          if (results.affectedRows == 0) new IStoreException(26010);
-          if (results.affectedRows > 1) new IStoreException(26011);
+          if (results.affectedRows == 0) new IStoreException(21510, [_modelName]);
+          if (results.affectedRows > 1) new IStoreException(21511, [_modelName]);
           return model;
         }).catchError(_handleErr)
       );
@@ -285,8 +293,8 @@ class ${listName}MariaDBStore extends IMariaDBStore {
               IMariaDBSQLPrepare.makeDel(table, model),
               IMariaDBSQLPrepare.makeWhereValues(model, [])
           ).then((Results results) {
-            if (results.affectedRows == 0) new IStoreException(26012);
-            if (results.affectedRows > 1) new IStoreException(26013);
+            if (results.affectedRows == 0) new IStoreException(21512, [_modelName]);
+            if (results.affectedRows > 1) new IStoreException(21513, [_modelName]);
             return results.affectedRows;
           }).catchError(_handleErr)
       );
