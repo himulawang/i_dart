@@ -12,6 +12,7 @@ part of lib_${_app};
 class ${name}RedisStore extends IRedisStore {
   static const String abb = '${storeConfig['abb']}';
   static const Map store = const ${JSON.encode(storeConfig)};
+  static const num expire = ${storeConfig['expire']};
   static const String _modelName = '${name}';
 
 ''';
@@ -388,7 +389,7 @@ class ${listName}RedisStore extends IRedisStore {
     String codeAddWithExpire = '''
     .then((String result) {
       if (result != 'OK') throw new IStoreException(20025, [_modelName]);
-      return handler.expire(key, ${storeConfig['expire']});
+      return handler.expire(key, expire);
     })
     .then((int result) {
       if (result == 1) return model;
@@ -445,7 +446,7 @@ class ${listName}RedisStore extends IRedisStore {
     String codeSetWithExpire = '''
     .then((String result) {
       if (result != 'OK') throw new IStoreException(20029, [_modelName]);
-      return handler.expire(key, ${storeConfig['expire']});
+      return handler.expire(key, expire);
     })
     .then((int result) {
       if (result == 1) return model;
