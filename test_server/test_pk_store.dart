@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:redis_client/redis_client.dart';
 import 'package:sqljocky/sqljocky.dart';
 
 import 'lib_test.dart';
@@ -108,6 +107,15 @@ startTest() {
         .then((_) => UserPKStore.get())
         .then(expectAsync((UserPK pk) {
           expect(pk.get(), 10);
+        }));
+      });
+
+      test('when incr, if not exists in cache, should restore from db', () {
+        UserPK pk = new UserPK();
+        UserPKRedisStore.del(pk)
+        .then((_) => UserPKStore.incr())
+        .then(expectAsync((UserPK pk) {
+          expect(pk.get(), 11);
         }));
       });
 

@@ -66,7 +66,7 @@ class ${pkName}RedisStore extends IRedisStore {
   static Future set(${pkName} pk) {
     if (pk is! ${pkName}) throw new IStoreException(20034, [pk.runtimeType, _pkName]);
     if (!pk.isUpdated()) {
-      new IStoreException(20505, ['${pkName}']);
+      new IStoreException(20505, [_pkName]);
       Completer completer = new Completer();
       completer.complete(pk);
       return completer.future;
@@ -119,6 +119,12 @@ class ${pkName}RedisStore extends IRedisStore {
     return handler.incr(_key)
     .then((num value) => pk..set(value)..setUpdated(false))
     .catchError(_handleErr);
+  }
+
+  static Future exists() {
+    IRedis handler = new IRedisHandlerPool().getWriteHandler(store, _key);
+
+    return handler.exists(_key);
   }
 
   static void _handleErr(e) => throw e;

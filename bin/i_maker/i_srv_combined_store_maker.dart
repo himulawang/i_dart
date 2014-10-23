@@ -132,17 +132,41 @@ class ${pkName}Store {
     .catchError(_handleErr);
   }
 
-  static Future incr() {
-    return ${pkName}${firstStoreTypeName}Store.incr()
-    .then((${pkName} pk) {
-      ${pkName} backupPK = _checkReachBackupStep(pk);
-      if (backupPK == null) return pk;
+''');
 
-      return ${pkName}${lastStoreTypeName}Store.set(backupPK)
-      .then((_) => pk);
+    if (storeOrm['backupStep'] != 0) {
+      codeSB.write('''
+  static Future incr() {
+    return ${pkName}${firstStoreTypeName}Store.exists()
+    .then((int exists) {
+      if (exists == 0) {
+        return ${pkName}${lastStoreTypeName}Store.get()
+        .then((${pkName} pk) {
+          pk.setUpdated(true);
+          if (pk.get() != 0) return ${pkName}${firstStoreTypeName}Store.set(pk);
+        });
+      }
+    })
+    .then((_) {
+      return ${pkName}${firstStoreTypeName}Store.incr()
+      .then((${pkName} pk) {
+        ${pkName} backupPK = _checkReachBackupStep(pk);
+        if (backupPK == null) return pk;
+
+        return ${pkName}${lastStoreTypeName}Store.set(backupPK)
+        .then((_) => pk);
+      });
     })
     .catchError(_handleErr);
   }
+''');
+    } else {
+      codeSB.write('''
+  static Future incr() => ${pkName}${firstStoreTypeName}Store.incr().catchError(_handleErr);
+''');
+    }
+
+    codeSB.write('''
 
   static ${pkName} _checkReachBackupStep(${pkName} pk) {
     if (!(_step != 0 && (pk.get() - 1) % _step == 0)) return null;
