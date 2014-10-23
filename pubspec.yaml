@@ -12,3 +12,4 @@ dependencies:
   paper_elements: any
   stream: any
   uuid: any
+  args: any
