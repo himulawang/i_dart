@@ -1,7 +1,14 @@
 library i_dart;
 
+/* example
+
+dart i_dart.dart init -n appName -t server
+
+*/
+
 import 'dart:io';
 import 'dart:async';
+import 'dart:convert';
 import 'package:args/args.dart';
 
 main(List<String> args) {
@@ -35,8 +42,9 @@ main(List<String> args) {
   var init = new Init(appName, appType);
 
   print('''
---- init start ---
+---------- INIT START ----------
 
+----- CONFIG -----
 Name: ${appName}
 Type: ${appType}
 Path: ${Init.appPath}
@@ -52,8 +60,11 @@ class Init {
   static String appPath;
   static Map serverConfigFiles;
   static Map serverRouteFiles;
+  static Map serverRootFiles;
+
   static Map clientConfigFiles;
   static Map clientRouteFiles;
+  static Map clientRootFiles;
 
   Init(String rawAppName, String rawAppType) {
     appName = rawAppName;
@@ -64,18 +75,41 @@ class Init {
   run() {
     createDir();
 
+    print('');
+    print('----- File -----');
+
     if (appType == 'server') {
-      initServer().then((_) => printEnd());
+      initServer()
+      .then((_) => pubGet())
+      .then((_) => printEnd());
     } else if (appType == 'client') {
-      initClient().then((_) => printEnd());
+      initClient()
+      .then((_) => pubGet())
+      .then((_) => printEnd());
     }
   }
 
+  pubGet() {
+    print('');
+    print('---------- PUB GET START ----------');
+    return Process.start('pub', ['get'])
+    .then((Process process) {
+      process.stdout.transform(UTF8.decoder).listen((data) { print(data); });
+
+      return process.exitCode.then((exitCode) {
+        print('exit code: ${exitCode}');
+        print('---------- PUB GET END----------');
+      });
+    });
+  }
+
   printEnd() {
-    print('--- init end ---');
+    print('');
+    print('---------- INIT END ----------');
   }
 
   createDir() {
+    print('----- DIRECTORY -----');
     Directory configDir = new Directory('${appPath}/i_config');
     if (!configDir.existsSync()) configDir.createSync();
     print('i_config directory created.');
@@ -88,12 +122,17 @@ class Init {
   Future initServer() {
     loadServerConfigFiles();
     loadServerRouteFiles();
+    loadServerRootFiles();
+
     List waitList = [];
     serverConfigFiles.forEach((fileName, content) {
       waitList.add(writeFile(fileName, '${appPath}/i_config', content, true));
     });
     serverRouteFiles.forEach((fileName, content) {
       waitList.add(writeFile(fileName, '${appPath}/route', content, true));
+    });
+    serverRootFiles.forEach((fileName, content) {
+      waitList.add(writeFile(fileName, '${appPath}', content, true));
     });
     return Future.wait(waitList);
   }
@@ -124,16 +163,14 @@ class Init {
     String fullName = '${path}/${name}';
     File file = new File(fullName);
 
-    if (overwrite) {
-      return write(file, content);
-    } else {
-      file.exists().then((found) {
-        if (!found) {
-          return write(file, content);
-        }
-      });
+    if (overwrite) return write(file, content);
+
+    return file.exists().then((found) {
+      if (!found) {
+        return write(file, content);
+      }
       print('${file.path} exists, skip.');
-    }
+    });
   }
 
   loadServerConfigFiles() {
@@ -344,9 +381,280 @@ class ExampleRouteLogic {
     };
   }
 
+  loadServerRootFiles() {
+    serverRootFiles = {
+      'pubspec.yaml':
+'''
+name: ${appName}
+description: Description
+dependencies:
+  unittest: ">=0.11.0+5 <0.12.0"
+  sqljocky: ">=0.11.0 <0.12.0"
+  logging: ">=0.9.2 <0.10.0"
+  http_server: ">=0.9.3 <0.10.0"
+  route: ">=0.4.6 <0.5.0"
+  i_redis: ">=1.0.3 <2.0.0"
+  uuid: ">=0.4.1 <0.5.0"
+''',
+        'run.dart':
+        '''
+import 'dart:io';
+
+import 'package:logging/logging.dart';
+import 'package:http_server/http_server.dart';
+import 'package:route/server.dart';
+
+import 'lib_${appName}.dart';
+import 'i_config/deploy.dart';
+import 'i_config/orm.dart';
+import 'i_config/store.dart';
+
+void main() {
+  Logger.root.level = Level.ALL;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('\${rec.level.name}: \${rec.time}: \${rec.message}');
+  });
+
+  int port = 8080;
+  final String rootPath = deploy['appPath'] + '/web';
+
+  var buildPath = Platform.script.resolve(rootPath).toFilePath();
+  HttpServer.bind(InternetAddress.LOOPBACK_IP_V4, port).then((server) {
+    Router router = new Router(server);
+
+    var virDir = new VirtualDirectory(buildPath);
+    virDir.jailRoot = false;
+    virDir.allowDirectoryListing = true;
+    /*
+    virDir.directoryHandler = (dir, request) {
+      print(dir.path);
+      var indexUrl = new Uri.file(dir.path).resolve('index.html');
+      virDir.serveFile(new File(indexUrl.toFilePath()), request);
+    };
+    */
+
+    var handler = new IWebSocketServerHandler();
+    router.serve('/ws')
+    .transform(new WebSocketTransformer())
+    .listen(handler.onMessage);
+
+    virDir.serve(router.defaultStream);
+
+    ILog.info('WebSocket Server is running on http://\${server.address.address}:\${port}');
+  });
+}
+''',
+        'deploy.dart':
+'''
+import 'package:i_dart/i_maker/lib_i_maker.dart';
+import 'i_config/deploy.dart';
+import 'i_config/orm.dart';
+
+void main() {
+  IModelMaker modelMaker = new IModelMaker(deploy, orm);
+  modelMaker.make();
+
+  IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
+  storeMaker.makeServer();
+
+  IUtilMaker utilMaker = new IUtilMaker(deploy);
+  utilMaker.make();
+
+  IRouteMaker routeMaker = new IRouteMaker(deploy);
+  routeMaker.makeServer();
+
+  ILibraryMaker libMaker = new ILibraryMaker(deploy);
+  libMaker.makeServer();
+}
+''',
+    };
+  }
+
   loadClientConfigFiles() {
     clientConfigFiles = {
+        // deploy.dart
+        'deploy.dart': '''
+library deploy;
 
+Map deploy = {
+  'iPath': '${appPath}/packages/i_dart/bin',
+
+  'app': '${appName}',
+  'appPath': '${appPath}',
+};
+''',
+
+        // orm.dart
+        'orm.dart': '''
+library orm;
+
+/* example
+Map orm = {
+    'User': {
+        'Model': {
+            'pk': [0],
+            'column': [
+                'groupId',
+                'id',
+                'name',
+                'email',
+                'country',
+                'city',
+            ],
+            'toAddFilter': [2],
+            'toSetFilter': [],
+            'toFullFilter': [],
+            'toAbbFilter': [],
+            'toListFilter': [],
+        },
+        'ModelStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'User',
+                },
+            ],
+        },
+        'PK': {
+            'className': 'UserPK',
+        },
+        'PKStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'PK',
+                    'key': 'UserPK',
+                },
+            ],
+        },
+        'List': {
+            'className': 'UserList',
+            'pk': [0],
+            'childPK': [1],
+        },
+        'ListStore': {
+            'storeOrder': [
+                {
+                    'type': 'indexedDB',
+                    'master': 'GameIDB',
+                    'objectStore': 'SingleList',
+                },
+            ],
+        },
+    },
+};
+*/
+
+Map orm = {
+};
+''',
+        'store.dart': '''
+library store;
+
+/* example
+Map store = {
+    'indexedDB': {
+        'GameIDB': {'db': 'GameIDB'},
+    },
+};
+*/
+
+Map store = {
+};
+''',
+        'client_route': '''
+part of lib_${appName};
+
+/* example
+Map clientRoute = {
+    "V101": { // echo
+        "handler": TestRouteLogic.echo,
+    },
+    "onUnknown": { // echo
+        "handler": TestRouteLogic.onUnknown,
+    },
+};
+*/
+
+Map clientRoute = {
+};
+''',
+        'idb_upgrade.dart': '''
+part of lib_${appName};
+
+/*
+
+Model
+
+ObjectStore objectStore = db.createObjectStore('UserSingle', keyPath: '_pk');
+
+PK
+one objStore can hold all pks
+ObjectStore objectStore = db.createObjectStore('PK', keyPath: '_pk');
+
+List
+ObjectStore objectStore = db.createObjectStore('SingleList', keyPath: '_pk');
+objectStore.createIndex("_index", "_index", unique: false );
+
+*/
+
+/* example
+Map idbUpgrade = {
+  'GameIDB': {
+      '1': (Database db) {
+        ObjectStore objectStore = db.createObjectStore('UserMultiple', keyPath: '_pk');
+      },
+      '7': (Database db) {
+        ObjectStore objectStore = db.createObjectStore('UserSingle', keyPath: '_pk');
+      },
+      '8': (Database db) {
+        ObjectStore objectStore = db.createObjectStore('PK', keyPath: '_pk');
+      },
+      '9': (Database db) {
+        ObjectStore objectStore = db.createObjectStore('UserSingleList', keyPath: '_pk');
+        objectStore.createIndex("_index", "_index", unique: false );
+      },
+      '10': (Database db) {
+        ObjectStore objectStore = db.createObjectStore('SingleList', keyPath: '_pk');
+        objectStore.createIndex("_index", "_index", unique: false );
+        db.deleteObjectStore('UserSingleList');
+      },
+      '12': (Database db) {
+        ObjectStore objectStore = db.createObjectStore('MultipleList', keyPath: '_pk');
+        objectStore.createIndex("_index", "_index", unique: false );
+      },
+  },
+};
+*/
+
+Map idbUpgrade = {
+};
+''',
+    };
+  }
+
+  loadClientRouteFiles() {
+    clientRouteFiles = {
+        'example_route_logic.dart': '''
+part of lib_${appName};
+
+/* example
+class ExampleRouteLogic {
+  static echo(WebSocket ws, String api, Map params) {
+    print('Message received: \${JSON.encode(params)}');
+  }
+
+  static onUnknown(WebSocket ws, String api, Map params) {
+    print('Message received: \${JSON.encode(params)}');
+  }
+}
+*/
+
+class ExampleRouteLogic {
+}
+''',
     };
   }
 }
