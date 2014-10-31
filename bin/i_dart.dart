@@ -81,10 +81,12 @@ class Init {
     if (appType == 'server') {
       initServer()
       .then((_) => pubGet())
+      .then((_) => deploy())
       .then((_) => printEnd());
     } else if (appType == 'client') {
       initClient()
       .then((_) => pubGet())
+      .then((_) => deploy())
       .then((_) => printEnd());
     }
   }
@@ -99,6 +101,20 @@ class Init {
       return process.exitCode.then((exitCode) {
         print('exit code: ${exitCode}');
         print('---------- PUB GET END----------');
+      });
+    });
+  }
+
+  deploy() {
+    print('');
+    print('---------- DEPLOY START ----------');
+    return Process.start('dart', ['deploy.dart'])
+    .then((Process process) {
+      process.stdout.transform(UTF8.decoder).listen((data) { print(data); });
+
+      return process.exitCode.then((exitCode) {
+        print('exit code: ${exitCode}');
+        print('---------- DEPLOY END----------');
       });
     });
   }
@@ -338,7 +354,7 @@ Map store = {
 Map store = {
 };
 ''',
-      'server_route': '''
+      'server_route.dart': '''
 part of lib_${appName};
 
 /* example
@@ -395,6 +411,7 @@ dependencies:
   route: ">=0.4.6 <0.5.0"
   i_redis: ">=1.0.3 <2.0.0"
   uuid: ">=0.4.1 <0.5.0"
+  i_dart: ">=0.1.0 <0.5.0"
 ''',
         'run.dart':
         '''
