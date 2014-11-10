@@ -1,11 +1,8 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
-import 'i_config/store.dart';
+import 'lib_test_model.dart';
 import 'i_config/orm.dart';
 
 void main() {
@@ -39,21 +36,6 @@ void main() {
     });
 
     group('constructor filledMap', () {
-      test('some child of map data is not instance of model should be filtered', () {
-        Map dataList = {
-          '1': new Room([1, '1']),
-          '2': new Room([2, '2']),
-          '3': new User(),
-        };
-
-        RoomList roomList = new RoomList.filledMap(1, dataList);
-        Map e = {
-          '1': {'i': 1, 'n': '1'},
-          '2': {'i': 2, 'n': '2'},
-        };
-        expect(roomList.toAbb(), equals(e));
-      });
-
       test('some child of map data has no child pk should throw exception', () {
         Map dataList = {
           '1': new Room([1, '1']),
@@ -74,21 +56,6 @@ void main() {
     });
 
     group('constructor filledList', () {
-      test('some child of list data is not instance of model should be filtered', () {
-        List dataList = [
-          new Room([1, '1']),
-          new Room([2, '2']),
-          new User(),
-        ];
-
-        RoomList roomList = new RoomList.filledList(1, dataList);
-        Map e = {
-            '1': {'i': 1, 'n': '1'},
-            '2': {'i': 2, 'n': '2'},
-        };
-        expect(roomList.toAbb(), equals(e));
-      });
-
       test('some child of list data has no pk should be throw exception', () {
         List dataList = [
           new Room([1, '1']),
@@ -711,11 +678,6 @@ void main() {
     });
 
     group('fromList', () {
-      test('wrong type', () {
-        RoomList roomList = new RoomList(1);
-        expect(() => roomList.fromList({}), throwsA(predicate((e) => e is IModelException && e.code == 10012)));
-      });
-
       test('wrong input data length', () {
         RoomList roomList = new RoomList(1);
         expect(() => roomList.fromList([[1]]), throwsA(predicate((e) => e is IModelException && e.code == 10006)));
@@ -739,11 +701,6 @@ void main() {
     });
 
     group('fromFull', () {
-      test('wrong type', () {
-        RoomList roomList = new RoomList(1);
-        expect(() => roomList.fromFull([]), throwsA(predicate((e) => e is IModelException && e.code == 10013)));
-      });
-
       test('not change update list', () {
         RoomList roomList = new RoomList(1);
         roomList.fromFull({'1': {'id': 1, 'name': '1'}, '2': {'id': 2, 'name': '2'}});
@@ -762,11 +719,6 @@ void main() {
     });
 
     group('fromAbb', () {
-      test('wrong type', () {
-        RoomList roomList = new RoomList(1);
-        expect(() => roomList.fromAbb([]), throwsA(predicate((e) => e is IModelException && e.code == 10014)));
-      });
-
       test('not change update list', () {
         RoomList roomList = new RoomList(1);
         roomList.fromAbb({'1': {'i': 1, 'n': '1'}, '2': {'i': 2, 'n': '2'}});

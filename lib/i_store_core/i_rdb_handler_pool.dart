@@ -3,6 +3,8 @@
  * DO NOT MODIFY!
  */
 
+part of i_dart;
+
 class IRedisHandlerPool {
   static bool _initialized = false;
   static IRedisHandlerPool _instance;

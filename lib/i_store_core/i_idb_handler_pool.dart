@@ -3,6 +3,8 @@
  * DO NOT MODIFY!
  */
 
+part of i_dart;
+
 class IIndexedDBHandlerPool {
   static bool _initialized = false;
   static IIndexedDBHandlerPool _instance;

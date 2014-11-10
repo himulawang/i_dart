@@ -3,6 +3,8 @@
  * DO NOT MODIFY!
  */
 
+part of i_dart;
+
 class IMariaDBHandlerPool {
   static bool _initialized = false;
   static IMariaDBHandlerPool _instance;

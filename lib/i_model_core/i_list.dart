@@ -3,23 +3,25 @@
  * DO NOT MODIFY!
  */
 
+part of i_dart;
+
 class IList {
-  List _pk;
-  Map _list = {};
+  List pks;
+  Map list = {};
   Map _toAddList = {};
   Map _toDelList = {};
   Map _toSetList = {};
   bool _updated = false;
   bool _exist = false;
 
-  bool _set(IModel model) => _list[model.getUnitedChildPK()] = model;
+  rawSet(model) => list[model.getUnitedChildPK()] = model;
 
-  get length => _list.length;
-  List getPK() => _pk;
+  get length => list.length;
+  List getPK() => pks;
   bool isUpdated() => _updated;
-  void setUpdated(bool flag) => _updated = flag;
+  setUpdated(bool flag) => _updated = flag;
 
-  Map getList() => _list;
+  Map getList() => list;
   Map getToAddList() => _toAddList;
   Map getToDelList() => _toDelList;
   Map getToSetList() => _toSetList;
@@ -37,32 +39,32 @@ class IList {
   void setExist([bool exist = true]) { _exist = exist; }
   bool isExist() => _exist;
 
-  void add(IModel model) {
+  void add(model) {
     String index = model.getUnitedChildPK();
-    if (_list.containsKey(index)) throw new IModelException(10003);
+    if (list.containsKey(index)) throw new IModelException(10003);
     
-    _list[index] = model;
+    list[index] = model;
     _toAddList[index] = model;
 
     _updated = true;
   }
-  void set(IModel model) {
+  void set(model) {
     String index = model.getUnitedChildPK();
-    if (_list[index] == null) throw new IModelException(10005);
+    if (list[index] == null) throw new IModelException(10005);
 
-    _list[index] = model;
+    list[index] = model;
     _toSetList[index] = model;
 
     if (_toAddList.containsKey(index)) _toAddList[index] = model;
 
     _updated = true;
   }
-  void del(IModel model) {
+  void del(model) {
     String index = model.getUnitedChildPK();
-    if (_list[index] == null) throw new IModelException(10004);
+    if (list[index] == null) throw new IModelException(10004);
 
-    if (_list.containsKey(index)) {
-      _list.remove(index);
+    if (list.containsKey(index)) {
+      list.remove(index);
       _toDelList[index] = model;
     }
 
@@ -75,28 +77,28 @@ class IList {
 
   Map toFixedList([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((String index, IModel child) {
+    list.forEach((String index, child) {
       result[index] = child.toFixedList(filterOn);
     });
     return result;
   }
   Map toList([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((String index, IModel child) {
+    list.forEach((String index, child) {
       result[index] = child.toList(filterOn);
     });
     return result;
   }
   Map toFull([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((String index, IModel child) {
+    list.forEach((String index, child) {
       result[index] = child.toFull(filterOn);
     });
     return result;
   }
   Map toAbb([bool filterOn = false]) {
     Map result = {};
-    _list.forEach((String index, IModel child) {
+    list.forEach((String index, child) {
       result[index] = child.toAbb(filterOn);
     });
     return result;

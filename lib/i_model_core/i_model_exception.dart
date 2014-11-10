@@ -3,6 +3,8 @@
  * DO NOT MODIFY!
  */
 
+part of i_dart;
+
 class IModelException extends IException {
   static final Map _CODES = {
     //'10001': '',

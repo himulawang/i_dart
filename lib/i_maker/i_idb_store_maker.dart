@@ -10,6 +10,7 @@ abstract class IIndexedDBStoreMaker {
 
     String code = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${name}IndexedDBStore extends IIndexedDBStore {
@@ -118,6 +119,7 @@ class ${name}IndexedDBStore extends IIndexedDBStore {
     Map storeConfig = _getStoreConfig('indexedDB', storeOrm);
     String code = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${pkName}IndexedDBStore extends IIndexedDBStore {
@@ -187,6 +189,7 @@ class ${pkName}IndexedDBStore extends IIndexedDBStore {
 
     String code = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${listName}IndexedDBStore extends IIndexedDBStore {

@@ -1,3 +1,5 @@
+part of i_dart;
+
 class IRouteValidator {
   static const ALLOW_NONE = 'n';
   static const ALLOW_EMPTY = 'e';

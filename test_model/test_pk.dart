@@ -1,11 +1,7 @@
-import 'dart:async';
-
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
 
-import 'lib_test.dart';
-import 'i_config/store.dart';
-import 'i_config/orm.dart';
+import 'lib_test_model.dart';
 
 void main() {
   Logger.root.level = Level.ALL;

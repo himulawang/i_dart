@@ -7,6 +7,7 @@ abstract class IRedisStoreMaker {
 
     String codeHeader = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${name}RedisStore extends IRedisStore {
@@ -55,6 +56,7 @@ class ${name}RedisStore extends IRedisStore {
 
     String code = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${pkName}RedisStore extends IRedisStore {
@@ -149,6 +151,7 @@ class ${pkName}RedisStore extends IRedisStore {
 
     codeSB.write('''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${listName}RedisStore extends IRedisStore {

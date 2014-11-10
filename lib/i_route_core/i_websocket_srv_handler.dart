@@ -1,3 +1,5 @@
+part of i_dart;
+
 class IWebSocketServerHandler {
   List pool = [];
 

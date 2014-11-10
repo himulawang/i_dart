@@ -1,3 +1,5 @@
+part of i_dart;
+
 class IWebSocketClientHandler {
   String _url;
   int _retryDuration;

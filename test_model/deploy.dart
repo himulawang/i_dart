@@ -1,17 +1,16 @@
+import 'package:i_dart/i_maker/lib_i_maker.dart';
 import 'i_config/deploy.dart';
-//import 'i_config/deploy_home.dart';
-import '../lib/i_maker/lib_i_maker.dart';
 import 'i_config/orm.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);
-  modelMaker.make();
+  modelMaker.makeServer();
 
   IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
   storeMaker.makeServer();
 
-  IUtilMaker utilMaker = new IUtilMaker(deploy);
-  utilMaker.make();
+  //IUtilMaker utilMaker = new IUtilMaker(deploy);
+  //utilMaker.make();
 
   IRouteMaker routeMaker = new IRouteMaker(deploy);
   routeMaker.makeServer();

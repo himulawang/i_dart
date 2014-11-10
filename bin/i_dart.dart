@@ -2,7 +2,7 @@ library i_dart;
 
 /* example
 
-dart i_dart.dart init -n appName -t server
+pub global run i_dart init -n app_name -t server
 
 */
 
@@ -58,6 +58,7 @@ class Init {
   static String appName;
   static String appType;
   static String appPath;
+
   static Map serverConfigFiles;
   static Map serverRouteFiles;
   static Map serverRootFiles;
@@ -156,12 +157,16 @@ class Init {
   Future initClient() {
     loadClientConfigFiles();
     loadClientRouteFiles();
+    loadClientRootFiles();
     List waitList = [];
     clientConfigFiles.forEach((fileName, content) {
       waitList.add(writeFile(fileName, '${appPath}/i_config', content, true));
     });
     clientRouteFiles.forEach((fileName, content) {
       waitList.add(writeFile(fileName, '${appPath}/route', content, true));
+    });
+    clientRootFiles.forEach((fileName, content) {
+      waitList.add(writeFile(fileName, '${appPath}', content, true));
     });
     return Future.wait(waitList);
   }
@@ -191,12 +196,11 @@ class Init {
 
   loadServerConfigFiles() {
     serverConfigFiles = {
-      // deploy.dart
       'deploy.dart': '''
 library deploy;
 
 Map deploy = {
-  'iPath': '${appPath}/packages/i_dart/bin',
+  'iPath': '${appPath}/packages/i_dart',
 
   'app': '${appName}',
   'appPath': '${appPath}',
@@ -469,13 +473,13 @@ import 'i_config/orm.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);
-  modelMaker.make();
+  modelMaker.makeServer();
 
   IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
   storeMaker.makeServer();
 
-  IUtilMaker utilMaker = new IUtilMaker(deploy);
-  utilMaker.make();
+  //IUtilMaker utilMaker = new IUtilMaker(deploy);
+  //utilMaker.make();
 
   IRouteMaker routeMaker = new IRouteMaker(deploy);
   routeMaker.makeServer();
@@ -489,12 +493,11 @@ void main() {
 
   loadClientConfigFiles() {
     clientConfigFiles = {
-        // deploy.dart
         'deploy.dart': '''
 library deploy;
 
 Map deploy = {
-  'iPath': '${appPath}/packages/i_dart/bin',
+  'iPath': '${appPath}/packages/i_dart',
 
   'app': '${appName}',
   'appPath': '${appPath}',
@@ -670,6 +673,81 @@ class ExampleRouteLogic {
 */
 
 class ExampleRouteLogic {
+}
+''',
+    };
+  }
+
+  loadClientRootFiles() {
+    clientRootFiles = {
+        'pubspec.yaml':
+        '''
+name: ${appName}
+description: Description
+dependencies:
+  unittest: ">=0.11.0+5 <0.12.0"
+  logging: ">=0.9.2 <0.10.0"
+  i_dart: ">=0.1.0 <0.5.0"
+''',
+        'main.dart':
+        '''
+import 'dart:html';
+import 'dart:indexed_db';
+import 'dart:async';
+
+import 'package:logging/logging.dart';
+
+import 'lib_${appName}.dart';
+import './i_config/orm.dart';
+import './i_config/store.dart';
+
+void main() {
+  Logger.root.level = Level.WARNING;
+  Logger.root.onRecord.listen((LogRecord rec) {
+    print('\${rec.level.name}: \${rec.time}: \${rec.message}');
+  });
+
+  IIndexedDBHandlerPool indexedDBPool = new IIndexedDBHandlerPool();
+  indexedDBPool.init(store['indexedDB'], idbUpgrade)
+  .then((_) {
+    // do something
+  });
+}
+''',
+        'index.html':
+        '''
+<!DOCTYPE html>
+<html>
+<head>
+    <title>${appName}</title>
+</head>
+<body>
+    <script type="application/dart" src="main.dart"></script>
+</body>
+</html>
+''',
+
+        'deploy.dart':
+        '''
+import 'i_config/deploy.dart';
+import 'package:i_dart/i_maker/lib_i_maker.dart';
+import 'i_config/orm.dart';
+
+void main() {
+  IModelMaker modelMaker = new IModelMaker(deploy, orm);
+  modelMaker.makeClient();
+
+  IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
+  storeMaker.makeClient();
+
+  //IUtilMaker utilMaker = new IUtilMaker(deploy);
+  //utilMaker.make();
+
+  IRouteMaker routeMaker = new IRouteMaker(deploy);
+  routeMaker.makeClient();
+
+  ILibraryMaker libMaker = new ILibraryMaker(deploy);
+  libMaker.makeClient();
 }
 ''',
     };

@@ -1,3 +1,5 @@
+part of i_dart;
+
 class IException {
   int code;
   String message;

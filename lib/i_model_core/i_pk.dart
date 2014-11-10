@@ -3,21 +3,23 @@
  * DO NOT MODIFY!
  */
 
+part of i_dart;
+
 class IPK {
-  num _pk;
+  num pk;
   bool _updated = false;
 
-  void set(num pk) {
-    _pk = pk;
+  void set(num v) {
+    pk = v;
     _updated = true;
   }
   
-  num get() => _pk;
+  num get() => pk;
 
   num incr([num step = 1]) {
-    _pk += step;
+    pk += step;
     _updated = true;
-    return _pk;
+    return pk;
   }
   
   void reset() => set(0);

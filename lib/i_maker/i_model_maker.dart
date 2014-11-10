@@ -5,24 +5,35 @@ class IModelMaker extends IMaker {
   String _outModelCoreDir;
   String _srcModelCoreDir;
   String _outModelDir;
+  String _libName;
 
   IModelMaker(Map deploy, Map orm) : super(deploy) {
     _orm = orm;
   }
 
+  makeServer() {
+    _libName = 'i_dart_srv.dart';
+    make();
+  }
+
+  makeClient() {
+    _libName = 'i_dart_clt.dart';
+    make();
+  }
+
   void make() {
-    _srcModelCoreDir = '${_iPath}/i_model_core';
-    _outModelCoreDir = '${_appPath}/i_model_core';
+    //_srcModelCoreDir = '${_iPath}/i_model_core';
+    //_outModelCoreDir = '${_appPath}/i_model_core';
     _outModelDir = '${_appPath}/model';
 
     // create i_model directory
     makeSubDir();
 
     // copy base model
-    copyFileWithHeader(_srcModelCoreDir, 'i_pk.dart', _outModelCoreDir, 'i_pk.dart', 'part of lib_${_app};');
-    copyFileWithHeader(_srcModelCoreDir, 'i_model.dart', _outModelCoreDir, 'i_model.dart', 'part of lib_${_app};');
-    copyFileWithHeader(_srcModelCoreDir, 'i_list.dart', _outModelCoreDir, 'i_list.dart', 'part of lib_${_app};');
-    copyFileWithHeader(_srcModelCoreDir, 'i_model_exception.dart', _outModelCoreDir, 'i_model_exception.dart', 'part of lib_${_app};');
+    //copyFileWithHeader(_srcModelCoreDir, 'i_pk.dart', _outModelCoreDir, 'i_pk.dart', 'part of lib_${_app};');
+    //copyFileWithHeader(_srcModelCoreDir, 'i_model.dart', _outModelCoreDir, 'i_model.dart', 'part of lib_${_app};');
+    //copyFileWithHeader(_srcModelCoreDir, 'i_list.dart', _outModelCoreDir, 'i_list.dart', 'part of lib_${_app};');
+    //copyFileWithHeader(_srcModelCoreDir, 'i_model_exception.dart', _outModelCoreDir, 'i_model_exception.dart', 'part of lib_${_app};');
 
     // make model files
     _orm.forEach((String name, Map orm) {
@@ -126,9 +137,9 @@ class ${name} extends IModel {
   }
 
   String getName() => _name;
-  String getColumnCount() => _length;
+  int getColumnCount() => _length;
 
-  Map getColumns() => _columns;
+  List getColumns() => _columns;
   Map getMapAbb() => _mapAbb;
   Map getMapFull() => _mapFull;
 
@@ -368,11 +379,12 @@ class ${name} extends IModel {
     StringBuffer codeSB = new StringBuffer();
     codeSB.write('''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${className} extends IPK {
-  ${name}PK([num pk = 0]) {
-    _pk = pk;
+  ${name}PK([num init = 0]) {
+    pk = init;
   }
 }
 ''');
@@ -396,6 +408,7 @@ class ${className} extends IPK {
     StringBuffer codeSB = new StringBuffer();
     codeSB.write('''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${listName} extends IList {
@@ -407,7 +420,7 @@ class ${listName} extends IList {
 
     dataList.forEach((String i, ${name} model) {
       if (model is! ${name}) return;
-      _set(model);
+      rawSet(model);
     });
   }
 
@@ -416,24 +429,24 @@ class ${listName} extends IList {
 
     dataList.forEach((${name} model) {
       if (model is! ${name}) return;
-      _set(model);
+      rawSet(model);
     });
   }
 
-  void _initPK(List pk) => _pk = pk;
+  _initPK(List pk) => pks = pk;
 
-  void setPK(${pkColumnName.join(', ')}) => _pk = [${pkColumnName.join(', ')}];
+  setPK(${pkColumnName.join(', ')}) => pks = [${pkColumnName.join(', ')}];
   String getUnitedPK() {
-    if (_pk.contains(null)) throw new IModelException(10021);
-    return _pk.join(_delimiter);
+    if (pks.contains(null)) throw new IModelException(10021);
+    return pks.join(_delimiter);
   }
 
-  ${name} get(${childPKColumnName.join(', ')}) => _list["\${${childPKColumnName.join('}\$\{_delimiter}\${')}}"];
+  ${name} get(${childPKColumnName.join(', ')}) => list["\${${childPKColumnName.join('}\$\{_delimiter}\${')}}"];
 
   void fromList(List dataList, [bool changeUpdatedList = false]) {
     if (dataList is! List) throw new IModelException(10012, [this.runtimeType]);
 
-    dataList.forEach((Map data) {
+    dataList.forEach((List data) {
       ${name} model = new ${name}();
       model.fromList(data, changeUpdatedList);
       if (changeUpdatedList) {
@@ -443,7 +456,7 @@ class ${listName} extends IList {
           set(model);
         }
       } else {
-        _set(model);
+        rawSet(model);
       }
     });
   }
@@ -460,7 +473,7 @@ class ${listName} extends IList {
           set(model);
         }
       } else {
-        _set(model);
+        rawSet(model);
       }
     });
   }
@@ -477,7 +490,7 @@ class ${listName} extends IList {
           set(model);
         }
       } else {
-        _set(model);
+        rawSet(model);
       }
     });
   }
@@ -496,8 +509,8 @@ class ${listName} extends IList {
   }
 
   void makeSubDir() {
-    Directory coreDir = new Directory(_outModelCoreDir);
-    if (!coreDir.existsSync()) coreDir.createSync();
+    //Directory coreDir = new Directory(_outModelCoreDir);
+    //if (!coreDir.existsSync()) coreDir.createSync();
 
     Directory modelDir = new Directory(_outModelDir);
     if (!modelDir.existsSync()) modelDir.createSync();

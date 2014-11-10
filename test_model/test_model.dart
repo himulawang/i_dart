@@ -1,11 +1,8 @@
-import 'dart:async';
-import 'dart:convert';
-
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
-import 'i_config/store.dart';
+import 'lib_test_model.dart';
 import 'i_config/orm.dart';
 
 void main() {
@@ -23,13 +20,6 @@ void main() {
       test('no argument input', () {
         User u = new User();
         expect(u.toFixedList(), equals(new List.filled(orm['User']['Model']['column'].length, null)));
-      });
-
-      test('input argument with wrong type', () {
-        expect(
-            () => new User({'a': 1}),
-            throwsA(predicate((e) => e is IModelException && e.code == 10010))
-        );
       });
 
       test('input argument with wrong length', () {
@@ -844,12 +834,6 @@ void main() {
     });
 
     group('fromList', () {
-      test('wrong type', () {
-        User u = new User();
-        Map data = {};
-        expect(() => u.fromList(data), throwsA(predicate((e) => e is IModelException && e.code == 10006)));
-      });
-
       test('wrong input data length', () {
         User u = new User();
         List data = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
@@ -880,12 +864,6 @@ void main() {
     });
 
     group('fromFull', () {
-      test('wrong type', () {
-        User u = new User();
-        List data = [];
-        expect(() => u.fromFull(data), throwsA(predicate((e) => e is IModelException && e.code == 10008)));
-      });
-
       test('not change update list', () {
         User u = new User([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
         Map data = {'name': 'name'};
@@ -912,12 +890,6 @@ void main() {
     });
 
     group('fromAbb', () {
-      test('wrong type', () {
-        User u = new User();
-        List data = [];
-        expect(() => u.fromAbb(data), throwsA(predicate((e) => e is IModelException && e.code == 10007)));
-      });
-
       test('not change update list', () {
         User u = new User([0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]);
         Map data = {'n': 'n'};

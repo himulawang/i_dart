@@ -12,6 +12,7 @@ abstract class IMariaDBStoreMaker {
 
     String code = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${name}MariaDBStore extends IMariaDBStore {
@@ -107,6 +108,7 @@ class ${name}MariaDBStore extends IMariaDBStore {
 
     String code = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${pkName}MariaDBStore extends IMariaDBStore {
@@ -182,6 +184,7 @@ class ${pkName}MariaDBStore extends IMariaDBStore {
 
     String code = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${listName}MariaDBStore extends IMariaDBStore {

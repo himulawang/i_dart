@@ -11,6 +11,7 @@ abstract class IServerCombinedStoreMaker {
 
     String codeHeader = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${name}Store {
@@ -96,6 +97,7 @@ class ${name}Store {
     StringBuffer codeSB = new StringBuffer();
     codeSB.write('''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${pkName}Store {
@@ -189,6 +191,7 @@ class ${pkName}Store {
 
     String codeHeader = '''
 ${_DECLARATION}
+
 part of lib_${_app};
 
 class ${name}ListStore {

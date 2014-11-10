@@ -3,6 +3,8 @@
  * DO NOT MODIFY!
  */
 
+part of i_dart;
+
 class IMariaDBSQLPrepare {
   static String makeAdd(String table, Map mapFull, List columns) {
     List columnList = [];

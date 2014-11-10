@@ -1,3 +1,5 @@
+part of i_dart;
+
 class IRouteServerException extends IException {
   static final Map _CODES = {
       // WebSocket Handler

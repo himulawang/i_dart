@@ -3,5 +3,7 @@
  * DO NOT MODIFY!
  */
 
+part of i_dart;
+
 class IMariaDBStore {
 }

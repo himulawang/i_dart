@@ -26,15 +26,18 @@ void main() {
   */
 
 
-  var a = '''
-  // ila
-{
-  "a":1
+  var c = new b(1);
+
+
 }
 
-''';
-  print(JSON.decode(a));
+class a {
+  num count;
+}
 
-
+class b extends a {
+  b(input) {
+    count = input;
+  }
 }
 

@@ -1,3 +1,5 @@
+part of i_dart;
+
 class CRC32 {
   static final List<int> _table = const [
       0x00000000, 0x77073096, 0xEE0E612C, 0x990951BA, 0x076DC419, 0x706AF48F,
