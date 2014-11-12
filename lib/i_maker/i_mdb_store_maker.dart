@@ -23,7 +23,7 @@ class ${name}MariaDBStore extends IMariaDBStore {
   static Future add(${name} model) {
     if (model is! ${name}) throw new IStoreException(21023, [model.runtimeType, _modelName]);
 
-    Map toAddList = model.toAddList(true);
+    List toAddList = model.toAddList(true);
     if (toAddList.length == 0) throw new IStoreException(21035, [_modelName]);
 
     ConnectionPool handler = new IMariaDBHandlerPool().getWriteHandler(store, model.getUnitedPK());
@@ -44,7 +44,7 @@ class ${name}MariaDBStore extends IMariaDBStore {
   static Future set(${name} model) {
     if (model is! ${name}) throw new IStoreException(21026, [model.runtimeType, _modelName]);
 
-    Map toSetList = model.toSetList(true);
+    List toSetList = model.toSetList(true);
     if (toSetList.length == 0) {
       new IStoreException(21501, [_modelName]);
       Completer completer = new Completer();
@@ -233,7 +233,7 @@ class ${listName}MariaDBStore extends IMariaDBStore {
         [${pkColumnName.join(', ')}]
     ).then((Results results) {
       results.listen((row) {
-        list._set(new ${name}()..fromList(row.toList()));
+        list.rawSet(new ${name}()..fromList(row.toList()));
       }, onDone: () {
         c.complete(list);
       });

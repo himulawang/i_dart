@@ -2,12 +2,12 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:redis_client/redis_client.dart';
 import 'package:sqljocky/sqljocky.dart';
+import 'package:i_redis/i_redis.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
+import 'lib_test_server_store.dart';
 import 'i_config/store.dart';
-import 'i_config/orm.dart';
 
 num startTimestamp;
 num endTimestamp;
@@ -41,7 +41,7 @@ Future flushdb() {
   });
 
   IRedisHandlerPool.dbs.forEach((groupName, List group) {
-    group.forEach((RedisClient redisClient) => waitList.add(redisClient.flushdb()));
+    group.forEach((IRedis redisClient) => waitList.add(redisClient.flushdb()));
   });
   return Future.wait(waitList);
 }
@@ -51,16 +51,6 @@ startTest() {
   group('Test list store', () {
 
     group('set', () {
-
-      test('invalid list should throw exception', () {
-        UserList list = new UserList(1);
-
-        expect(
-            () => UserSingleListStore.set(list),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21039))
-        );
-
-      });
 
       test('set no changed list should get warning', () {
         UserSingleList list = new UserSingleList(1);
@@ -380,7 +370,7 @@ startTest() {
         .then(expectAsync((UserSingleList list) {
           return UserSingleListStore.del(list);
         }))
-        .then(expectAsync((UserSingleList list) {
+        .then(expectAsync((_) {
           return UserSingleListStore.get(1);
         }))
         .then(expectAsync((UserSingleList list) {
@@ -393,7 +383,7 @@ startTest() {
         .then(expectAsync((MultipleList list) {
           return MultipleListStore.del(list);
         }))
-        .then(expectAsync((MultipleList list) {
+        .then(expectAsync((_) {
           return MultipleListStore.get(1, 'ila');
         }))
         .then(expectAsync((MultipleList list) {

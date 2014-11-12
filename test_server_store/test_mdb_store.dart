@@ -70,13 +70,13 @@ CREATE TABLE IF NOT EXISTS `Multiple` (
 
  */
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
 import 'package:sqljocky/sqljocky.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
+import 'lib_test_server_store.dart';
 import 'i_config/store.dart';
 import 'i_config/orm.dart';
 
@@ -127,14 +127,6 @@ startTest() {
     });
 
     group('add', () {
-      test('model is invalid', () {
-        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
-        expect(
-            () => RoomMariaDBStore.add(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21023))
-        );
-      });
-
       test('pk is null should throw exception', () {
         User user = new User();
         user.name = 'aa';
@@ -195,14 +187,6 @@ startTest() {
     });
 
     group('set', () {
-
-      test('model is invalid', () {
-        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
-        expect(
-            () => RoomMariaDBStore.set(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21026))
-        );
-      });
 
       test('pk is null should throw exception', () {
         User user = new User()..name = 2;

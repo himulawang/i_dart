@@ -2,38 +2,17 @@ part of i_maker;
 
 class IModelMaker extends IMaker {
   Map <String, Map>_orm;
-  String _outModelCoreDir;
-  String _srcModelCoreDir;
   String _outModelDir;
-  String _libName;
 
   IModelMaker(Map deploy, Map orm) : super(deploy) {
     _orm = orm;
   }
 
-  makeServer() {
-    _libName = 'i_dart_srv.dart';
-    make();
-  }
-
-  makeClient() {
-    _libName = 'i_dart_clt.dart';
-    make();
-  }
-
   void make() {
-    //_srcModelCoreDir = '${_iPath}/i_model_core';
-    //_outModelCoreDir = '${_appPath}/i_model_core';
     _outModelDir = '${_appPath}/model';
 
     // create i_model directory
     makeSubDir();
-
-    // copy base model
-    //copyFileWithHeader(_srcModelCoreDir, 'i_pk.dart', _outModelCoreDir, 'i_pk.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcModelCoreDir, 'i_model.dart', _outModelCoreDir, 'i_model.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcModelCoreDir, 'i_list.dart', _outModelCoreDir, 'i_list.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcModelCoreDir, 'i_model_exception.dart', _outModelCoreDir, 'i_model_exception.dart', 'part of lib_${_app};');
 
     // make model files
     _orm.forEach((String name, Map orm) {

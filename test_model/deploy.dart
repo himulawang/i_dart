@@ -4,13 +4,10 @@ import 'i_config/orm.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);
-  modelMaker.makeServer();
+  modelMaker.make();
 
   IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
   storeMaker.makeServer();
-
-  //IUtilMaker utilMaker = new IUtilMaker(deploy);
-  //utilMaker.make();
 
   IRouteMaker routeMaker = new IRouteMaker(deploy);
   routeMaker.makeServer();

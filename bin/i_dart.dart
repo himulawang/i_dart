@@ -322,18 +322,18 @@ library store;
 Map store = {
     'redis': {
         'GameCache': [
-            {'no': 0, 'host': 'localhost', 'port': 6379, 'pwd': null, 'db': '0'},
-            {'no': 1, 'host': 'localhost', 'port': 6380, 'pwd': null, 'db': '0'},
+            {'no': 0, 'host': 'localhost', 'port': 6379, 'pwd': null, 'db': 0},
+            {'no': 1, 'host': 'localhost', 'port': 6380, 'pwd': null, 'db': 0},
         ],
         'GameCacheSlave': [
-            {'no': 0, 'host': 'localhost', 'port': 6381, 'pwd': null, 'db': '0'},
-            {'no': 1, 'host': 'localhost', 'port': 6382, 'pwd': null, 'db': '0'},
+            {'no': 0, 'host': 'localhost', 'port': 6381, 'pwd': null, 'db': 0},
+            {'no': 1, 'host': 'localhost', 'port': 6382, 'pwd': null, 'db': 0},
         ],
         'SingleCache': [
-            {'no': 0, 'host': 'localhost', 'port': 6383, 'pwd': null, 'db': '0'},
+            {'no': 0, 'host': 'localhost', 'port': 6383, 'pwd': null, 'db': 0},
         ],
         'SingleCacheSlave': [
-            {'no': 0, 'host': 'localhost', 'port': 6384, 'pwd': null, 'db': '0'},
+            {'no': 0, 'host': 'localhost', 'port': 6384, 'pwd': null, 'db': 0},
         ],
     },
     'mariaDB': {
@@ -424,6 +424,7 @@ import 'dart:io';
 import 'package:logging/logging.dart';
 import 'package:http_server/http_server.dart';
 import 'package:route/server.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
 import 'lib_${appName}.dart';
 import 'i_config/deploy.dart';
@@ -473,13 +474,10 @@ import 'i_config/orm.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);
-  modelMaker.makeServer();
+  modelMaker.make();
 
   IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
   storeMaker.makeServer();
-
-  //IUtilMaker utilMaker = new IUtilMaker(deploy);
-  //utilMaker.make();
 
   IRouteMaker routeMaker = new IRouteMaker(deploy);
   routeMaker.makeServer();
@@ -735,13 +733,10 @@ import 'i_config/orm.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);
-  modelMaker.makeClient();
+  modelMaker.make();
 
   IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
   storeMaker.makeClient();
-
-  //IUtilMaker utilMaker = new IUtilMaker(deploy);
-  //utilMaker.make();
 
   IRouteMaker routeMaker = new IRouteMaker(deploy);
   routeMaker.makeClient();

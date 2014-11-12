@@ -7,31 +7,16 @@ class IStoreMaker extends IMaker with
   IServerCombinedStoreMaker {
 
   Map _orm;
-  String _outStoreCoreDir;
-  String _srcStoreCoreDir;
   String _outStoreDir;
-  String _libName;
 
   IStoreMaker(Map deploy, Map orm) : super(deploy) {
     _orm = orm;
   }
 
   void makeServer() {
-    //_srcStoreCoreDir = '${_iPath}/i_store_core';
-
-    //_outStoreCoreDir = '${_appPath}/i_store_core';
     _outStoreDir = '${_appPath}/store';
-    _libName = 'i_dart_srv.dart';
 
     makeSubDir();
-
-    // copy core store
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_rdb_store.dart', _outStoreCoreDir, 'i_rdb_store.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_mdb_store.dart', _outStoreCoreDir, 'i_mdb_store.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_rdb_handler_pool.dart', _outStoreCoreDir, 'i_rdb_handler_pool.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_mdb_handler_pool.dart', _outStoreCoreDir, 'i_mdb_handler_pool.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_mdb_sql_prepare.dart', _outStoreCoreDir, 'i_mdb_sql_prepare.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_store_exception.dart', _outStoreCoreDir, 'i_store_exception.dart', 'part of lib_${_app};');
 
     _orm.forEach((String name, Map orm) {
       String lowerName = makeLowerUnderline(name);
@@ -80,18 +65,9 @@ class IStoreMaker extends IMaker with
   }
 
   void makeClient() {
-    //_srcStoreCoreDir = '${_iPath}/i_store_core';
-
-    //_outStoreCoreDir = '${_appPath}/i_store_core';
     _outStoreDir = '${_appPath}/store';
-    _libName = 'i_dart_clt.dart';
 
     makeSubDir();
-
-    // copy core store
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_idb_store.dart', _outStoreCoreDir, 'i_idb_store.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_idb_handler_pool.dart', _outStoreCoreDir, 'i_idb_handler_pool.dart', 'part of lib_${_app};');
-    //copyFileWithHeader(_srcStoreCoreDir, 'i_store_exception.dart', _outStoreCoreDir, 'i_store_exception.dart', 'part of lib_${_app};');
 
     _orm.forEach((String name, Map orm) {
       String lowerName = makeLowerUnderline(name);
@@ -117,9 +93,6 @@ class IStoreMaker extends IMaker with
   }
 
   void makeSubDir() {
-    //Directory coreDir = new Directory(_outStoreCoreDir);
-    //if (!coreDir.existsSync()) coreDir.createSync();
-
     Directory storeDir = new Directory(_outStoreDir);
     if (!storeDir.existsSync()) storeDir.createSync();
   }

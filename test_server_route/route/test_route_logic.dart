@@ -1,4 +1,4 @@
-part of lib_test;
+part of lib_test_server_route;
 
 class TestRouteLogic {
   TestRouteLogic() {

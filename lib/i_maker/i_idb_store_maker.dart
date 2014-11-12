@@ -239,7 +239,7 @@ class ${listName}IndexedDBStore extends IIndexedDBStore {
     handler.index(OBJECT_STORE_INDEX_NAME)
     .openCursor(key: list.getUnitedPK(), autoAdvance: true)
     .listen((CursorWithValue cursor) {
-      list._set(new ${name}()..fromAbb(cursor.value));
+      list.rawSet(new ${name}()..fromAbb(cursor.value));
     }, onDone: () {
       completer.complete(list);
     });

@@ -3,8 +3,9 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
 import 'package:i_redis/i_redis.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
+import 'lib_test_server_store.dart';
 import 'i_config/store.dart';
 import 'i_config/orm.dart';
 
@@ -52,16 +53,6 @@ startTest() {
 
       setUp(() => flushdb());
 
-      test('model is invalid', () {
-        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
-        expect(
-            () => RoomRedisStore.add(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 20022))
-        );
-      });
-
-      setUp(() {});
-
       test('pk is null should throw exception', () {
         Room user = new Room();
         expect(
@@ -69,6 +60,8 @@ startTest() {
             throwsA(predicate((e) => e is IStoreException && e.code == 20042))
         );
       });
+
+      setUp(() {});
 
       test('toAddAbb return list length is 0 should throw exception', () {
         UserToAddLengthZero user = new UserToAddLengthZero(new List.filled(orm['UserToAddLengthZero']['Model']['column'].length, 1));
@@ -128,14 +121,6 @@ startTest() {
     });
 
     group('set', () {
-
-      test('model is invalid', () {
-        User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));
-        expect(
-            () => RoomRedisStore.set(user),
-            throwsA(predicate((e) => e is IStoreException && e.code == 20026))
-        );
-      });
 
       test('pk is null should throw exception', () {
         Room user = new Room();
@@ -241,13 +226,6 @@ startTest() {
     });
 
     group('del', () {
-
-      test('input model invalid', () {
-        expect(
-            () => UserRedisStore.del([]),
-            throwsA(predicate((e) => e is IStoreException && e.code == 20030))
-        );
-      });
 
       test('input is mode del success', () {
         User user = new User(new List.filled(orm['User']['Model']['column'].length, 1));

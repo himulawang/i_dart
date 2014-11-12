@@ -2,12 +2,11 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
+import 'lib_test_server_store.dart';
 import 'i_config/store.dart';
-import 'i_config/orm.dart';
 
 num startTimestamp;
 num endTimestamp;
@@ -47,17 +46,6 @@ startTest() {
 
       setUp(() => flushdb());
 
-      test('invalid list should throw exception', () {
-        UserSingleList list = new UserSingleList(1);
-
-        expect(
-            () => MultipleListMariaDBStore.set(list),
-            throwsA(predicate((e) => e is IStoreException && e.code == 21039))
-        );
-      });
-
-      setUp(() {});
-
       test('Set not changed list should get warning', () {
         UserSingleList list = new UserSingleList(1);
 
@@ -66,6 +54,8 @@ startTest() {
           expect(identical(list, newList), isTrue);
         }));
       });
+
+      setUp(() {});
 
       test('add 2 children successfully', () {
         UserSingleList list = new UserSingleList(1);
@@ -284,7 +274,7 @@ startTest() {
         .then(expectAsync((UserSingleList list) {
           return UserSingleListMariaDBStore.del(list);
         }))
-        .then(expectAsync((UserSingleList list) {
+        .then(expectAsync((_) {
           return UserSingleListMariaDBStore.get(1);
         }))
         .then(expectAsync((UserSingleList list) {
@@ -297,7 +287,7 @@ startTest() {
         .then(expectAsync((MultipleList list) {
           return MultipleListMariaDBStore.del(list);
         }))
-        .then(expectAsync((MultipleList list) {
+        .then(expectAsync((_) {
           return MultipleListMariaDBStore.get(1, 'ila');
         }))
         .then(expectAsync((MultipleList list) {

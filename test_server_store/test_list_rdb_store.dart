@@ -3,9 +3,9 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
 import 'package:i_redis/i_redis.dart';
-import 'package:sqljocky/sqljocky.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
+import 'lib_test_server_store.dart';
 import 'i_config/store.dart';
 import 'i_config/orm.dart';
 
@@ -42,17 +42,6 @@ startTest() {
 
       setUp(() => flushdb());
 
-      test('invalid list should throw exception', () {
-        RoomList roomList = new RoomList(1);
-
-        expect(
-            () => UserSingleListRedisStore.set(roomList),
-            throwsA(predicate((e) => e is IStoreException && e.code == 20040))
-        );
-      });
-
-      setUp(() {});
-
       test('first add 2 child successfully', () {
 
         UserSingle us1 = new UserSingle(new List.filled(orm['UserSingle']['Model']['column'].length, 1));
@@ -74,6 +63,8 @@ startTest() {
         }));
 
       });
+
+      setUp(() {});
 
       test('set not changed list should get warning', () {
 

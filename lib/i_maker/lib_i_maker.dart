@@ -3,17 +3,22 @@
  *
  * * Generate Models from orm configuration
  * * Generate Stores from orm store configuration
- * * Copy I core files to app directory
  *
  *     import 'i_maker/lib_i_maker.dart';
  *     import 'i_model_config/orm.dart';
  *
  *     void main() {
- *       IModelMaker modelMaker = new IModelMaker(orm);
- *       modelMaker.make('/home/ila/project/i_dart/out');
+ *       IModelMaker modelMaker = new IModelMaker(deploy, orm);
+ *       modelMaker.makeServer();
  *
- *       IStoreMaker storeMaker = new IStoreMaker(orm);
- *       storeMaker.make('/home/ila/project/i_dart/out');
+ *       IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
+ *       storeMaker.makeServer();
+ *
+ *       IRouteMaker routeMaker = new IRouteMaker(deploy);
+ *       routeMaker.makeServer();
+ *
+ *       ILibraryMaker libMaker = new ILibraryMaker(deploy);
+ *       libMaker.makeServer();
  *     }
  */
 library i_maker;
@@ -29,6 +34,5 @@ part 'i_mdb_store_maker.dart';
 part 'i_idb_store_maker.dart';
 part 'i_srv_combined_store_maker.dart';
 
-part 'i_util_maker.dart';
 part 'i_route_maker.dart';
 part 'i_lib_maker.dart';

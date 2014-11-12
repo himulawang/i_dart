@@ -3,10 +3,11 @@ import 'dart:async';
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
 import 'package:sqljocky/sqljocky.dart';
+import 'package:i_redis/i_redis.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
+import 'lib_test_server_store.dart';
 import 'i_config/store.dart';
-import 'i_config/orm.dart';
 
 num startTimestamp;
 num endTimestamp;
@@ -38,7 +39,7 @@ Future flushdb() {
   });
 
   IRedisHandlerPool.dbs.forEach((groupName, List group) {
-    group.forEach((RedisClient redisClient) => waitList.add(redisClient.flushdb()));
+    group.forEach((IRedis redisClient) => waitList.add(redisClient.flushdb()));
   });
   return Future.wait(waitList);
 }

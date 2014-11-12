@@ -2,12 +2,11 @@ import 'dart:async';
 
 import 'package:logging/logging.dart';
 import 'package:unittest/unittest.dart';
-import 'package:i_redis/i_redis.dart';
 import 'package:sqljocky/sqljocky.dart';
+import 'package:i_dart/i_dart_srv.dart';
 
-import 'lib_test.dart';
+import 'lib_test_server_store.dart';
 import 'i_config/store.dart';
-import 'i_config/orm.dart';
 
 num startTimestamp;
 num endTimestamp;
@@ -20,23 +19,25 @@ void main() {
     print('${rec.level.name}: ${rec.time}: ${rec.message}');
   });
 
-  IRedisHandlerPool redisPool = new IRedisHandlerPool();
-
-  redisPool.init(store['redis'])
-  .then((_) => startTest());
+  IMariaDBHandlerPool pool = new IMariaDBHandlerPool()..init(store['mariaDB']);
+  flushdb().then((_) => startTest());
 }
 
 Future flushdb() {
   // flushdb
   List waitList = [];
-  IRedisHandlerPool.dbs.forEach((groupName, List group) {
-    group.forEach((IRedis redisClient) => waitList.add(redisClient.flushdb()));
+  IMariaDBHandlerPool.dbs.forEach((groupName, List group) {
+    group.forEach((ConnectionPool pool) {
+      waitList.add(
+          pool.query('TRUNCATE TABLE `PK`;')
+      );
+    });
   });
   return Future.wait(waitList);
 }
 
 startTest() {
-  group('Test pk rdb store', () {
+  group('Test pk mdb store', () {
 
     group('set', () {
 
@@ -47,7 +48,7 @@ startTest() {
         pk.incr();
         pk.incr();
         pk.incr();
-        UserPKRedisStore.set(pk)
+        UserPKMariaDBStore.set(pk)
         .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
         }));
@@ -57,7 +58,7 @@ startTest() {
 
       test('set unchanged pk should do nothing', () {
         UserPK pk = new UserPK();
-        UserPKRedisStore.set(pk)
+        UserPKMariaDBStore.set(pk)
         .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
         }));
@@ -68,7 +69,7 @@ startTest() {
     group('get', () {
 
       test('get successfully', () {
-        UserPKRedisStore.get()
+        UserPKMariaDBStore.get()
         .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(3));
@@ -76,7 +77,7 @@ startTest() {
       });
 
       test('pk not exist should get pk with value 0', () {
-        RoomPKRedisStore.get()
+        RoomPKMariaDBStore.get()
         .then(expectAsync((RoomPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(0));
@@ -89,8 +90,8 @@ startTest() {
 
       test('del successfully', () {
         UserPK pk = new UserPK();
-        UserPKRedisStore.del(pk)
-        .then((_) => UserPKRedisStore.get())
+        UserPKMariaDBStore.del(pk)
+        .then((_) => UserPKMariaDBStore.get())
         .then(expectAsync((UserPK pk) {
           expect(pk.isUpdated(), isFalse);
           expect(pk.get(), equals(0));
@@ -99,29 +100,9 @@ startTest() {
 
       test('del pk not exist should get warning', () {
         UserPK pk = new UserPK();
-        UserPKRedisStore.del(pk)
-        .then(expectAsync((int result) {
-          expect(result, 0);
-        }));
-      });
-
-    });
-
-    group('incr', () {
-
-      test('incr successfully', () {
-        UserPKRedisStore.incr()
-        .then(expectAsync((UserPK pk) {
-          expect(pk.get(), equals(1));
-          return UserPKRedisStore.incr();
-        }))
-        .then(expectAsync((UserPK pk) {
-          expect(pk.get(), equals(2));
-          return UserPKRedisStore.incr();
-        }))
-        .then(expectAsync((UserPK pk) {
-          expect(pk.get(), equals(3));
-          return UserPKRedisStore.incr();
+        UserPKMariaDBStore.del(pk)
+        .then(expectAsync((bool result) {
+          expect(result, isFalse);
         }));
       });
 

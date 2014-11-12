@@ -236,7 +236,7 @@ class ${listName}RedisStore extends IRedisStore {
           })
           .then((List data) {
             model..fromList(data)..setExist();
-            list._set(model);
+            list.rawSet(model);
           })
           .catchError((e) {
             if (e is IStoreException && e.code == 20503) return model;
