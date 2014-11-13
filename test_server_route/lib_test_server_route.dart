@@ -14,8 +14,9 @@ import 'package:logging/logging.dart';
 import 'package:i_dart/i_dart_srv.dart';
 
 part './i_config/server_route.dart';
+part './i_config/orm.dart';
+part './i_config/store.dart';
 
-// .pub
 // model
 // store
 // route

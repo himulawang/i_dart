@@ -198,7 +198,7 @@ class Init {
   loadServerConfigFiles() {
     serverConfigFiles = {
       'deploy.dart': '''
-library deploy;
+part of lib_${appName};
 
 Map deploy = {
   'iPath': '${appPath}/packages/i_dart',
@@ -210,7 +210,7 @@ Map deploy = {
 
       // orm.dart
       'orm.dart': '''
-library orm;
+part of lib_${appName};
 
 /* example
 Map orm = {
@@ -317,7 +317,7 @@ Map orm = {
 };
 ''',
       'store.dart': '''
-library store;
+part of lib_${appName};
 
 /* example
 Map store = {
@@ -415,7 +415,6 @@ dependencies:
   http_server: ">=0.9.3 <0.10.0"
   route: ">=0.4.6 <0.5.0"
   i_redis: ">=1.0.3 <2.0.0"
-  uuid: ">=0.4.1 <0.5.0"
   i_dart: ">=0.1.0 <0.5.0"
 ''',
         'run.dart':
@@ -428,9 +427,6 @@ import 'package:route/server.dart';
 import 'package:i_dart/i_dart_srv.dart';
 
 import 'lib_${appName}.dart';
-import 'i_config/deploy.dart';
-import 'i_config/orm.dart';
-import 'i_config/store.dart';
 
 void main() {
   Logger.root.level = Level.ALL;
@@ -456,7 +452,7 @@ void main() {
     };
     */
 
-    var handler = new IWebSocketServerHandler();
+    var handler = new IWebSocketServerHandler(serverRoute);
     router.serve('/ws')
     .transform(new WebSocketTransformer())
     .listen(handler.onMessage);
@@ -469,9 +465,13 @@ void main() {
 ''',
         'deploy.dart':
 '''
+library lib_${appName};
+
 import 'package:i_dart/i_maker/lib_i_maker.dart';
-import 'i_config/deploy.dart';
-import 'i_config/orm.dart';
+
+part 'i_config/deploy.dart';
+part 'i_config/orm.dart';
+part 'i_config/store.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);
@@ -493,7 +493,7 @@ void main() {
   loadClientConfigFiles() {
     clientConfigFiles = {
         'deploy.dart': '''
-library deploy;
+part of lib_${appName};
 
 Map deploy = {
   'iPath': '${appPath}/packages/i_dart',
@@ -505,7 +505,7 @@ Map deploy = {
 
         // orm.dart
         'orm.dart': '''
-library orm;
+part of lib_${appName};
 
 /* example
 Map orm = {
@@ -570,7 +570,7 @@ Map orm = {
 };
 ''',
         'store.dart': '''
-library store;
+part of lib_${appName};
 
 /* example
 Map store = {
@@ -601,9 +601,7 @@ Map clientRoute = {
 };
 ''',
         'idb_upgrade.dart': '''
-library idb_upgrade;
-
-import 'dart:indexed_db';
+part of lib_${appName};
 
 /*
 
@@ -700,9 +698,6 @@ import 'package:logging/logging.dart';
 import 'package:i_dart/i_dart_clt.dart';
 
 import 'lib_${appName}.dart';
-import './i_config/orm.dart';
-import './i_config/store.dart';
-import './i_config/idb_upgrade.dart';
 
 void main() {
   Logger.root.level = Level.ALL;
@@ -732,9 +727,13 @@ void main() {
 
         'deploy.dart':
         '''
-import 'i_config/deploy.dart';
+library lib_${appName};
+
 import 'package:i_dart/i_maker/lib_i_maker.dart';
-import 'i_config/orm.dart';
+
+part 'i_config/deploy.dart';
+part 'i_config/orm.dart';
+part 'i_config/store.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);

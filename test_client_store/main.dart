@@ -8,9 +8,6 @@ import 'package:unittest/unittest.dart';
 import 'package:unittest/html_enhanced_config.dart';
 
 import 'lib_test_client_store.dart';
-import './i_config/orm.dart';
-import './i_config/store.dart';
-import './i_config/idb_upgrade.dart';
 
 void main() {
   useHtmlEnhancedConfiguration();

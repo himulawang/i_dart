@@ -14,8 +14,10 @@ import 'package:logging/logging.dart';
 import 'package:i_dart/i_dart_clt.dart';
 
 part './i_config/client_route.dart';
+part './i_config/orm.dart';
+part './i_config/store.dart';
+part './i_config/idb_upgrade.dart';
 
-// .pub
 // model
 part './model/user_single_list.dart';
 part './model/single_list.dart';

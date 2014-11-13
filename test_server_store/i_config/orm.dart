@@ -1,4 +1,4 @@
-library orm;
+part of lib_test_server_store;
 
 Map orm = {
     'User': {

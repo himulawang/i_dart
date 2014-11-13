@@ -1,4 +1,4 @@
-library store;
+part of lib_test_client_route;
 
 /* example
 Map store = {

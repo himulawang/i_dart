@@ -12,6 +12,8 @@ import 'package:logging/logging.dart';
 import 'package:i_dart/i_dart_srv.dart';
 
 part './i_config/server_route.dart';
+part './i_config/orm.dart';
+part './i_config/store.dart';
 
 ''';
 
@@ -26,6 +28,9 @@ import 'package:logging/logging.dart';
 import 'package:i_dart/i_dart_clt.dart';
 
 part './i_config/client_route.dart';
+part './i_config/orm.dart';
+part './i_config/store.dart';
+part './i_config/idb_upgrade.dart';
 
 ''';
 
@@ -50,8 +55,9 @@ part './i_config/client_route.dart';
     ls.forEach((entity) {
       // skip File & i_config directory
       String path = makeCompatiblePath(entity.path);
+      print(path);
       if (entity is File ||
-        path[0] == '.' ||
+        path.contains('${_appPath}/.') ||
         path == '${_appPath}/i_config' ||
         path == '${_appPath}/packages'
       ) return;

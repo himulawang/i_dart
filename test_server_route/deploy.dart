@@ -1,6 +1,10 @@
+library lib_test_server_route;
+
 import 'package:i_dart/i_maker/lib_i_maker.dart';
-import 'i_config/deploy.dart';
-import 'i_config/orm.dart';
+
+part 'i_config/deploy.dart';
+part 'i_config/orm.dart';
+part 'i_config/store.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);

@@ -1,16 +1,17 @@
+library lib_test_server_store;
+
 import 'package:i_dart/i_maker/lib_i_maker.dart';
-import 'i_config/deploy.dart';
-import 'i_config/orm.dart';
+
+part 'i_config/deploy.dart';
+part 'i_config/orm.dart';
+part 'i_config/store.dart';
 
 void main() {
   IModelMaker modelMaker = new IModelMaker(deploy, orm);
-  modelMaker.makeServer();
+  modelMaker.make();
 
   IStoreMaker storeMaker = new IStoreMaker(deploy, orm);
   storeMaker.makeServer();
-
-  //IUtilMaker utilMaker = new IUtilMaker(deploy);
-  //utilMaker.make();
 
   IRouteMaker routeMaker = new IRouteMaker(deploy);
   routeMaker.makeServer();

@@ -1,4 +1,4 @@
-library deploy;
+part of lib_test_client_route;
 
 Map deploy = {
   'iPath': '/home/ila/project/i_dart/test_client_route/packages/i_dart',

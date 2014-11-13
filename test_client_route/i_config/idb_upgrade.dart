@@ -1,6 +1,4 @@
-library idb_upgrade;
-
-import 'dart:indexed_db';
+part of lib_test_client_route;
 
 /*
 

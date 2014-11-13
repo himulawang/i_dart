@@ -3,7 +3,6 @@ import 'package:unittest/unittest.dart';
 import 'package:i_dart/i_dart_srv.dart';
 
 import 'lib_test_model.dart';
-import 'i_config/orm.dart';
 
 void main() {
   Logger.root.level = Level.ALL;

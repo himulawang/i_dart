@@ -1,4 +1,4 @@
-library orm;
+part of lib_test_client_store;
 
 /* example
 Map orm = {
