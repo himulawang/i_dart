@@ -1,5 +1,8 @@
 Change Log
 ===
+v 0.1.3
+tidy up test cases; remove unused directory
+
 v 0.1.2
 remove model / store core files to i_dart/lib
 

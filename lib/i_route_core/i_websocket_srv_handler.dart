@@ -2,6 +2,9 @@ part of i_dart;
 
 class IWebSocketServerHandler {
   List pool = [];
+  final Map route;
+
+  IWebSocketServerHandler(this.route);
 
   onMessage(ws) {
     pool.add(ws);
@@ -47,7 +50,7 @@ class IWebSocketServerHandler {
       }
 
       // check api is valid
-      if (!serverRoute.containsKey(api)) {
+      if (!route.containsKey(api)) {
         var error = new IRouteServerException(40005, [api]);
         resError(ws, error, json);
         return;
@@ -57,8 +60,8 @@ class IWebSocketServerHandler {
 
       // check params
       try {
-        IRouteValidator.validateAll(params, serverRoute[api]['params'], api);
-        serverRoute[api]['handler'](this, api, params, messageId);
+        IRouteValidator.validateAll(params, route[api]['params'], api);
+        route[api]['handler'](this, api, params, messageId);
       } catch (e) {
         return;
       }

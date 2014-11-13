@@ -2,7 +2,11 @@ library i_dart;
 
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
+import 'dart:indexed_db';
+import 'dart:math';
+import 'dart:html';
+
+import 'package:logging/logging.dart';
 
 // util
 part 'i_util/i_exception.dart';

@@ -79,17 +79,17 @@ class Init {
     print('');
     print('----- File -----');
 
+    Future initFuture;
     if (appType == 'server') {
-      initServer()
-      .then((_) => pubGet())
-      .then((_) => deploy())
-      .then((_) => printEnd());
+      initFuture = initServer();
     } else if (appType == 'client') {
-      initClient()
-      .then((_) => pubGet())
-      .then((_) => deploy())
-      .then((_) => printEnd());
+      initFuture = initClient();
     }
+
+    initFuture
+    .then((_) => pubGet())
+    .then((_) => deploy())
+    .then((_) => printEnd());
   }
 
   pubGet() {
@@ -158,6 +158,7 @@ class Init {
     loadClientConfigFiles();
     loadClientRouteFiles();
     loadClientRootFiles();
+
     List waitList = [];
     clientConfigFiles.forEach((fileName, content) {
       waitList.add(writeFile(fileName, '${appPath}/i_config', content, true));
@@ -582,7 +583,7 @@ Map store = {
 Map store = {
 };
 ''',
-        'client_route': '''
+        'client_route.dart': '''
 part of lib_${appName};
 
 /* example
@@ -600,7 +601,9 @@ Map clientRoute = {
 };
 ''',
         'idb_upgrade.dart': '''
-part of lib_${appName};
+library idb_upgrade;
+
+import 'dart:indexed_db';
 
 /*
 
@@ -694,13 +697,15 @@ import 'dart:indexed_db';
 import 'dart:async';
 
 import 'package:logging/logging.dart';
+import 'package:i_dart/i_dart_clt.dart';
 
 import 'lib_${appName}.dart';
 import './i_config/orm.dart';
 import './i_config/store.dart';
+import './i_config/idb_upgrade.dart';
 
 void main() {
-  Logger.root.level = Level.WARNING;
+  Logger.root.level = Level.ALL;
   Logger.root.onRecord.listen((LogRecord rec) {
     print('\${rec.level.name}: \${rec.time}: \${rec.message}');
   });
